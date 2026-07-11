@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { Home, Search, PlusCircle, LayoutDashboard, Bookmark, LogOut } from "lucide-react";
 
 export default function Navbar() {
   const router = useRouter();
@@ -19,7 +20,6 @@ export default function Navbar() {
 
     getUser();
 
-    // Keep the navbar in sync if auth state changes elsewhere (login/logout in another tab, etc.)
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -36,34 +36,41 @@ export default function Navbar() {
   }
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        gap: "16px",
-        padding: "16px 24px",
-        borderBottom: "1px solid #ddd",
-        alignItems: "center",
-      }}
-    >
-      <Link href="/" style={{ fontWeight: "bold" }}>
+    <nav className="flex gap-6 px-6 py-4 border-b border-mist items-center bg-white/80 backdrop-blur">
+      <Link href="/" className="font-display font-bold text-lg text-palm flex items-center gap-1.5">
+        <Home size={20} />
         Ile.
       </Link>
-      <Link href="/listings">Listings</Link>
+      <Link href="/listings" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
+        <Search size={16} /> Listings
+      </Link>
 
       {user ? (
         <>
-          <Link href="/listings/new">Post a Listing</Link>
-          <Link href="/dashboard">Dashboard</Link>
-          <button onClick={handleLogout} style={{ marginLeft: "auto" }}>
-            Log Out
+          <Link href="/listings/new" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
+            <PlusCircle size={16} /> Post a Listing
+          </Link>
+          <Link href="/dashboard" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
+            <LayoutDashboard size={16} /> Dashboard
+          </Link>
+          <Link href="/my-bookings" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
+            <Bookmark size={16} /> My Bookings
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="ml-auto flex items-center gap-1.5 text-sm text-clay hover:text-red-800 transition-colors"
+          >
+            <LogOut size={16} /> Log Out
           </button>
         </>
       ) : (
         <>
-          <Link href="/signup" style={{ marginLeft: "auto" }}>
+          <Link href="/signup" className="ml-auto text-ink/70 hover:text-palm transition-colors">
             Sign Up
           </Link>
-          <Link href="/login">Log In</Link>
+          <Link href="/login" className="text-ink/70 hover:text-palm transition-colors">
+            Log In
+          </Link>
         </>
       )}
     </nav>

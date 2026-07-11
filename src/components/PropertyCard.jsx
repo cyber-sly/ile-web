@@ -1,11 +1,23 @@
+import { MapPin, BedDouble } from "lucide-react";
+
 export default function PropertyCard({ title, location, price, bedrooms, imageUrl }) {
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "12px", width: "260px" }}>
-      <img src={imageUrl} alt={title} style={{ width: "100%", borderRadius: "6px" }} />
-      <h3>{title}</h3>
-      <p>{location}</p>
-      <p>{bedrooms} bedroom(s)</p>
-      <p><strong>₦{price.toLocaleString()}/year</strong></p>
+    <div className="border border-mist rounded-xl p-3 w-64 shadow-sm hover:shadow-md transition-shadow bg-white">
+      <img
+        src={imageUrl || "https://placehold.co/400x300"}
+        alt={title}
+        className="w-full h-40 object-cover rounded-lg"
+      />
+      <h3 className="font-display text-lg font-semibold mt-3 text-ink">{title}</h3>
+      <p className="flex items-center gap-1 text-ink/60 text-sm mt-1">
+        <MapPin size={14} /> {location}
+      </p>
+      <p className="flex items-center gap-1 text-ink/60 text-sm">
+        <BedDouble size={14} /> {bedrooms} bedroom(s)
+      </p>
+      <p className="text-palm font-semibold mt-2">
+        ₦{Number(price).toLocaleString()}/year
+      </p>
     </div>
   );
 }

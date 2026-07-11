@@ -1,3 +1,23 @@
+@theme inline {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --color-ink: #1C1B18;
+  --color-paper: #FAF8F2;
+  --color-palm: #1F6F50;
+  --color-palm-dark: #185A40;
+  --color-sun: #E2A63B;
+  --color-clay: #B14A2E;
+  --color-mist: #E7E3D8;
+}
+
+.font-display {
+  font-family: var(--font-display), sans-serif;
+}
+.font-body {
+  font-family: var(--font-body), sans-serif;
+}
+
+
 @import "tailwindcss";
 
 :root {
@@ -12,12 +32,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
