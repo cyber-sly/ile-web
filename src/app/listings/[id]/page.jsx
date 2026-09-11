@@ -19,6 +19,7 @@ export default function ListingDetailPage() {
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const [preferredDate, setPreferredDate] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
   const [booking, setBooking] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("success");
@@ -59,6 +60,7 @@ export default function ListingDetailPage() {
       listing_id: id,
       tenant_id: user.id,
       preferred_date: preferredDate,
+      preferred_time: preferredTime || null,
     });
 
     if (insertError) {
@@ -72,6 +74,7 @@ export default function ListingDetailPage() {
     setMessageType("success");
     setBooking(false);
     setPreferredDate("");
+    setPreferredTime("");
   }
 
   async function handleDelete() {
@@ -201,13 +204,21 @@ export default function ListingDetailPage() {
           <CalendarDays size={18} /> Book an Inspection
         </h2>
         <form onSubmit={handleBookInspection} className="flex flex-col gap-3">
-          <input
-            type="date"
-            value={preferredDate}
-            onChange={(e) => setPreferredDate(e.target.value)}
-            required
-            className="border border-mist rounded-lg px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-palm"
-          />
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={preferredDate}
+              onChange={(e) => setPreferredDate(e.target.value)}
+              required
+              className="flex-1 min-w-0 border border-mist rounded-lg px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-palm"
+            />
+            <input
+              type="time"
+              value={preferredTime}
+              onChange={(e) => setPreferredTime(e.target.value)}
+              className="flex-1 min-w-0 border border-mist rounded-lg px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-palm"
+            />
+          </div>
           <button
             type="submit"
             disabled={booking}

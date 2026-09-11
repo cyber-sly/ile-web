@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { LayoutDashboard, Pencil, Trash2, CalendarDays, Inbox, AlertCircle, LogIn } from "lucide-react";
+import {
+  LayoutDashboard, Pencil, Trash2, CalendarDays, Inbox, AlertCircle, LogIn,
+  X, Clock,
+} from "lucide-react";
 
 export default function DashboardPage() {
   const [listings, setListings] = useState([]);
@@ -11,6 +14,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [accessError, setAccessError] = useState("");
+
+  const [proposalFor, setProposalFor] = useState(null);
+  const [proposalDate, setProposalDate] = useState("");
+  const [proposalTime, setProposalTime] = useState("");
+  const [proposalNote, setProposalNote] = useState("");
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -78,6 +86,69 @@ export default function DashboardPage() {
     }
   }
 
+  async function declineInspection(inspectionId) {
+    const confirmed = window.confirm("Decline this inspection request?");
+    if (!confirmed) return;
+
+    const { error: updateError } = await supabase
+      .from("inspections")
+      .update({ status: "declined" })
+      .eq("id", inspectionId);
+
+    if (!updateError) {
+      setInspections((prev) =>
+        prev.map((inspection) =>
+          inspection.id === inspectionId ? { ...inspection, status: "declined" } : inspection
+        )
+      );
+    }
+  }
+
+  function openProposal(inspection) {
+    setProposalFor(inspection.id);
+    setProposalDate(inspection.preferred_date || "");
+    setProposalTime(inspection.preferred_time || "");
+    setProposalNote("");
+  }
+
+  function closeProposal() {
+    setProposalFor(null);
+    setProposalDate("");
+    setProposalTime("");
+    setProposalNote("");
+  }
+
+  async function sendProposal(e, inspectionId) {
+    e.preventDefault();
+
+    const { error: updateError } = await supabase
+      .from("inspections")
+      .update({
+        status: "countered",
+        proposed_date: proposalDate,
+        proposed_time: proposalTime || null,
+        landlord_note: proposalNote || null,
+      })
+      .eq("id", inspectionId);
+
+    if (!updateError) {
+      setInspections((prev) =>
+        prev.map((inspection) =>
+          inspection.id === inspectionId
+            ? {
+                ...inspection,
+                status: "countered",
+                proposed_date: proposalDate,
+                proposed_time: proposalTime || null,
+                landlord_note: proposalNote || null,
+              }
+            : inspection
+        )
+      );
+      closeProposal();
+    }
+  }
+
   async function deleteListing(listingId) {
     const confirmed = window.confirm("Delete this listing? This can't be undone.");
     if (!confirmed) return;
@@ -113,8 +184,20 @@ export default function DashboardPage() {
 
   const statusColors = {
     pending: "bg-sun/20 text-sun",
+    countered: "bg-clay/15 text-clay",
     confirmed: "bg-palm/15 text-palm",
+    declined: "bg-mist text-clay/70",
+    cancelled: "bg-mist text-ink/50",
     done: "bg-mist text-ink/60",
+  };
+
+  const statusLabels = {
+    pending: "pending",
+    countered: "new time proposed",
+    confirmed: "confirmed",
+    declined: "declined",
+    cancelled: "cancelled by tenant",
+    done: "done",
   };
 
   return (
@@ -189,26 +272,114 @@ export default function DashboardPage() {
                   <span
                     className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[inspection.status]}`}
                   >
-                    {inspection.status}
+                    {statusLabels[inspection.status] || inspection.status}
                   </span>
                 </div>
-                <p className="flex items-center gap-1.5 text-ink/60 text-sm mb-3">
+                <p className="flex items-center gap-1.5 text-ink/60 text-sm">
                   <CalendarDays size={14} /> Requested for {inspection.preferred_date}
+                  {inspection.preferred_time && ` at ${inspection.preferred_time}`}
                 </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => updateStatus(inspection.id, "confirmed")}
-                    className="text-sm bg-palm text-white px-3 py-1 rounded-lg hover:bg-palm-dark transition-colors"
+
+                {inspection.status === "countered" && (
+                  <p className="flex items-center gap-1.5 text-clay text-sm mt-1">
+                    <Clock size={14} /> You proposed {inspection.proposed_date}
+                    {inspection.proposed_time && ` at ${inspection.proposed_time}`} — waiting on the tenant
+                  </p>
+                )}
+
+                {inspection.status === "declined" && inspection.landlord_note && (
+                  <p className="text-ink/50 text-sm mt-1">Note: {inspection.landlord_note}</p>
+                )}
+
+                {inspection.status === "pending" && (
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    <button
+                      onClick={() => updateStatus(inspection.id, "confirmed")}
+                      className="text-sm bg-palm text-white px-3 py-1 rounded-lg hover:bg-palm-dark transition-colors"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      onClick={() => openProposal(inspection)}
+                      className="text-sm bg-sun/20 text-sun px-3 py-1 rounded-lg hover:bg-sun/30 transition-colors"
+                    >
+                      Propose New Time
+                    </button>
+                    <button
+                      onClick={() => declineInspection(inspection.id)}
+                      className="text-sm bg-clay text-white px-3 py-1 rounded-lg hover:bg-clay/90 transition-colors"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                )}
+
+                {inspection.status === "confirmed" && (
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => updateStatus(inspection.id, "done")}
+                      className="text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
+                    >
+                      Mark Done
+                    </button>
+                  </div>
+                )}
+
+                {inspection.status === "countered" && (
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => declineInspection(inspection.id)}
+                      className="text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
+                    >
+                      Withdraw
+                    </button>
+                  </div>
+                )}
+
+                {proposalFor === inspection.id && (
+                  <form
+                    onSubmit={(e) => sendProposal(e, inspection.id)}
+                    className="mt-3 p-3 bg-mist/30 rounded-lg flex flex-col gap-2"
                   >
-                    Confirm
-                  </button>
-                  <button
-                    onClick={() => updateStatus(inspection.id, "done")}
-                    className="text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
-                  >
-                    Mark Done
-                  </button>
-                </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="date"
+                        value={proposalDate}
+                        onChange={(e) => setProposalDate(e.target.value)}
+                        required
+                        className="flex-1 min-w-0 border border-mist rounded-lg px-2 py-1.5 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-palm"
+                      />
+                      <input
+                        type="time"
+                        value={proposalTime}
+                        onChange={(e) => setProposalTime(e.target.value)}
+                        className="flex-1 min-w-0 border border-mist rounded-lg px-2 py-1.5 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-palm"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Optional note (e.g. why the original time doesn't work)"
+                      value={proposalNote}
+                      onChange={(e) => setProposalNote(e.target.value)}
+                      className="border border-mist rounded-lg px-2 py-1.5 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-palm"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="text-sm bg-palm text-white px-3 py-1 rounded-lg hover:bg-palm-dark transition-colors"
+                      >
+                        Send Proposal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={closeProposal}
+                        className="flex items-center gap-1 text-sm text-ink/60 px-3 py-1 rounded-lg hover:bg-mist/60 transition-colors"
+                      >
+                        <X size={14} /> Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
               </li>
             ))}
           </ul>
