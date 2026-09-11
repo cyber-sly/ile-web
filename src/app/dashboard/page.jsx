@@ -116,9 +116,17 @@ export default function DashboardPage() {
                 key={listing.id}
                 className="p-3 bg-white border border-mist rounded-lg text-ink/80 flex items-center justify-between"
               >
-                <span>
+                <span className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                      listing.listing_type === "sale" ? "bg-clay/15 text-clay" : "bg-palm/15 text-palm"
+                    }`}
+                  >
+                    {listing.listing_type === "sale" ? "For Sale" : "For Rent"}
+                  </span>
                   <span className="font-medium text-ink">{listing.title}</span> —{" "}
-                  {listing.location} — ₦{Number(listing.price).toLocaleString()}/year
+                  {listing.location} — ₦{Number(listing.price).toLocaleString()}
+                  {listing.listing_type !== "sale" && "/year"}
                 </span>
                 <span className="flex gap-2">
                   <Link

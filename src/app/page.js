@@ -124,6 +124,7 @@ export default function Home() {
                     price={listing.price}
                     bedrooms={listing.bedrooms}
                     imageUrl={listing.image_url}
+                    listingType={listing.listing_type}
                   />
                 </Link>
               </Reveal>
