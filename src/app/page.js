@@ -62,20 +62,22 @@ export default function Home() {
 
         <form
           onSubmit={handleHeroSearch}
-          className="absolute -bottom-8 z-20 bg-white rounded-xl shadow-xl border border-mist p-2 flex items-center gap-2 w-[90%] max-w-md animate-fade-up"
+          className="absolute -bottom-8 z-20 bg-white rounded-xl shadow-xl border border-mist p-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-[90%] max-w-md animate-fade-up"
           style={{ animationDelay: "200ms" }}
         >
-          <MapPin className="text-ink/40 ml-2" size={20} />
-          <input
-            type="text"
-            placeholder="Search by location (e.g. Yaba, Lekki)"
-            value={heroSearch}
-            onChange={(e) => setHeroSearch(e.target.value)}
-            className="flex-1 outline-none text-ink py-2"
-          />
+          <div className="flex items-center flex-1 min-w-0">
+            <MapPin className="text-ink/40 ml-2 shrink-0" size={20} />
+            <input
+              type="text"
+              placeholder="Search by location (e.g. Yaba, Lekki)"
+              value={heroSearch}
+              onChange={(e) => setHeroSearch(e.target.value)}
+              className="flex-1 min-w-0 outline-none text-ink py-2 px-2"
+            />
+          </div>
           <button
             type="submit"
-            className="bg-palm text-white px-4 py-2 rounded-lg font-medium hover:bg-palm-dark transition-colors flex items-center gap-1.5"
+            className="bg-palm text-white px-4 py-2 rounded-lg font-medium hover:bg-palm-dark transition-colors flex items-center justify-center gap-1.5 shrink-0 w-full sm:w-auto"
           >
             <Search size={16} /> Search
           </button>
