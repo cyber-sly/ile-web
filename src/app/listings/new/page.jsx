@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { Tag, MapPin, Wallet, BedDouble, ImagePlus, AlertCircle } from "lucide-react";
+import { Tag, MapPin, Wallet, BedDouble, ImagePlus, AlertCircle, LogIn } from "lucide-react";
 
 export default function NewListingPage() {
   const router = useRouter();
@@ -15,6 +16,33 @@ export default function NewListingPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [checkingAccess, setCheckingAccess] = useState(true);
+  const [accessError, setAccessError] = useState("");
+
+  useEffect(() => {
+    async function checkAccess() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setAccessError("You must log in as a landlord to post a listing.");
+        setCheckingAccess(false);
+        return;
+      }
+
+      if (user.user_metadata?.role !== "landlord") {
+        setAccessError("Only landlord accounts can post listings. Log in with a landlord account to continue.");
+        setCheckingAccess(false);
+        return;
+      }
+
+      setCheckingAccess(false);
+    }
+
+    checkAccess();
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -25,8 +53,8 @@ export default function NewListingPage() {
       error: userError,
     } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      setError("You must be logged in to post a listing.");
+    if (userError || !user || user.user_metadata?.role !== "landlord") {
+      setError("You must be logged in as a landlord to post a listing.");
       setLoading(false);
       return;
     }
@@ -71,6 +99,25 @@ export default function NewListingPage() {
 
     setLoading(false);
     router.push("/listings");
+  }
+
+  if (checkingAccess) {
+    return <p className="p-6 text-ink/60">Checking access...</p>;
+  }
+
+  if (accessError) {
+    return (
+      <div className="max-w-sm mx-auto mt-12 p-6 bg-white border border-mist rounded-xl shadow-sm text-center">
+        <AlertCircle className="text-clay mx-auto mb-3" size={28} />
+        <p className="text-ink/70 mb-4">{accessError}</p>
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 bg-palm text-white px-4 py-2 rounded-lg font-medium hover:bg-palm-dark transition-colors"
+        >
+          <LogIn size={16} /> Log In
+        </Link>
+      </div>
+    );
   }
 
   return (
