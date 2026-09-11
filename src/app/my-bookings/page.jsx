@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { Bookmark, MapPin, CalendarDays, Inbox, Clock } from "lucide-react";
+import { Bookmark, MapPin, CalendarDays, Inbox, Clock, AlertCircle } from "lucide-react";
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [mutationError, setMutationError] = useState("");
 
   useEffect(() => {
     fetchBookings();
@@ -41,6 +42,7 @@ export default function MyBookingsPage() {
   }
 
   async function acceptProposal(booking) {
+    setMutationError("");
     const { error: updateError } = await supabase
       .from("inspections")
       .update({
@@ -50,40 +52,51 @@ export default function MyBookingsPage() {
       })
       .eq("id", booking.id);
 
-    if (!updateError) {
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === booking.id
-            ? { ...b, status: "confirmed", preferred_date: b.proposed_date, preferred_time: b.proposed_time }
-            : b
-        )
-      );
+    if (updateError) {
+      setMutationError(updateError.message);
+      return;
     }
+
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === booking.id
+          ? { ...b, status: "confirmed", preferred_date: b.proposed_date, preferred_time: b.proposed_time }
+          : b
+      )
+    );
   }
 
   async function declineProposal(bookingId) {
+    setMutationError("");
     const { error: updateError } = await supabase
       .from("inspections")
       .update({ status: "declined" })
       .eq("id", bookingId);
 
-    if (!updateError) {
-      setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: "declined" } : b)));
+    if (updateError) {
+      setMutationError(updateError.message);
+      return;
     }
+
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: "declined" } : b)));
   }
 
   async function cancelBooking(bookingId) {
     const confirmed = window.confirm("Cancel this inspection request?");
     if (!confirmed) return;
 
+    setMutationError("");
     const { error: updateError } = await supabase
       .from("inspections")
       .update({ status: "cancelled" })
       .eq("id", bookingId);
 
-    if (!updateError) {
-      setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b)));
+    if (updateError) {
+      setMutationError(updateError.message);
+      return;
     }
+
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b)));
   }
 
   if (loading) return <p className="p-6 text-ink/60">Loading your bookings...</p>;
@@ -112,6 +125,12 @@ export default function MyBookingsPage() {
       <h1 className="font-display text-2xl font-semibold text-ink mb-6 flex items-center gap-2">
         <Bookmark className="text-palm" size={24} /> My Bookings
       </h1>
+
+      {mutationError && (
+        <p className="flex items-center gap-1.5 text-clay text-sm mb-4 p-3 bg-clay/10 rounded-lg">
+          <AlertCircle size={16} className="shrink-0" /> {mutationError}
+        </p>
+      )}
 
       {bookings.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center border border-dashed border-mist rounded-xl">

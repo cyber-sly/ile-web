@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [accessError, setAccessError] = useState("");
+  const [mutationError, setMutationError] = useState("");
 
   const [proposalFor, setProposalFor] = useState(null);
   const [proposalDate, setProposalDate] = useState("");
@@ -62,7 +63,11 @@ export default function DashboardPage() {
           .in("listing_id", listingIds)
           .order("created_at", { ascending: false });
 
-        if (!inspectionsError) setInspections(inspectionsData);
+        if (inspectionsError) {
+          setError(inspectionsError.message);
+        } else {
+          setInspections(inspectionsData);
+        }
       }
 
       setLoading(false);
@@ -72,36 +77,44 @@ export default function DashboardPage() {
   }, []);
 
   async function updateStatus(inspectionId, newStatus) {
+    setMutationError("");
     const { error: updateError } = await supabase
       .from("inspections")
       .update({ status: newStatus })
       .eq("id", inspectionId);
 
-    if (!updateError) {
-      setInspections((prev) =>
-        prev.map((inspection) =>
-          inspection.id === inspectionId ? { ...inspection, status: newStatus } : inspection
-        )
-      );
+    if (updateError) {
+      setMutationError(updateError.message);
+      return;
     }
+
+    setInspections((prev) =>
+      prev.map((inspection) =>
+        inspection.id === inspectionId ? { ...inspection, status: newStatus } : inspection
+      )
+    );
   }
 
   async function declineInspection(inspectionId) {
     const confirmed = window.confirm("Decline this inspection request?");
     if (!confirmed) return;
 
+    setMutationError("");
     const { error: updateError } = await supabase
       .from("inspections")
       .update({ status: "declined" })
       .eq("id", inspectionId);
 
-    if (!updateError) {
-      setInspections((prev) =>
-        prev.map((inspection) =>
-          inspection.id === inspectionId ? { ...inspection, status: "declined" } : inspection
-        )
-      );
+    if (updateError) {
+      setMutationError(updateError.message);
+      return;
     }
+
+    setInspections((prev) =>
+      prev.map((inspection) =>
+        inspection.id === inspectionId ? { ...inspection, status: "declined" } : inspection
+      )
+    );
   }
 
   function openProposal(inspection) {
@@ -120,6 +133,7 @@ export default function DashboardPage() {
 
   async function sendProposal(e, inspectionId) {
     e.preventDefault();
+    setMutationError("");
 
     const { error: updateError } = await supabase
       .from("inspections")
@@ -131,36 +145,43 @@ export default function DashboardPage() {
       })
       .eq("id", inspectionId);
 
-    if (!updateError) {
-      setInspections((prev) =>
-        prev.map((inspection) =>
-          inspection.id === inspectionId
-            ? {
-                ...inspection,
-                status: "countered",
-                proposed_date: proposalDate,
-                proposed_time: proposalTime || null,
-                landlord_note: proposalNote || null,
-              }
-            : inspection
-        )
-      );
-      closeProposal();
+    if (updateError) {
+      setMutationError(updateError.message);
+      return;
     }
+
+    setInspections((prev) =>
+      prev.map((inspection) =>
+        inspection.id === inspectionId
+          ? {
+              ...inspection,
+              status: "countered",
+              proposed_date: proposalDate,
+              proposed_time: proposalTime || null,
+              landlord_note: proposalNote || null,
+            }
+          : inspection
+      )
+    );
+    closeProposal();
   }
 
   async function deleteListing(listingId) {
     const confirmed = window.confirm("Delete this listing? This can't be undone.");
     if (!confirmed) return;
 
+    setMutationError("");
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()
       .eq("id", listingId);
 
-    if (!deleteError) {
-      setListings((prev) => prev.filter((listing) => listing.id !== listingId));
+    if (deleteError) {
+      setMutationError(deleteError.message);
+      return;
     }
+
+    setListings((prev) => prev.filter((listing) => listing.id !== listingId));
   }
 
   if (loading) return <p className="p-6 text-ink/60">Loading dashboard...</p>;
@@ -205,6 +226,12 @@ export default function DashboardPage() {
       <h1 className="font-display text-2xl font-semibold text-ink mb-6 flex items-center gap-2">
         <LayoutDashboard className="text-palm" size={26} /> Your Dashboard
       </h1>
+
+      {mutationError && (
+        <p className="flex items-center gap-1.5 text-clay text-sm mb-4 p-3 bg-clay/10 rounded-lg">
+          <AlertCircle size={16} className="shrink-0" /> {mutationError}
+        </p>
+      )}
 
       <section className="mb-8">
         <h2 className="font-display text-lg font-semibold text-ink mb-3">
