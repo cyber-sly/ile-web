@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import PropertyCard from "@/components/PropertyCard";
 import { supabase } from "@/lib/supabaseClient";
 import { Search, HomeIcon } from "lucide-react";
 
 export default function ListingsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const initialLocation = searchParams.get("location") || "";
+
+  const [searchTerm, setSearchTerm] = useState(initialLocation);
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,11 +58,7 @@ export default function ListingsPage() {
           </div>
         ) : (
           filteredListings.map((listing) => (
-            <Link
-              key={listing.id}
-              href={`/listings/${listing.id}`}
-              className="no-underline text-inherit"
-            >
+            <Link key={listing.id} href={`/listings/${listing.id}`} className="no-underline text-inherit">
               <PropertyCard
                 title={listing.title}
                 location={listing.location}
