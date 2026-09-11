@@ -48,13 +48,15 @@ export default function Navbar() {
       {user ? (
         <>
           {user.user_metadata?.role === "landlord" && (
-            <Link href="/listings/new" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
-              <PlusCircle size={16} /> Post a Listing
-            </Link>
+            <>
+              <Link href="/listings/new" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
+                <PlusCircle size={16} /> Post a Listing
+              </Link>
+              <Link href="/dashboard" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
+                <LayoutDashboard size={16} /> Dashboard
+              </Link>
+            </>
           )}
-          <Link href="/dashboard" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
-            <LayoutDashboard size={16} /> Dashboard
-          </Link>
           <Link href="/my-bookings" className="flex items-center gap-1.5 text-ink/70 hover:text-palm transition-colors">
             <Bookmark size={16} /> My Bookings
           </Link>

@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { LayoutDashboard, Pencil, Trash2, CalendarDays, Inbox } from "lucide-react";
+import { LayoutDashboard, Pencil, Trash2, CalendarDays, Inbox, AlertCircle, LogIn } from "lucide-react";
 
 export default function DashboardPage() {
   const [listings, setListings] = useState([]);
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [accessError, setAccessError] = useState("");
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -19,7 +20,13 @@ export default function DashboardPage() {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        setError("Please log in as a landlord to view your dashboard.");
+        setAccessError("You must log in as a landlord to view your dashboard.");
+        setLoading(false);
+        return;
+      }
+
+      if (user.user_metadata?.role !== "landlord") {
+        setAccessError("Only landlord accounts have a listings dashboard. Looking for your inspection bookings instead? Check My Bookings.");
         setLoading(false);
         return;
       }
@@ -86,6 +93,22 @@ export default function DashboardPage() {
   }
 
   if (loading) return <p className="p-6 text-ink/60">Loading dashboard...</p>;
+
+  if (accessError) {
+    return (
+      <div className="max-w-sm mx-auto mt-12 p-6 bg-white border border-mist rounded-xl shadow-sm text-center">
+        <AlertCircle className="text-clay mx-auto mb-3" size={28} />
+        <p className="text-ink/70 mb-4">{accessError}</p>
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 bg-palm text-white px-4 py-2 rounded-lg font-medium hover:bg-palm-dark transition-colors"
+        >
+          <LogIn size={16} /> Log In
+        </Link>
+      </div>
+    );
+  }
+
   if (error) return <p className="p-6 text-clay">{error}</p>;
 
   const statusColors = {
