@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import PropertyCard from "@/components/PropertyCard";
@@ -8,6 +8,14 @@ import { supabase } from "@/lib/supabaseClient";
 import { Search, HomeIcon } from "lucide-react";
 
 export default function ListingsPage() {
+  return (
+    <Suspense fallback={<p className="p-6 text-ink/60">Loading listings...</p>}>
+      <ListingsContent />
+    </Suspense>
+  );
+}
+
+function ListingsContent() {
   const searchParams = useSearchParams();
   const initialLocation = searchParams.get("location") || "";
 
