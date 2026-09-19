@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import PropertyCard from "@/components/PropertyCard";
 import SkeletonCard from "@/components/SkeletonCard";
 import Reveal from "@/components/Reveal";
+import VideoHero from "@/components/VideoHero";
 import {
   Search, ShieldCheck, Home as HomeIcon, Wallet, ArrowRight, MapPin,
 } from "lucide-react";
@@ -39,31 +40,14 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero with background photo */}
-      <section className="relative h-[560px] flex items-center justify-center text-center">
-        <img
-          src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=70"
-          alt="A modern Nigerian home"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/50 to-ink/70" />
+      {/* Autoplaying video hero */}
+      <VideoHero />
 
-        <div className="relative z-10 px-6 max-w-2xl animate-fade-up">
-          <span className="inline-block text-sm font-medium text-white bg-white/15 backdrop-blur px-3 py-1 rounded-full mb-4">
-            Built for Nigerian renters
-          </span>
-          <h1 className="font-display text-4xl md:text-6xl font-semibold text-white leading-[1.05]">
-            Find a home without the wahala.
-          </h1>
-          <p className="mt-5 text-lg text-white/85 max-w-md mx-auto">
-            Search and inspect for free. Pay only when you're ready to move in.
-          </p>
-        </div>
-
+      {/* Search bar sits just below the hero */}
+      <div className="flex justify-center px-6 pt-8">
         <form
           onSubmit={handleHeroSearch}
-          className="absolute -bottom-8 z-20 bg-white rounded-xl shadow-xl border border-mist p-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-[90%] max-w-md animate-fade-up"
-          style={{ animationDelay: "200ms" }}
+          className="bg-white rounded-xl shadow-xl border border-mist p-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full max-w-md animate-fade-up"
         >
           <div className="flex items-center flex-1 min-w-0">
             <MapPin className="text-ink/40 ml-2 shrink-0" size={20} />
@@ -82,10 +66,10 @@ export default function Home() {
             <Search size={16} /> Search
           </button>
         </form>
-      </section>
+      </div>
 
       {/* Featured Listings */}
-      <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
+      <section className="max-w-6xl mx-auto px-6 pt-14 pb-16">
         <Reveal>
           <div className="flex items-center justify-between mb-8">
             <h2 className="font-display text-3xl font-semibold text-ink">Featured Listings</h2>

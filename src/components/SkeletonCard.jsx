@@ -1,4 +1,17 @@
-export default function SkeletonCard() {
+export default function SkeletonCard({ variant = "compact" }) {
+  if (variant === "roomy") {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-mist bg-white">
+        <div className="skeleton aspect-[4/3] w-full" />
+        <div className="p-4">
+          <div className="skeleton h-5 w-3/4 rounded" />
+          <div className="skeleton mt-2.5 h-4 w-1/2 rounded" />
+          <div className="skeleton mt-4 h-6 w-28 rounded-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="border border-mist rounded-lg md:rounded-xl p-1.5 md:p-3 w-full md:w-72 bg-white">
       <div className="skeleton w-full aspect-square md:aspect-[4/3] rounded-md md:rounded-lg" />
