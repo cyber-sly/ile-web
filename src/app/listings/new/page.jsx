@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser, isLandlord } from "@/lib/useUser";
+import { useUser } from "@/lib/useUser";
 import ListingForm from "@/components/ListingForm";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 
@@ -16,19 +16,7 @@ export default function NewListingPage() {
         primary={{ href: "/signup?role=landlord&next=/listings/new", label: "Create lister account" }}
         secondary={{ href: "/login?next=/listings/new", label: "Log in" }}
       >
-        Listing on Ile is free for owners, agents and caretakers.
-      </AccessWall>
-    );
-  }
-
-  if (!isLandlord(user)) {
-    return (
-      <AccessWall
-        title="This account is set up for finding homes"
-        primary={{ href: "/signup?role=landlord&next=/listings/new", label: "Create a lister account" }}
-        secondary={{ href: "/listings", label: "Keep browsing" }}
-      >
-        To list a property, use a lister account. You can sign up again with a different email.
+        Listing on Ile is free for owners, agents, caretakers and developers.
       </AccessWall>
     );
   }
@@ -36,7 +24,7 @@ export default function NewListingPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 md:py-12">
       <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-5xl">List a property</h1>
-      <p className="mt-2 text-ink-muted">Free to list. It takes about five minutes.</p>
+      <p className="mt-2 text-ink-muted">Homes, land or commercial space. Free to list, and it takes about five minutes.</p>
       <div className="mt-8">
         <ListingForm userId={user.id} />
       </div>

@@ -75,7 +75,7 @@ export default function HomeHero() {
             className="animate-fade-up mt-4 max-w-xl text-lg text-white/90"
             style={{ animationDelay: "120ms" }}
           >
-            Homes to rent and property to buy, from Lagos to Kano. Free to search, free to view.
+            Homes, land and shops to rent or buy, from Lagos to Kano. Free to search, free to view.
             No inspection fees.
           </p>
         </div>

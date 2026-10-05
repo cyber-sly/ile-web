@@ -5,33 +5,45 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { loginHref } from "@/lib/useUser";
 import { formatNaira, formatDateTime } from "@/lib/format";
+import { priceParts, periodOf, periodLabel, moveInCost, feeWarning, isAvailable } from "@/lib/property";
 import { button } from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { StatusBadge } from "@/components/ui/Badge";
-import { CalendarDays, Clock, Pencil, Trash2, ShieldCheck } from "lucide-react";
+import { CalendarDays, Clock, Pencil, Trash2, ShieldCheck, AlertTriangle, RotateCcw, KeyRound } from "lucide-react";
 
 const ACTIVE = ["pending", "countered", "confirmed"];
 
 // Sticky action panel on the listing page. Shows one of: the owner's manage
 // actions, a login prompt, the visitor's existing booking, or the booking form.
-export default function BookingPanel({ listing, user, onDelete }) {
-  const isSale = listing.listing_type === "sale";
+export default function BookingPanel({ listing, user, onDelete, onStatusChange }) {
+  const isRent = listing.listing_type === "rent";
   const isOwner = user && user.id === listing.landlord_id;
+  const available = isAvailable(listing);
+  const { amount, suffix } = priceParts(listing);
+  const period = periodOf(listing);
 
   return (
     <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[var(--shadow-float)] sm:p-6">
       <p className="text-3xl font-bold tracking-tight text-ink">
-        {formatNaira(listing.price)}
-        {!isSale && <span className="text-base font-medium text-ink-muted"> /year</span>}
+        {amount}
+        {suffix && <span className="text-base font-medium text-ink-muted"> {suffix}</span>}
       </p>
-      <p className="mt-1 text-sm text-ink-muted">{isSale ? "Asking price" : "Annual rent, paid to the lister"}</p>
+      <p className="mt-1 text-sm text-ink-muted">
+        {isRent ? `Rent ${periodLabel(period)}, paid to the lister` : period === "plot" ? "Price per plot" : "Asking price"}
+      </p>
+
+      <MoveInCost listing={listing} />
 
       <div className="mt-5 border-t border-line pt-5">
         {user === undefined ? (
           <div className="skeleton h-40 rounded-[var(--radius-control)]" />
         ) : isOwner ? (
-          <OwnerActions listing={listing} onDelete={onDelete} />
+          <OwnerActions listing={listing} onDelete={onDelete} onStatusChange={onStatusChange} />
+        ) : !available ? (
+          <p className="text-sm text-ink-muted">
+            This listing is no longer taking viewings because it has been {listing.status === "sold" ? "sold" : "let"}.
+          </p>
         ) : !user ? (
           <SignedOut listingId={listing.id} />
         ) : (
@@ -47,23 +59,84 @@ export default function BookingPanel({ listing, user, onDelete }) {
   );
 }
 
-function OwnerActions({ listing, onDelete }) {
+// Rent/price plus every fee the lister declared, added up.
+function MoveInCost({ listing }) {
+  const cost = moveInCost(listing);
+  const warning = feeWarning(listing);
+  if (!cost.hasExtras) return null;
+  const isRent = listing.listing_type === "rent";
+
+  return (
+    <div className="mt-5 rounded-[var(--radius-control)] bg-cream p-4">
+      <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <KeyRound size={15} className="text-palm" aria-hidden="true" />
+        {isRent ? "Total to move in" : "Estimated total cost"}
+      </p>
+      <dl className="mt-2 space-y-1 text-sm">
+        {cost.rows.map((r) => (
+          <div key={r.label} className="flex justify-between gap-3 text-ink-muted">
+            <dt>{r.label}</dt>
+            <dd className="tabular-nums">{formatNaira(r.amount)}</dd>
+          </div>
+        ))}
+        <div className="flex justify-between gap-3 border-t border-line-strong pt-1.5 text-base font-bold text-ink">
+          <dt>Total</dt>
+          <dd className="tabular-nums">{formatNaira(cost.total)}</dd>
+        </div>
+      </dl>
+      {warning && (
+        <p className="mt-3 flex items-start gap-1.5 text-xs font-medium text-clay">
+          <AlertTriangle size={14} className="mt-px shrink-0" aria-hidden="true" /> {warning}
+        </p>
+      )}
+      <p className="mt-2 text-xs text-ink-muted">As stated by the lister. Confirm every fee before you pay.</p>
+    </div>
+  );
+}
+
+function OwnerActions({ listing, onDelete, onStatusChange }) {
+  const status = listing.status || "active";
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const closedLabel = listing.listing_type === "sale" ? "sold" : "let";
+
+  async function changeStatus(next) {
+    setBusy(true);
+    setError("");
+    const { error: updateError } = await supabase.from("listings").update({ status: next }).eq("id", listing.id);
+    setBusy(false);
+    if (updateError) setError(updateError.message);
+    else onStatusChange?.(next);
+  }
+
   return (
     <div>
       <p className="font-semibold text-ink">This is your listing</p>
-      <p className="mt-1 text-sm text-ink-muted">Viewing requests appear in your dashboard.</p>
+      <p className="mt-1 text-sm text-ink-muted">
+        {status === "active" ? "Viewing requests appear in your dashboard." : `Marked as ${status}. It's hidden from search.`}
+      </p>
       <div className="mt-4 flex flex-col gap-2">
         <Link href="/dashboard" className={button({ full: true })}>
           Open dashboard
         </Link>
+        {status === "active" ? (
+          <button type="button" disabled={busy} onClick={() => changeStatus(closedLabel)} className={button({ variant: "neutral", full: true })}>
+            Mark as {closedLabel}
+          </button>
+        ) : (
+          <button type="button" disabled={busy} onClick={() => changeStatus("active")} className={button({ variant: "neutral", full: true })}>
+            <RotateCcw size={15} aria-hidden="true" /> Relist
+          </button>
+        )}
         <div className="grid grid-cols-2 gap-2">
-          <Link href={`/listings/${listing.id}/edit`} className={button({ variant: "neutral" })}>
+          <Link href={`/listings/${listing.id}/edit`} className={button({ variant: "ghost" })}>
             <Pencil size={15} aria-hidden="true" /> Edit
           </Link>
           <button type="button" onClick={onDelete} className={button({ variant: "danger-ghost" })}>
             <Trash2 size={15} aria-hidden="true" /> Delete
           </button>
         </div>
+        {error && <Alert>{error}</Alert>}
       </div>
     </div>
   );

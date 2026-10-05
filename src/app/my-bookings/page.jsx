@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
-import { formatNaira, formatDateTime } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
+import { priceParts, placeLabel } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
@@ -25,7 +26,7 @@ export default function MyBookingsPage() {
     if (!user) return;
     supabase
       .from("inspections")
-      .select("*, listings(id, title, location, price, listing_type, image_url)")
+      .select("*, listings(id, title, location, state, lga, area, price, price_period, listing_type, image_url)")
       .eq("tenant_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data, error: fetchError }) => {
@@ -113,15 +114,15 @@ export default function MyBookingsPage() {
                         </Link>
                         <StatusBadge status={b.status} />
                       </div>
-                      {l?.location && (
+                      {l && (
                         <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-muted">
-                          <MapPin size={14} aria-hidden="true" /> {l.location}
+                          <MapPin size={14} aria-hidden="true" /> {placeLabel(l)}
                         </p>
                       )}
                       {l?.price && (
                         <p className="mt-0.5 text-sm font-bold text-ink">
-                          {formatNaira(l.price)}
-                          {l.listing_type !== "sale" && <span className="font-medium text-ink-muted"> /yr</span>}
+                          {priceParts(l).amount}
+                          <span className="font-medium text-ink-muted"> {priceParts(l, { short: true }).suffix}</span>
                         </p>
                       )}
                       <p className="mt-2 flex items-center gap-1.5 text-sm text-ink">

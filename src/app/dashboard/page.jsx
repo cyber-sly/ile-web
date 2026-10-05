@@ -3,16 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { useUser, isLandlord } from "@/lib/useUser";
-import { formatNaira, formatDateTime } from "@/lib/format";
+import { useUser } from "@/lib/useUser";
+import { formatDateTime } from "@/lib/format";
+import { priceParts, placeLabel, isAvailable } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
-import { StatusBadge, ListingTypeBadge } from "@/components/ui/Badge";
+import Badge, { StatusBadge, ListingTypeBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import {
-  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye,
+  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw,
 } from "lucide-react";
 
 const GROUPS = [
@@ -24,7 +25,6 @@ const GROUPS = [
 
 export default function DashboardPage() {
   const user = useUser();
-  const landlord = isLandlord(user);
 
   const [listings, setListings] = useState([]);
   const [inspections, setInspections] = useState([]);
@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const [mutationError, setMutationError] = useState("");
 
   useEffect(() => {
-    if (!user || !landlord) return;
+    if (!user) return;
 
     async function fetchDashboardData() {
       const { data: listingsData, error: listingsError } = await supabase
@@ -63,7 +63,7 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData();
-  }, [user, landlord]);
+  }, [user]);
 
   async function updateInspection(id, changes) {
     setMutationError("");
@@ -87,7 +87,17 @@ export default function DashboardPage() {
     setListings((prev) => prev.filter((l) => l.id !== id));
   }
 
-  if (user === undefined || (user && landlord && loading)) return <PageSkeleton />;
+  async function setListingStatus(listing, status) {
+    setMutationError("");
+    const { error: updateError } = await supabase.from("listings").update({ status }).eq("id", listing.id);
+    if (updateError) {
+      setMutationError(updateError.message);
+      return;
+    }
+    setListings((prev) => prev.map((l) => (l.id === listing.id ? { ...l, status } : l)));
+  }
+
+  if (user === undefined || (user && loading)) return <PageSkeleton />;
 
   if (!user) {
     return (
@@ -97,18 +107,6 @@ export default function DashboardPage() {
         secondary={{ href: "/signup?role=landlord&next=/listings/new", label: "Create lister account" }}
       >
         Your dashboard is where you manage listings and viewing requests.
-      </AccessWall>
-    );
-  }
-
-  if (!landlord) {
-    return (
-      <AccessWall
-        title="Dashboards are for lister accounts"
-        primary={{ href: "/my-bookings", label: "Go to My viewings" }}
-        secondary={{ href: "/listings", label: "Browse listings" }}
-      >
-        Looking for the viewings you&apos;ve booked? They&apos;re in My viewings.
       </AccessWall>
     );
   }
@@ -140,7 +138,7 @@ export default function DashboardPage() {
 
       <dl className="mt-8 grid grid-cols-3 gap-3">
         {[
-          { label: "Listings", value: listings.length },
+          { label: "Live listings", value: listings.filter(isAvailable).length },
           { label: "Need a reply", value: count(["pending"]), highlight: count(["pending"]) > 0 },
           { label: "Confirmed", value: count(["confirmed"]) },
         ].map((s) => (
@@ -229,16 +227,35 @@ export default function DashboardPage() {
                       <ListingTypeBadge type={l.listing_type} className="shrink-0" />
                     </div>
                     <p className="text-sm font-bold text-ink">
-                      {formatNaira(l.price)}
-                      {l.listing_type !== "sale" && <span className="font-medium text-ink-muted"> /yr</span>}
+                      {priceParts(l).amount}
+                      <span className="font-medium text-ink-muted"> {priceParts(l, { short: true }).suffix}</span>
                     </p>
-                    <div className="mt-auto flex gap-1 pt-1">
+                    <p className="truncate text-xs text-ink-muted">{placeLabel(l)}</p>
+                    {!isAvailable(l) && <Badge tone="clay" className="mt-1 self-start">{l.status === "sold" ? "Sold" : "Let"} · hidden from search</Badge>}
+                    <div className="mt-auto flex flex-wrap gap-1 pt-1">
                       <Link href={`/listings/${l.id}`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
                         <Eye size={14} aria-hidden="true" /> View
                       </Link>
                       <Link href={`/listings/${l.id}/edit`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
                         <Pencil size={14} aria-hidden="true" /> Edit
                       </Link>
+                      {isAvailable(l) ? (
+                        <button
+                          type="button"
+                          onClick={() => setListingStatus(l, l.listing_type === "sale" ? "sold" : "let")}
+                          className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
+                        >
+                          <CheckCircle2 size={14} aria-hidden="true" /> {l.listing_type === "sale" ? "Sold" : "Let"}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setListingStatus(l, "active")}
+                          className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
+                        >
+                          <RotateCcw size={14} aria-hidden="true" /> Relist
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => deleteListing(l.id)}

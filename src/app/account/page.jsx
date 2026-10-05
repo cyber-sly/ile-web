@@ -50,12 +50,8 @@ export default function AccountPage() {
   const links = [
     { href: "/saved", label: "Saved homes", icon: Heart },
     { href: "/my-bookings", label: "My viewings", icon: CalendarDays },
-    ...(landlord
-      ? [
-          { href: "/dashboard", label: "Lister dashboard", icon: LayoutDashboard },
-          { href: "/listings/new", label: "List a property", icon: Plus },
-        ]
-      : []),
+    { href: "/dashboard", label: "My listings", icon: LayoutDashboard },
+    { href: "/listings/new", label: "List a property", icon: Plus },
   ];
 
   return (

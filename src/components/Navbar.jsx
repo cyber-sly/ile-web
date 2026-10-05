@@ -143,11 +143,9 @@ function AccountMenu({ user, landlord, onLogout }) {
             <Link role="menuitem" href="/my-bookings" className={item}>
               <CalendarDays size={16} aria-hidden="true" /> My viewings
             </Link>
-            {landlord && (
-              <Link role="menuitem" href="/dashboard" className={item}>
-                <LayoutDashboard size={16} aria-hidden="true" /> Dashboard
-              </Link>
-            )}
+            <Link role="menuitem" href="/dashboard" className={item}>
+              <LayoutDashboard size={16} aria-hidden="true" /> My listings
+            </Link>
             <button role="menuitem" type="button" onClick={onLogout} className={`${item} w-full text-clay`}>
               <LogOut size={16} aria-hidden="true" /> Log out
             </button>

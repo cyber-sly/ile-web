@@ -16,16 +16,28 @@ const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4";
 
 const CATEGORIES = [
   {
-    href: "/listings?type=rent",
+    href: "/listings",
     title: "Homes for rent",
-    blurb: "Flats, self-contains and duplexes, priced per year.",
-    image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1000&q=70",
+    blurb: "Flats, self-contains and duplexes.",
+    image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=900&q=70",
   },
   {
-    href: "/listings?type=sale",
-    title: "Property for sale",
-    blurb: "Homes and investment property, with the asking price upfront.",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=70",
+    href: "/listings?tab=sale",
+    title: "Homes for sale",
+    blurb: "Own your home, with the asking price upfront.",
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=900&q=70",
+  },
+  {
+    href: "/listings?tab=land",
+    title: "Land",
+    blurb: "Plots and farmland, with the title document shown.",
+    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=70",
+  },
+  {
+    href: "/listings?tab=commercial",
+    title: "Shops and offices",
+    blurb: "Space to run your business.",
+    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=70",
   },
 ];
 
@@ -44,6 +56,7 @@ export default function Home() {
       const { data, error } = await supabase
         .from("listings")
         .select("*")
+        .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(8);
       if (!error) setLatest(data);
@@ -115,13 +128,13 @@ export default function Home() {
 
       {/* Browse by category */}
       <section className="mx-auto max-w-7xl px-4 pt-20 sm:px-6">
-        <h2 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">Rent or buy</h2>
-        <div className="mt-6 grid gap-5 md:grid-cols-2">
+        <h2 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">What are you looking for?</h2>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {CATEGORIES.map((c) => (
             <Link
               key={c.href}
               href={c.href}
-              className="group relative isolate flex min-h-[260px] flex-col justify-end overflow-hidden rounded-[var(--radius-hero)] p-6 text-white"
+              className="group relative isolate flex min-h-[240px] flex-col justify-end overflow-hidden rounded-[var(--radius-hero)] p-5 text-white"
             >
               <img
                 src={c.image}
@@ -130,7 +143,7 @@ export default function Home() {
                 className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
               />
               <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0F1C15]/85 via-[#0F1C15]/30 to-transparent" />
-              <h3 className="font-serif text-3xl font-semibold">{c.title}</h3>
+              <h3 className="font-serif text-2xl font-semibold">{c.title}</h3>
               <p className="mt-1 max-w-sm text-white/85">{c.blurb}</p>
               <span className="mt-4 inline-flex items-center gap-1.5 font-semibold">
                 Browse <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />

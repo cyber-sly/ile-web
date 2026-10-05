@@ -3,23 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Search } from "lucide-react";
+import { SEARCH_TABS } from "@/lib/search";
 
-const TABS = [
-  { value: "rent", label: "Rent" },
-  { value: "sale", label: "Buy" },
-];
-
-// Tabbed property search used on the homepage hero. Land and Shops tabs join
-// once listings carry a property type.
+// Tabbed property search used on the homepage hero.
 export default function SearchBox({ className = "" }) {
   const router = useRouter();
-  const [type, setType] = useState("rent");
-  const [location, setLocation] = useState("");
+  const [tab, setTab] = useState("rent");
+  const [q, setQ] = useState("");
 
   function submit(e) {
     e.preventDefault();
-    const params = new URLSearchParams({ type });
-    if (location.trim()) params.set("location", location.trim());
+    const params = new URLSearchParams({ tab });
+    if (q.trim()) params.set("q", q.trim());
     router.push(`/listings?${params}`);
   }
 
@@ -30,15 +25,15 @@ export default function SearchBox({ className = "" }) {
       className={`overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-float)] ${className}`}
     >
       <div role="tablist" aria-label="What are you looking for?" className="flex border-b border-line">
-        {TABS.map((t) => (
+        {SEARCH_TABS.map((t) => (
           <button
             key={t.value}
             type="button"
             role="tab"
-            aria-selected={type === t.value}
-            onClick={() => setType(t.value)}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors sm:flex-none sm:px-8 ${
-              type === t.value
+            aria-selected={tab === t.value}
+            onClick={() => setTab(t.value)}
+            className={`flex-1 py-3 text-sm font-semibold transition-colors sm:flex-none sm:px-7 ${
+              tab === t.value
                 ? "text-palm shadow-[inset_0_-2px_0_var(--color-palm)]"
                 : "text-ink-muted hover:text-ink"
             }`}
@@ -57,9 +52,9 @@ export default function SearchBox({ className = "" }) {
           />
           <input
             type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="State, city or area, e.g. Lekki, Wuse, Bodija"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="State, LGA or area, e.g. Lekki, Wuse, Bodija"
             className="h-12 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface pl-10 pr-3 text-base text-ink outline-none placeholder:text-ink-muted/80 focus:border-palm focus:ring-2 focus:ring-palm/25"
           />
         </label>

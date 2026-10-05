@@ -5,18 +5,25 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
-import { formatNaira } from "@/lib/format";
+import { stateLabel } from "@/lib/nigeria";
+import {
+  categoryOf, typeLabel, priceParts, fullPlace, formatSize, furnishingLabel, titleLabel, listerLabel,
+  isAvailable,
+} from "@/lib/property";
 import Lightbox from "@/components/Lightbox";
 import PhotoGallery from "@/components/PhotoGallery";
 import BookingPanel from "@/components/BookingPanel";
 import PropertyCard from "@/components/PropertyCard";
 import SaveButton from "@/components/SaveButton";
 import EmptyState from "@/components/ui/EmptyState";
-import { ListingTypeBadge, VerifiedBadge, BoostedBadge } from "@/components/ui/Badge";
+import Badge, { ListingTypeBadge, VerifiedBadge, BoostedBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import {
-  MapPin, BedDouble, Tag, Wallet, Check, Share2, ChevronRight, ArrowLeft, Home as HomeIcon, ExternalLink,
+  MapPin, BedDouble, Bath, Ruler, FileCheck2, Sofa, Car, Building2, Check, Share2, ChevronRight, ArrowLeft,
+  Home as HomeIcon, ExternalLink, UserRound, Sparkles,
 } from "lucide-react";
+
+const TAB_FOR = { homes: null, land: "land", commercial: "commercial" };
 
 function DetailSkeleton() {
   return (
@@ -33,6 +40,28 @@ function DetailSkeleton() {
       </div>
     </div>
   );
+}
+
+// The facts grid adapts to what kind of property this is.
+function factsFor(listing) {
+  const category = categoryOf(listing);
+  const size = formatSize(listing);
+  const facts = [{ icon: Building2, label: "Type", value: typeLabel(listing.property_type) }];
+  if (category === "homes") {
+    facts.push({ icon: BedDouble, label: "Bedrooms", value: Number(listing.bedrooms) || "Studio" });
+    if (listing.bathrooms) facts.push({ icon: Bath, label: "Bathrooms", value: listing.bathrooms });
+    if (listing.furnishing) facts.push({ icon: Sofa, label: "Furnishing", value: furnishingLabel(listing.furnishing) });
+    if (size) facts.push({ icon: Ruler, label: "Size", value: size });
+  } else if (category === "land") {
+    if (size) facts.push({ icon: Ruler, label: "Plot size", value: size });
+    facts.push({ icon: FileCheck2, label: "Title", value: listing.title_document ? titleLabel(listing.title_document) : "Not stated" });
+  } else {
+    if (size) facts.push({ icon: Ruler, label: "Floor area", value: size });
+    if (listing.parking_spaces) facts.push({ icon: Car, label: "Parking", value: `${listing.parking_spaces} spaces` });
+    if (listing.toilets) facts.push({ icon: Bath, label: "Toilets", value: listing.toilets });
+  }
+  if (listing.lister_type) facts.push({ icon: UserRound, label: "Listed by", value: listerLabel(listing.lister_type) });
+  return facts;
 }
 
 export default function ListingDetailPage() {
@@ -57,13 +86,15 @@ export default function ListingDetailPage() {
       setListing(data);
       setLoading(false);
 
-      const { data: others } = await supabase
+      let query = supabase
         .from("listings")
         .select("*")
+        .eq("status", "active")
+        .eq("category", categoryOf(data))
         .eq("listing_type", data.listing_type || "rent")
-        .neq("id", id)
-        .order("created_at", { ascending: false })
-        .limit(4);
+        .neq("id", id);
+      if (data.state) query = query.eq("state", data.state);
+      const { data: others } = await query.order("created_at", { ascending: false }).limit(4);
       setSimilar(others || []);
     }
     fetchListing();
@@ -120,16 +151,23 @@ export default function ListingDetailPage() {
   const images = listing.image_urls?.length ? listing.image_urls : listing.image_url ? [listing.image_url] : [];
   const videos = listing.video_urls || [];
   const features = listing.features || [];
+  const category = categoryOf(listing);
   const isSale = listing.listing_type === "sale";
-  const bedrooms = Number(listing.bedrooms) || 0;
+  const available = isAvailable(listing);
+  const isOwner = user && user.id === listing.landlord_id;
+  const { amount, suffix } = priceParts(listing);
   const paragraphs = (listing.description || "").split(/\n\s*\n/).filter(Boolean);
-  const mapQuery = encodeURIComponent([listing.address, listing.location, "Nigeria"].filter(Boolean).join(", "));
+  const place = fullPlace(listing);
+  const mapQuery = encodeURIComponent([listing.address, place, "Nigeria"].filter(Boolean).join(", "));
+  const facts = factsFor(listing);
 
-  const facts = [
-    bedrooms > 0 && { icon: BedDouble, label: "Bedrooms", value: bedrooms },
-    { icon: Tag, label: "Listing", value: isSale ? "For sale" : "For rent" },
-    { icon: Wallet, label: isSale ? "Asking price" : "Rent per year", value: formatNaira(listing.price) },
-    { icon: MapPin, label: "Area", value: listing.location },
+  const tab = category === "homes" ? (isSale ? "sale" : null) : TAB_FOR[category];
+  const browseBase = tab ? `/listings?tab=${tab}` : "/listings";
+  const withParam = (extra) => `${browseBase}${browseBase.includes("?") ? "&" : "?"}${extra}`;
+  const crumbs = [
+    { href: browseBase, label: category === "homes" ? (isSale ? "Homes for sale" : "Homes for rent") : category === "land" ? "Land" : "Commercial" },
+    listing.state && { href: withParam(`state=${encodeURIComponent(listing.state)}`), label: stateLabel(listing.state) },
+    listing.lga && { href: withParam(`state=${encodeURIComponent(listing.state)}&lga=${encodeURIComponent(listing.lga)}`), label: listing.lga },
   ].filter(Boolean);
 
   return (
@@ -138,40 +176,57 @@ export default function ListingDetailPage() {
         {/* Breadcrumb + actions */}
         <div className="flex items-center justify-between gap-3 py-4">
           <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm text-ink-muted">
-            <Link href="/listings" className="flex shrink-0 items-center gap-1 font-semibold hover:text-ink">
-              <ArrowLeft size={16} className="sm:hidden" aria-hidden="true" />
-              <span className="hidden sm:inline">{isSale ? "For sale" : "For rent"}</span>
-              <span className="sm:hidden">Back</span>
+            <Link href={browseBase} className="flex shrink-0 items-center gap-1 font-semibold hover:text-ink sm:hidden">
+              <ArrowLeft size={16} aria-hidden="true" /> Back
             </Link>
-            <ChevronRight size={14} className="hidden shrink-0 sm:block" aria-hidden="true" />
-            <span className="hidden truncate sm:inline">{listing.location}</span>
+            <ol className="hidden min-w-0 items-center gap-1.5 sm:flex">
+              {crumbs.map((c, i) => (
+                <li key={c.href} className="flex min-w-0 items-center gap-1.5">
+                  {i > 0 && <ChevronRight size={14} className="shrink-0" aria-hidden="true" />}
+                  <Link href={c.href} className={`truncate hover:text-ink ${i === 0 ? "font-semibold" : ""}`}>
+                    {c.label}
+                  </Link>
+                </li>
+              ))}
+            </ol>
           </nav>
           <div className="flex shrink-0 gap-2">
             <button type="button" onClick={handleShare} className={button({ variant: "neutral", size: "sm" })}>
               {copied ? <Check size={16} aria-hidden="true" /> : <Share2 size={16} aria-hidden="true" />}
               {copied ? "Link copied" : "Share"}
             </button>
-            <SaveButton
-              id={listing.id}
-              withLabel
-              className="h-9 border border-line-strong bg-surface px-3.5 hover:border-ink/30"
-            />
+            <SaveButton id={listing.id} withLabel className="h-9 border border-line-strong bg-surface px-3.5 hover:border-ink/30" />
           </div>
         </div>
 
-        <PhotoGallery
-          images={images}
-          title={listing.title}
-          videoCount={videos.length}
-          onOpen={setLightbox}
-          onShowVideos={() => document.getElementById("videos")?.scrollIntoView({ behavior: "smooth" })}
-        />
+        {!available && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border border-line-strong bg-surface px-5 py-4">
+            <p className="font-semibold text-ink">
+              This property has been {listing.status === "sold" ? "sold" : "let"} and is no longer available.
+            </p>
+            <Link href={browseBase} className={button({ size: "sm" })}>
+              See similar listings
+            </Link>
+          </div>
+        )}
+
+        <div className={available ? "" : "opacity-80 grayscale-[35%]"}>
+          <PhotoGallery
+            images={images}
+            title={listing.title}
+            videoCount={videos.length}
+            onOpen={setLightbox}
+            onShowVideos={() => document.getElementById("videos")?.scrollIntoView({ behavior: "smooth" })}
+          />
+        </div>
 
         <div className="grid gap-10 pt-8 lg:grid-cols-[1fr_380px] lg:gap-14">
           {/* Main column */}
           <div className="min-w-0">
             <div className="flex flex-wrap gap-2">
               <ListingTypeBadge type={listing.listing_type} />
+              {!available && <Badge tone="clay">{listing.status === "sold" ? "Sold" : "Let"}</Badge>}
+              {listing.serviced && <Badge tone="palm" icon={Sparkles}>Serviced</Badge>}
               {listing.is_verified && <VerifiedBadge />}
               {listing.is_boosted && <BoostedBadge />}
             </div>
@@ -179,22 +234,26 @@ export default function ListingDetailPage() {
               {listing.title}
             </h1>
             <p className="mt-2 flex items-center gap-1.5 text-ink-muted">
-              <MapPin size={17} className="shrink-0" aria-hidden="true" /> {listing.location}
+              <MapPin size={17} className="shrink-0" aria-hidden="true" /> {place}
+            </p>
+            <p className="mt-3 text-2xl font-bold text-ink lg:hidden">
+              {amount}
+              {suffix && <span className="text-base font-medium text-ink-muted"> {suffix}</span>}
             </p>
 
-            <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line sm:grid-cols-4">
+            <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line sm:grid-cols-3">
               {facts.map(({ icon: Icon, label, value }) => (
                 <div key={label} className="bg-surface p-4">
                   <dt className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-muted">
                     <Icon size={14} aria-hidden="true" /> {label}
                   </dt>
-                  <dd className="mt-1.5 truncate text-lg font-bold text-ink">{value}</dd>
+                  <dd className="mt-1.5 text-base font-bold leading-snug text-ink">{value}</dd>
                 </div>
               ))}
             </dl>
 
             <section className="mt-10">
-              <h2 className="font-serif text-2xl font-semibold text-ink">About this place</h2>
+              <h2 className="font-serif text-2xl font-semibold text-ink">About this {category === "land" ? "land" : "place"}</h2>
               {paragraphs.length > 0 ? (
                 <div className="mt-3 space-y-4 text-[17px] leading-relaxed text-ink/85">
                   {paragraphs.map((p, i) => (
@@ -204,9 +263,7 @@ export default function ListingDetailPage() {
                   ))}
                 </div>
               ) : (
-                <p className="mt-3 text-ink-muted">
-                  The lister hasn&apos;t added a description yet. Book a viewing to see it in person.
-                </p>
+                <p className="mt-3 text-ink-muted">The lister hasn&apos;t added a description yet. Book a viewing to see it in person.</p>
               )}
             </section>
 
@@ -231,14 +288,7 @@ export default function ListingDetailPage() {
                 <h2 className="font-serif text-2xl font-semibold text-ink">Video tour</h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   {videos.map((url) => (
-                    <video
-                      key={url}
-                      src={url}
-                      controls
-                      playsInline
-                      preload="metadata"
-                      className="aspect-video w-full rounded-[var(--radius-card)] bg-ink object-cover"
-                    />
+                    <video key={url} src={url} controls playsInline preload="metadata" className="aspect-video w-full rounded-[var(--radius-card)] bg-ink object-cover" />
                   ))}
                 </div>
               </section>
@@ -250,7 +300,7 @@ export default function ListingDetailPage() {
                 <p className="flex items-start gap-2.5 text-ink">
                   <MapPin size={19} className="mt-0.5 shrink-0 text-palm" aria-hidden="true" />
                   <span>
-                    <span className="font-semibold">{listing.location}</span>
+                    <span className="font-semibold">{place}</span>
                     {listing.address && <span className="block text-ink-muted">{listing.address}</span>}
                   </span>
                 </p>
@@ -270,7 +320,12 @@ export default function ListingDetailPage() {
           <aside id="book" className="scroll-mt-24">
             <div className="lg:sticky lg:top-24">
               {deleteError && <p className="mb-3 text-sm font-medium text-clay">{deleteError}</p>}
-              <BookingPanel listing={listing} user={user} onDelete={handleDelete} />
+              <BookingPanel
+                listing={listing}
+                user={user}
+                onDelete={handleDelete}
+                onStatusChange={(status) => setListing((l) => ({ ...l, status }))}
+              />
             </div>
           </aside>
         </div>
@@ -280,9 +335,9 @@ export default function ListingDetailPage() {
         <section className="mx-auto max-w-7xl px-4 pb-6 pt-20 sm:px-6">
           <div className="mb-6 flex items-end justify-between">
             <h2 className="font-serif text-3xl font-semibold tracking-tight text-ink">
-              More {isSale ? "property for sale" : "homes for rent"}
+              More like this{listing.state ? ` in ${stateLabel(listing.state)}` : ""}
             </h2>
-            <Link href={`/listings?type=${isSale ? "sale" : "rent"}`} className="text-sm font-semibold text-palm hover:underline">
+            <Link href={browseBase} className="text-sm font-semibold text-palm hover:underline">
               See all
             </Link>
           </div>
@@ -295,13 +350,13 @@ export default function ListingDetailPage() {
       )}
 
       {/* Phones: price + booking shortcut, sitting above the tab bar */}
-      <div className="fixed inset-x-0 bottom-16 md:bottom-0 z-40 flex items-center justify-between gap-3 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-0 bottom-16 z-40 flex items-center justify-between gap-3 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur-xl md:bottom-0 lg:hidden">
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold leading-tight text-ink">{formatNaira(listing.price)}</p>
-          <p className="text-xs text-ink-muted">{isSale ? "asking price" : "per year"}</p>
+          <p className="truncate text-lg font-bold leading-tight text-ink">{amount}</p>
+          <p className="text-xs text-ink-muted">{suffix ? suffix.replace("/", "per ") : isSale ? "asking price" : ""}</p>
         </div>
         <button type="button" onClick={scrollToBooking} className={button({ className: "shrink-0" })}>
-          {user && user.id === listing.landlord_id ? "Manage" : "Book viewing"}
+          {isOwner ? "Manage" : available ? "Book viewing" : "Unavailable"}
         </button>
       </div>
 
