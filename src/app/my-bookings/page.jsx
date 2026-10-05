@@ -3,210 +3,184 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { Bookmark, MapPin, CalendarDays, Inbox, Clock, AlertCircle } from "lucide-react";
+import { useUser } from "@/lib/useUser";
+import { formatNaira, formatDateTime } from "@/lib/format";
+import AccessWall, { PageSkeleton } from "@/components/AccessWall";
+import EmptyState from "@/components/ui/EmptyState";
+import Alert from "@/components/ui/Alert";
+import { StatusBadge } from "@/components/ui/Badge";
+import { button } from "@/components/ui/Button";
+import { MapPin, CalendarDays, Clock, CalendarX, ImageOff } from "lucide-react";
+
+const ACTIVE = ["countered", "pending", "confirmed"];
 
 export default function MyBookingsPage() {
+  const user = useUser();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mutationError, setMutationError] = useState("");
 
   useEffect(() => {
-    fetchBookings();
-  }, []);
-
-  async function fetchBookings() {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      setError("Please log in to see your bookings.");
-      setLoading(false);
-      return;
-    }
-
-    const { data, error: fetchError } = await supabase
+    if (!user) return;
+    supabase
       .from("inspections")
-      .select("*, listings(id, title, location, price)")
+      .select("*, listings(id, title, location, price, listing_type, image_url)")
       .eq("tenant_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .then(({ data, error: fetchError }) => {
+        if (fetchError) setError(fetchError.message);
+        else setBookings(data);
+        setLoading(false);
+      });
+  }, [user]);
 
-    if (fetchError) {
-      setError(fetchError.message);
-    } else {
-      setBookings(data);
-    }
-    setLoading(false);
-  }
-
-  async function acceptProposal(booking) {
+  async function update(booking, changes, confirmText) {
+    if (confirmText && !window.confirm(confirmText)) return;
     setMutationError("");
-    const { error: updateError } = await supabase
-      .from("inspections")
-      .update({
-        status: "confirmed",
-        preferred_date: booking.proposed_date,
-        preferred_time: booking.proposed_time,
-      })
-      .eq("id", booking.id);
-
+    const { error: updateError } = await supabase.from("inspections").update(changes).eq("id", booking.id);
     if (updateError) {
       setMutationError(updateError.message);
       return;
     }
+    setBookings((prev) => prev.map((b) => (b.id === booking.id ? { ...b, ...changes } : b)));
+  }
 
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === booking.id
-          ? { ...b, status: "confirmed", preferred_date: b.proposed_date, preferred_time: b.proposed_time }
-          : b
-      )
+  if (user === undefined || (user && loading)) return <PageSkeleton />;
+
+  if (!user) {
+    return (
+      <AccessWall
+        title="Log in to see your viewings"
+        primary={{ href: "/login?next=/my-bookings", label: "Log in" }}
+        secondary={{ href: "/listings", label: "Browse listings" }}
+      >
+        Viewings you book on Ile are listed here.
+      </AccessWall>
     );
   }
 
-  async function declineProposal(bookingId) {
-    setMutationError("");
-    const { error: updateError } = await supabase
-      .from("inspections")
-      .update({ status: "declined" })
-      .eq("id", bookingId);
-
-    if (updateError) {
-      setMutationError(updateError.message);
-      return;
-    }
-
-    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: "declined" } : b)));
-  }
-
-  async function cancelBooking(bookingId) {
-    const confirmed = window.confirm("Cancel this inspection request?");
-    if (!confirmed) return;
-
-    setMutationError("");
-    const { error: updateError } = await supabase
-      .from("inspections")
-      .update({ status: "cancelled" })
-      .eq("id", bookingId);
-
-    if (updateError) {
-      setMutationError(updateError.message);
-      return;
-    }
-
-    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b)));
-  }
-
-  if (loading) return <p className="p-6 text-ink/60">Loading your bookings...</p>;
-  if (error) return <p className="p-6 text-clay">{error}</p>;
-
-  const statusColors = {
-    pending: "bg-sun/20 text-sun",
-    countered: "bg-clay/15 text-clay",
-    confirmed: "bg-palm/15 text-palm",
-    declined: "bg-mist text-clay/70",
-    cancelled: "bg-mist text-ink/50",
-    done: "bg-mist text-ink/60",
-  };
-
-  const statusLabels = {
-    pending: "pending",
-    countered: "new time proposed",
-    confirmed: "confirmed",
-    declined: "declined",
-    cancelled: "cancelled",
-    done: "done",
-  };
+  // Things that need the user's attention first, then upcoming, then history.
+  const order = (b) => (ACTIVE.includes(b.status) ? ACTIVE.indexOf(b.status) : 9);
+  const sorted = [...bookings].sort((a, b) => order(a) - order(b));
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="font-display text-2xl font-semibold text-ink mb-6 flex items-center gap-2">
-        <Bookmark className="text-palm" size={24} /> My Bookings
-      </h1>
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 md:py-12">
+      <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-5xl">My viewings</h1>
+      <p className="mt-2 text-ink-muted">Track the viewings you&apos;ve requested and respond to new times.</p>
 
-      {mutationError && (
-        <p className="flex items-center gap-1.5 text-clay text-sm mb-4 p-3 bg-clay/10 rounded-lg">
-          <AlertCircle size={16} className="shrink-0" /> {mutationError}
-        </p>
-      )}
+      {error && <Alert className="mt-6">{error}</Alert>}
+      {mutationError && <Alert className="mt-6">{mutationError}</Alert>}
 
-      {bookings.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center border border-dashed border-mist rounded-xl">
-          <Inbox className="text-ink/30" size={32} />
-          <p className="text-ink/60">
-            You haven't booked any inspections yet.{" "}
-            <Link href="/listings" className="text-palm underline">
-              Browse listings
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {bookings.map((booking) => (
-            <li key={booking.id} className="p-4 bg-white border border-mist rounded-lg">
-              <div className="flex items-center justify-between mb-1">
-                <Link
-                  href={`/listings/${booking.listings?.id}`}
-                  className="font-medium text-ink hover:text-palm transition-colors"
+      <div className="mt-8">
+        {sorted.length === 0 ? (
+          <EmptyState
+            icon={CalendarX}
+            title="No viewings booked yet"
+            action={
+              <Link href="/listings" className={button()}>
+                Find a place to view
+              </Link>
+            }
+          >
+            Book a free viewing from any listing page.
+          </EmptyState>
+        ) : (
+          <ul className="flex flex-col gap-4">
+            {sorted.map((b) => {
+              const l = b.listings;
+              return (
+                <li
+                  key={b.id}
+                  className={`overflow-hidden rounded-[var(--radius-card)] border bg-surface ${
+                    b.status === "countered" ? "border-gold" : "border-line"
+                  }`}
                 >
-                  {booking.listings?.title}
-                </Link>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[booking.status]}`}
-                >
-                  {statusLabels[booking.status] || booking.status}
-                </span>
-              </div>
-              <p className="flex items-center gap-1.5 text-ink/60 text-sm">
-                <MapPin size={14} /> {booking.listings?.location}
-              </p>
-              <p className="flex items-center gap-1.5 text-ink/60 text-sm">
-                <CalendarDays size={14} /> Requested for {booking.preferred_date}
-                {booking.preferred_time && ` at ${booking.preferred_time}`}
-              </p>
-
-              {booking.status === "countered" && (
-                <div className="mt-3 p-3 bg-sun/10 rounded-lg">
-                  <p className="flex items-center gap-1.5 text-ink/80 text-sm mb-1">
-                    <Clock size={14} className="text-sun" /> Landlord proposed {booking.proposed_date}
-                    {booking.proposed_time && ` at ${booking.proposed_time}`}
-                  </p>
-                  {booking.landlord_note && (
-                    <p className="text-ink/60 text-sm mb-2">"{booking.landlord_note}"</p>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => acceptProposal(booking)}
-                      className="text-sm bg-palm text-white px-3 py-1 rounded-lg hover:bg-palm-dark transition-colors"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => declineProposal(booking.id)}
-                      className="text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
-                    >
-                      Decline
-                    </button>
+                  <div className="flex gap-4 p-4">
+                    <Link href={`/listings/${l?.id}`} className="h-20 w-24 shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-line sm:h-24 sm:w-32">
+                      {l?.image_url ? (
+                        <img src={l.image_url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full items-center justify-center text-ink-muted/50">
+                          <ImageOff size={22} aria-hidden="true" />
+                        </span>
+                      )}
+                    </Link>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <Link href={`/listings/${l?.id}`} className="line-clamp-1 font-semibold text-ink hover:text-palm">
+                          {l?.title || "Listing"}
+                        </Link>
+                        <StatusBadge status={b.status} />
+                      </div>
+                      {l?.location && (
+                        <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-muted">
+                          <MapPin size={14} aria-hidden="true" /> {l.location}
+                        </p>
+                      )}
+                      {l?.price && (
+                        <p className="mt-0.5 text-sm font-bold text-ink">
+                          {formatNaira(l.price)}
+                          {l.listing_type !== "sale" && <span className="font-medium text-ink-muted"> /yr</span>}
+                        </p>
+                      )}
+                      <p className="mt-2 flex items-center gap-1.5 text-sm text-ink">
+                        <CalendarDays size={15} className="shrink-0 text-palm" aria-hidden="true" />
+                        {formatDateTime(b.preferred_date, b.preferred_time)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {booking.status === "pending" && (
-                <div className="mt-3">
-                  <button
-                    onClick={() => cancelBooking(booking.id)}
-                    className="text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
-                  >
-                    Cancel Request
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+                  {b.status === "countered" && (
+                    <div className="border-t border-gold/40 bg-gold-soft px-4 py-4">
+                      <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+                        <Clock size={16} className="text-gold-ink" aria-hidden="true" />
+                        The lister suggested {formatDateTime(b.proposed_date, b.proposed_time)}
+                      </p>
+                      {b.landlord_note && <p className="mt-1 text-sm text-ink-muted">&ldquo;{b.landlord_note}&rdquo;</p>}
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            update(b, {
+                              status: "confirmed",
+                              preferred_date: b.proposed_date,
+                              preferred_time: b.proposed_time,
+                            })
+                          }
+                          className={button({ size: "sm" })}
+                        >
+                          Accept new time
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => update(b, { status: "declined" }, "Decline the suggested time? This closes the request.")}
+                          className={button({ variant: "neutral", size: "sm" })}
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {b.status === "pending" && (
+                    <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
+                      <p className="text-sm text-ink-muted">Waiting for the lister to confirm.</p>
+                      <button
+                        type="button"
+                        onClick={() => update(b, { status: "cancelled" }, "Cancel this viewing request?")}
+                        className={button({ variant: "danger-ghost", size: "sm" })}
+                      >
+                        Cancel request
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,23 +1,23 @@
-export default function SkeletonCard({ variant = "compact" }) {
-  if (variant === "roomy") {
-    return (
-      <div className="overflow-hidden rounded-2xl border border-mist bg-white">
-        <div className="skeleton aspect-[4/3] w-full" />
-        <div className="p-4">
-          <div className="skeleton h-5 w-3/4 rounded" />
-          <div className="skeleton mt-2.5 h-4 w-1/2 rounded" />
-          <div className="skeleton mt-4 h-6 w-28 rounded-full" />
-        </div>
-      </div>
-    );
-  }
-
+export default function SkeletonCard() {
   return (
-    <div className="border border-mist rounded-lg md:rounded-xl p-1.5 md:p-3 w-full md:w-72 bg-white">
-      <div className="skeleton w-full aspect-square md:aspect-[4/3] rounded-md md:rounded-lg" />
-      <div className="skeleton h-3 md:h-5 w-3/4 rounded mt-1.5 md:mt-3" />
-      <div className="skeleton h-2.5 md:h-4 w-1/2 rounded mt-1 md:mt-2" />
-      <div className="skeleton h-2.5 md:h-5 w-2/3 rounded mt-1 md:mt-2" />
+    <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface" aria-hidden="true">
+      <div className="skeleton aspect-[4/3] w-full" />
+      <div className="p-4">
+        <div className="skeleton h-5 w-1/2 rounded" />
+        <div className="skeleton mt-2 h-4 w-3/4 rounded" />
+        <div className="skeleton mt-2 h-4 w-1/3 rounded" />
+        <div className="skeleton mt-4 h-4 w-16 rounded" />
+      </div>
+    </div>
+  );
+}
+
+export function SkeletonGrid({ count = 6, className = "" }) {
+  return (
+    <div className={className} role="status" aria-label="Loading listings">
+      {Array.from({ length: count }, (_, i) => (
+        <SkeletonCard key={i} />
+      ))}
     </div>
   );
 }

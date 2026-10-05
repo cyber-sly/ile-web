@@ -3,43 +3,39 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { useUser, isLandlord } from "@/lib/useUser";
+import { formatNaira, formatDateTime } from "@/lib/format";
+import AccessWall, { PageSkeleton } from "@/components/AccessWall";
+import EmptyState from "@/components/ui/EmptyState";
+import Field from "@/components/ui/Field";
+import Alert from "@/components/ui/Alert";
+import { StatusBadge, ListingTypeBadge } from "@/components/ui/Badge";
+import { button } from "@/components/ui/Button";
 import {
-  LayoutDashboard, Pencil, Trash2, CalendarDays, Inbox, AlertCircle, LogIn,
-  X, Clock,
+  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye,
 } from "lucide-react";
 
+const GROUPS = [
+  { key: "reply", title: "Needs your reply", statuses: ["pending"] },
+  { key: "upcoming", title: "Confirmed viewings", statuses: ["confirmed"] },
+  { key: "waiting", title: "Waiting on the home-seeker", statuses: ["countered"] },
+  { key: "past", title: "Past and closed", statuses: ["done", "declined", "cancelled"], collapsed: true },
+];
+
 export default function DashboardPage() {
+  const user = useUser();
+  const landlord = isLandlord(user);
+
   const [listings, setListings] = useState([]);
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [accessError, setAccessError] = useState("");
   const [mutationError, setMutationError] = useState("");
 
-  const [proposalFor, setProposalFor] = useState(null);
-  const [proposalDate, setProposalDate] = useState("");
-  const [proposalTime, setProposalTime] = useState("");
-  const [proposalNote, setProposalNote] = useState("");
-
   useEffect(() => {
+    if (!user || !landlord) return;
+
     async function fetchDashboardData() {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        setAccessError("You must log in as a landlord to view your dashboard.");
-        setLoading(false);
-        return;
-      }
-
-      if (user.user_metadata?.role !== "landlord") {
-        setAccessError("Only landlord accounts have a listings dashboard. Looking for your inspection bookings instead? Check My Bookings.");
-        setLoading(false);
-        return;
-      }
-
       const { data: listingsData, error: listingsError } = await supabase
         .from("listings")
         .select("*")
@@ -51,367 +47,352 @@ export default function DashboardPage() {
         setLoading(false);
         return;
       }
-
       setListings(listingsData);
 
-      const listingIds = listingsData.map((listing) => listing.id);
-
-      if (listingIds.length > 0) {
-        const { data: inspectionsData, error: inspectionsError } = await supabase
+      const ids = listingsData.map((l) => l.id);
+      if (ids.length > 0) {
+        const { data, error: inspectionsError } = await supabase
           .from("inspections")
-          .select("*, listings(title)")
-          .in("listing_id", listingIds)
+          .select("*, listings(id, title, image_url, location)")
+          .in("listing_id", ids)
           .order("created_at", { ascending: false });
-
-        if (inspectionsError) {
-          setError(inspectionsError.message);
-        } else {
-          setInspections(inspectionsData);
-        }
+        if (inspectionsError) setError(inspectionsError.message);
+        else setInspections(data);
       }
-
       setLoading(false);
     }
 
     fetchDashboardData();
-  }, []);
+  }, [user, landlord]);
 
-  async function updateStatus(inspectionId, newStatus) {
+  async function updateInspection(id, changes) {
     setMutationError("");
-    const { error: updateError } = await supabase
-      .from("inspections")
-      .update({ status: newStatus })
-      .eq("id", inspectionId);
-
+    const { error: updateError } = await supabase.from("inspections").update(changes).eq("id", id);
     if (updateError) {
       setMutationError(updateError.message);
-      return;
+      return false;
     }
-
-    setInspections((prev) =>
-      prev.map((inspection) =>
-        inspection.id === inspectionId ? { ...inspection, status: newStatus } : inspection
-      )
-    );
+    setInspections((prev) => prev.map((i) => (i.id === id ? { ...i, ...changes } : i)));
+    return true;
   }
 
-  async function declineInspection(inspectionId) {
-    const confirmed = window.confirm("Decline this inspection request?");
-    if (!confirmed) return;
-
+  async function deleteListing(id) {
+    if (!window.confirm("Delete this listing? This can't be undone.")) return;
     setMutationError("");
-    const { error: updateError } = await supabase
-      .from("inspections")
-      .update({ status: "declined" })
-      .eq("id", inspectionId);
-
-    if (updateError) {
-      setMutationError(updateError.message);
-      return;
-    }
-
-    setInspections((prev) =>
-      prev.map((inspection) =>
-        inspection.id === inspectionId ? { ...inspection, status: "declined" } : inspection
-      )
-    );
-  }
-
-  function openProposal(inspection) {
-    setProposalFor(inspection.id);
-    setProposalDate(inspection.preferred_date || "");
-    setProposalTime(inspection.preferred_time || "");
-    setProposalNote("");
-  }
-
-  function closeProposal() {
-    setProposalFor(null);
-    setProposalDate("");
-    setProposalTime("");
-    setProposalNote("");
-  }
-
-  async function sendProposal(e, inspectionId) {
-    e.preventDefault();
-    setMutationError("");
-
-    const { error: updateError } = await supabase
-      .from("inspections")
-      .update({
-        status: "countered",
-        proposed_date: proposalDate,
-        proposed_time: proposalTime || null,
-        landlord_note: proposalNote || null,
-      })
-      .eq("id", inspectionId);
-
-    if (updateError) {
-      setMutationError(updateError.message);
-      return;
-    }
-
-    setInspections((prev) =>
-      prev.map((inspection) =>
-        inspection.id === inspectionId
-          ? {
-              ...inspection,
-              status: "countered",
-              proposed_date: proposalDate,
-              proposed_time: proposalTime || null,
-              landlord_note: proposalNote || null,
-            }
-          : inspection
-      )
-    );
-    closeProposal();
-  }
-
-  async function deleteListing(listingId) {
-    const confirmed = window.confirm("Delete this listing? This can't be undone.");
-    if (!confirmed) return;
-
-    setMutationError("");
-    const { error: deleteError } = await supabase
-      .from("listings")
-      .delete()
-      .eq("id", listingId);
-
+    const { error: deleteError } = await supabase.from("listings").delete().eq("id", id);
     if (deleteError) {
       setMutationError(deleteError.message);
       return;
     }
-
-    setListings((prev) => prev.filter((listing) => listing.id !== listingId));
+    setListings((prev) => prev.filter((l) => l.id !== id));
   }
 
-  if (loading) return <p className="p-6 text-ink/60">Loading dashboard...</p>;
+  if (user === undefined || (user && landlord && loading)) return <PageSkeleton />;
 
-  if (accessError) {
+  if (!user) {
     return (
-      <div className="max-w-sm mx-auto mt-12 p-6 bg-white border border-mist rounded-xl shadow-sm text-center">
-        <AlertCircle className="text-clay mx-auto mb-3" size={28} />
-        <p className="text-ink/70 mb-4">{accessError}</p>
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-1.5 bg-palm text-white px-4 py-2 rounded-lg font-medium hover:bg-palm-dark transition-colors"
-        >
-          <LogIn size={16} /> Log In
-        </Link>
+      <AccessWall
+        title="Log in to your dashboard"
+        primary={{ href: "/login?next=/dashboard", label: "Log in" }}
+        secondary={{ href: "/signup?role=landlord&next=/listings/new", label: "Create lister account" }}
+      >
+        Your dashboard is where you manage listings and viewing requests.
+      </AccessWall>
+    );
+  }
+
+  if (!landlord) {
+    return (
+      <AccessWall
+        title="Dashboards are for lister accounts"
+        primary={{ href: "/my-bookings", label: "Go to My viewings" }}
+        secondary={{ href: "/listings", label: "Browse listings" }}
+      >
+        Looking for the viewings you&apos;ve booked? They&apos;re in My viewings.
+      </AccessWall>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <Alert>{error}</Alert>
       </div>
     );
   }
 
-  if (error) return <p className="p-6 text-clay">{error}</p>;
-
-  const statusColors = {
-    pending: "bg-sun/20 text-sun",
-    countered: "bg-clay/15 text-clay",
-    confirmed: "bg-palm/15 text-palm",
-    declined: "bg-mist text-clay/70",
-    cancelled: "bg-mist text-ink/50",
-    done: "bg-mist text-ink/60",
-  };
-
-  const statusLabels = {
-    pending: "pending",
-    countered: "new time proposed",
-    confirmed: "confirmed",
-    declined: "declined",
-    cancelled: "cancelled by tenant",
-    done: "done",
-  };
+  const count = (statuses) => inspections.filter((i) => statuses.includes(i.status)).length;
+  const firstName = (user.user_metadata?.full_name || "").split(" ")[0];
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="font-display text-2xl font-semibold text-ink mb-6 flex items-center gap-2">
-        <LayoutDashboard className="text-palm" size={26} /> Your Dashboard
-      </h1>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-5xl">
+            {firstName ? `Welcome, ${firstName}` : "Your dashboard"}
+          </h1>
+          <p className="mt-2 text-ink-muted">Manage your listings and reply to viewing requests.</p>
+        </div>
+        <Link href="/listings/new" className={button()}>
+          <Plus size={17} aria-hidden="true" /> New listing
+        </Link>
+      </div>
 
-      {mutationError && (
-        <p className="flex items-center gap-1.5 text-clay text-sm mb-4 p-3 bg-clay/10 rounded-lg">
-          <AlertCircle size={16} className="shrink-0" /> {mutationError}
-        </p>
-      )}
-
-      <section className="mb-8">
-        <h2 className="font-display text-lg font-semibold text-ink mb-3">
-          Your Listings ({listings.length})
-        </h2>
-        {listings.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-10 text-center border border-dashed border-mist rounded-xl">
-            <Inbox className="text-ink/30" size={28} />
-            <p className="text-ink/60">You haven't posted any listings yet.</p>
+      <dl className="mt-8 grid grid-cols-3 gap-3">
+        {[
+          { label: "Listings", value: listings.length },
+          { label: "Need a reply", value: count(["pending"]), highlight: count(["pending"]) > 0 },
+          { label: "Confirmed", value: count(["confirmed"]) },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className={`rounded-[var(--radius-card)] border p-4 sm:p-5 ${
+              s.highlight ? "border-gold bg-gold-soft" : "border-line bg-surface"
+            }`}
+          >
+            <dt className="text-xs font-semibold uppercase tracking-wider text-ink-muted sm:text-sm sm:normal-case sm:tracking-normal">
+              {s.label}
+            </dt>
+            <dd className="mt-1 font-serif text-3xl font-semibold text-ink sm:text-4xl">{s.value}</dd>
           </div>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {listings.map((listing) => (
-              <li
-                key={listing.id}
-                className="p-3 bg-white border border-mist rounded-lg text-ink/80 flex items-center justify-between"
-              >
-                <span className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                      listing.listing_type === "sale" ? "bg-clay/15 text-clay" : "bg-palm/15 text-palm"
-                    }`}
-                  >
-                    {listing.listing_type === "sale" ? "For Sale" : "For Rent"}
-                  </span>
-                  <span className="font-medium text-ink">{listing.title}</span> —{" "}
-                  {listing.location} — ₦{Number(listing.price).toLocaleString()}
-                  {listing.listing_type !== "sale" && "/year"}
-                </span>
-                <span className="flex gap-2">
-                  <Link
-                    href={`/listings/${listing.id}/edit`}
-                    className="flex items-center gap-1 text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
-                  >
-                    <Pencil size={14} /> Edit
+        ))}
+      </dl>
+
+      {mutationError && <Alert className="mt-6">{mutationError}</Alert>}
+
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]">
+        {/* Viewing requests */}
+        <section aria-labelledby="requests-heading">
+          <h2 id="requests-heading" className="font-serif text-2xl font-semibold text-ink">
+            Viewing requests
+          </h2>
+          {inspections.length === 0 ? (
+            <div className="mt-4">
+              <EmptyState icon={CalendarDays} title="No requests yet">
+                When someone books a viewing on one of your listings, it shows up here.
+              </EmptyState>
+            </div>
+          ) : (
+            <div className="mt-4 flex flex-col gap-8">
+              {GROUPS.map((g) => {
+                const items = inspections.filter((i) => g.statuses.includes(i.status));
+                if (items.length === 0) return null;
+                return (
+                  <RequestGroup key={g.key} title={g.title} count={items.length} collapsed={g.collapsed}>
+                    {items.map((inspection) => (
+                      <RequestCard key={inspection.id} inspection={inspection} onUpdate={updateInspection} />
+                    ))}
+                  </RequestGroup>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Listings */}
+        <section aria-labelledby="listings-heading">
+          <h2 id="listings-heading" className="font-serif text-2xl font-semibold text-ink">
+            Your listings
+          </h2>
+          {listings.length === 0 ? (
+            <div className="mt-4">
+              <EmptyState
+                icon={HomeIcon}
+                title="No listings yet"
+                action={
+                  <Link href="/listings/new" className={button()}>
+                    List a property
                   </Link>
-                  <button
-                    onClick={() => deleteListing(listing.id)}
-                    className="flex items-center gap-1 text-sm bg-clay text-white px-3 py-1 rounded-lg hover:bg-clay/90 transition-colors"
-                  >
-                    <Trash2 size={14} /> Delete
-                  </button>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <h2 className="font-display text-lg font-semibold text-ink mb-3">
-          Inspection Requests ({inspections.length})
-        </h2>
-        {inspections.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-10 text-center border border-dashed border-mist rounded-xl">
-            <CalendarDays className="text-ink/30" size={28} />
-            <p className="text-ink/60">No inspection requests yet.</p>
-          </div>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {inspections.map((inspection) => (
-              <li key={inspection.id} className="p-4 bg-white border border-mist rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-ink">{inspection.listings?.title}</span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[inspection.status]}`}
-                  >
-                    {statusLabels[inspection.status] || inspection.status}
-                  </span>
-                </div>
-                <p className="flex items-center gap-1.5 text-ink/60 text-sm">
-                  <CalendarDays size={14} /> Requested for {inspection.preferred_date}
-                  {inspection.preferred_time && ` at ${inspection.preferred_time}`}
-                </p>
-
-                {inspection.status === "countered" && (
-                  <p className="flex items-center gap-1.5 text-clay text-sm mt-1">
-                    <Clock size={14} /> You proposed {inspection.proposed_date}
-                    {inspection.proposed_time && ` at ${inspection.proposed_time}`} — waiting on the tenant
-                  </p>
-                )}
-
-                {inspection.status === "declined" && inspection.landlord_note && (
-                  <p className="text-ink/50 text-sm mt-1">Note: {inspection.landlord_note}</p>
-                )}
-
-                {inspection.status === "pending" && (
-                  <div className="flex gap-2 mt-3 flex-wrap">
-                    <button
-                      onClick={() => updateStatus(inspection.id, "confirmed")}
-                      className="text-sm bg-palm text-white px-3 py-1 rounded-lg hover:bg-palm-dark transition-colors"
-                    >
-                      Confirm
-                    </button>
-                    <button
-                      onClick={() => openProposal(inspection)}
-                      className="text-sm bg-sun/20 text-sun px-3 py-1 rounded-lg hover:bg-sun/30 transition-colors"
-                    >
-                      Propose New Time
-                    </button>
-                    <button
-                      onClick={() => declineInspection(inspection.id)}
-                      className="text-sm bg-clay text-white px-3 py-1 rounded-lg hover:bg-clay/90 transition-colors"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                )}
-
-                {inspection.status === "confirmed" && (
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => updateStatus(inspection.id, "done")}
-                      className="text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
-                    >
-                      Mark Done
-                    </button>
-                  </div>
-                )}
-
-                {inspection.status === "countered" && (
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => declineInspection(inspection.id)}
-                      className="text-sm bg-mist text-ink px-3 py-1 rounded-lg hover:bg-mist/70 transition-colors"
-                    >
-                      Withdraw
-                    </button>
-                  </div>
-                )}
-
-                {proposalFor === inspection.id && (
-                  <form
-                    onSubmit={(e) => sendProposal(e, inspection.id)}
-                    className="mt-3 p-3 bg-mist/30 rounded-lg flex flex-col gap-2"
-                  >
-                    <div className="flex gap-2">
-                      <input
-                        type="date"
-                        value={proposalDate}
-                        onChange={(e) => setProposalDate(e.target.value)}
-                        required
-                        className="flex-1 min-w-0 border border-mist rounded-lg px-2 py-1.5 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-palm"
-                      />
-                      <input
-                        type="time"
-                        value={proposalTime}
-                        onChange={(e) => setProposalTime(e.target.value)}
-                        className="flex-1 min-w-0 border border-mist rounded-lg px-2 py-1.5 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-palm"
-                      />
+                }
+              >
+                It&apos;s free and takes about five minutes.
+              </EmptyState>
+            </div>
+          ) : (
+            <ul className="mt-4 flex flex-col gap-3">
+              {listings.map((l) => (
+                <li key={l.id} className="flex gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-3">
+                  <Link href={`/listings/${l.id}`} className="h-20 w-24 shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-line">
+                    {l.image_url ? (
+                      <img src={l.image_url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="flex h-full items-center justify-center text-ink-muted/50">
+                        <ImageOff size={22} aria-hidden="true" />
+                      </span>
+                    )}
+                  </Link>
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link href={`/listings/${l.id}`} className="line-clamp-1 font-semibold text-ink hover:text-palm">
+                        {l.title}
+                      </Link>
+                      <ListingTypeBadge type={l.listing_type} className="shrink-0" />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Optional note (e.g. why the original time doesn't work)"
-                      value={proposalNote}
-                      onChange={(e) => setProposalNote(e.target.value)}
-                      className="border border-mist rounded-lg px-2 py-1.5 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-palm"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        className="text-sm bg-palm text-white px-3 py-1 rounded-lg hover:bg-palm-dark transition-colors"
-                      >
-                        Send Proposal
-                      </button>
+                    <p className="text-sm font-bold text-ink">
+                      {formatNaira(l.price)}
+                      {l.listing_type !== "sale" && <span className="font-medium text-ink-muted"> /yr</span>}
+                    </p>
+                    <div className="mt-auto flex gap-1 pt-1">
+                      <Link href={`/listings/${l.id}`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
+                        <Eye size={14} aria-hidden="true" /> View
+                      </Link>
+                      <Link href={`/listings/${l.id}/edit`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
+                        <Pencil size={14} aria-hidden="true" /> Edit
+                      </Link>
                       <button
                         type="button"
-                        onClick={closeProposal}
-                        className="flex items-center gap-1 text-sm text-ink/60 px-3 py-1 rounded-lg hover:bg-mist/60 transition-colors"
+                        onClick={() => deleteListing(l.id)}
+                        className={button({ variant: "danger-ghost", size: "sm", className: "!h-8 !px-2.5" })}
                       >
-                        <X size={14} /> Cancel
+                        <Trash2 size={14} aria-hidden="true" /> Delete
                       </button>
                     </div>
-                  </form>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
+  );
+}
+
+function RequestGroup({ title, count, collapsed = false, children }) {
+  const [open, setOpen] = useState(!collapsed);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 text-left text-sm font-bold uppercase tracking-wider text-ink-muted"
+      >
+        {title} <span className="rounded-full bg-ink/5 px-2 py-0.5 text-xs">{count}</span>
+        <ChevronDown size={16} className={`ml-auto transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+      {open && <ul className="mt-3 flex flex-col gap-3">{children}</ul>}
+    </div>
+  );
+}
+
+function RequestCard({ inspection, onUpdate }) {
+  const [proposing, setProposing] = useState(false);
+  const [date, setDate] = useState(inspection.preferred_date || "");
+  const [time, setTime] = useState(inspection.preferred_time || "");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const l = inspection.listings;
+
+  async function act(changes, confirmText) {
+    if (confirmText && !window.confirm(confirmText)) return;
+    setBusy(true);
+    const ok = await onUpdate(inspection.id, changes);
+    setBusy(false);
+    if (ok) setProposing(false);
+  }
+
+  function sendProposal(e) {
+    e.preventDefault();
+    act({ status: "countered", proposed_date: date, proposed_time: time || null, landlord_note: note || null });
+  }
+
+  return (
+    <li className="rounded-[var(--radius-card)] border border-line bg-surface p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link href={`/listings/${l?.id}`} className="line-clamp-1 font-semibold text-ink hover:text-palm">
+            {l?.title || "Listing"}
+          </Link>
+          {l?.location && <p className="text-sm text-ink-muted">{l.location}</p>}
+        </div>
+        <StatusBadge status={inspection.status} />
+      </div>
+
+      <p className="mt-3 flex items-center gap-2 text-sm text-ink">
+        <CalendarDays size={16} className="shrink-0 text-palm" aria-hidden="true" />
+        Requested for {formatDateTime(inspection.preferred_date, inspection.preferred_time)}
+      </p>
+      {inspection.status === "countered" && (
+        <p className="mt-1.5 flex items-center gap-2 text-sm text-ink-muted">
+          <Clock size={16} className="shrink-0" aria-hidden="true" />
+          You suggested {formatDateTime(inspection.proposed_date, inspection.proposed_time)}
+        </p>
+      )}
+      {inspection.landlord_note && inspection.status !== "pending" && (
+        <p className="mt-1.5 text-sm text-ink-muted">Your note: &ldquo;{inspection.landlord_note}&rdquo;</p>
+      )}
+
+      {inspection.status === "pending" && !proposing && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" disabled={busy} onClick={() => act({ status: "confirmed" })} className={button({ size: "sm" })}>
+            Confirm
+          </button>
+          <button type="button" disabled={busy} onClick={() => setProposing(true)} className={button({ variant: "neutral", size: "sm" })}>
+            Suggest another time
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => act({ status: "declined" }, "Decline this viewing request?")}
+            className={button({ variant: "danger-ghost", size: "sm" })}
+          >
+            Decline
+          </button>
+        </div>
+      )}
+
+      {inspection.status === "confirmed" && (
+        <div className="mt-4">
+          <button type="button" disabled={busy} onClick={() => act({ status: "done" })} className={button({ variant: "neutral", size: "sm" })}>
+            Mark as viewed
+          </button>
+        </div>
+      )}
+
+      {inspection.status === "countered" && (
+        <div className="mt-4">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => act({ status: "declined" }, "Withdraw your suggested time and close this request?")}
+            className={button({ variant: "ghost", size: "sm" })}
+          >
+            Withdraw
+          </button>
+        </div>
+      )}
+
+      {proposing && (
+        <form onSubmit={sendProposal} className="mt-4 flex flex-col gap-4 rounded-[var(--radius-control)] bg-cream p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="New date"
+              type="date"
+              min={new Date().toISOString().slice(0, 10)}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+            />
+            <Field label="New time" optional type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          </div>
+          <Field
+            label="Note to the home-seeker"
+            optional
+            placeholder="e.g. I'm only around on weekends"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <button type="submit" disabled={busy} className={button({ size: "sm" })}>
+              Send suggestion
+            </button>
+            <button type="button" onClick={() => setProposing(false)} className={button({ variant: "ghost", size: "sm" })}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+    </li>
   );
 }

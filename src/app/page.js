@@ -1,229 +1,194 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import HomeHero from "@/components/HomeHero";
 import PropertyCard from "@/components/PropertyCard";
-import SkeletonCard from "@/components/SkeletonCard";
-import Reveal from "@/components/Reveal";
-import VideoHero from "@/components/VideoHero";
+import { SkeletonGrid } from "@/components/SkeletonCard";
+import EmptyState from "@/components/ui/EmptyState";
+import { button } from "@/components/ui/Button";
 import {
-  Search, ShieldCheck, Home as HomeIcon, Wallet, ArrowRight, MapPin,
+  ArrowRight, Search, CalendarCheck, KeyRound, Home as HomeIcon, Wallet, ShieldCheck, Eye,
 } from "lucide-react";
 
+const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4";
+
+const CATEGORIES = [
+  {
+    href: "/listings?type=rent",
+    title: "Homes for rent",
+    blurb: "Flats, self-contains and duplexes, priced per year.",
+    image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1000&q=70",
+  },
+  {
+    href: "/listings?type=sale",
+    title: "Property for sale",
+    blurb: "Homes and investment property, with the asking price upfront.",
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=70",
+  },
+];
+
+const STEPS = [
+  { icon: Search, title: "Search for free", body: "Filter by area, budget and bedrooms. No search fee, ever." },
+  { icon: CalendarCheck, title: "Book a viewing", body: "Pick a time online. Viewings are free, with no inspection fee." },
+  { icon: KeyRound, title: "Move in", body: "Agree terms with the lister and pay them directly." },
+];
+
 export default function Home() {
-  const router = useRouter();
-  const [heroSearch, setHeroSearch] = useState("");
-  const [featured, setFeatured] = useState([]);
-  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [latest, setLatest] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchFeatured() {
+    async function fetchLatest() {
       const { data, error } = await supabase
         .from("listings")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(4);
-
-      if (!error) setFeatured(data);
-      setLoadingFeatured(false);
+        .limit(8);
+      if (!error) setLatest(data);
+      setLoading(false);
     }
-
-    fetchFeatured();
+    fetchLatest();
   }, []);
-
-  function handleHeroSearch(e) {
-    e.preventDefault();
-    router.push(`/listings?location=${encodeURIComponent(heroSearch)}`);
-  }
 
   return (
     <div>
-      {/* Autoplaying video hero */}
-      <VideoHero />
+      <HomeHero />
 
-      {/* Search bar sits just below the hero */}
-      <div className="flex justify-center px-6 pt-8">
-        <form
-          onSubmit={handleHeroSearch}
-          className="bg-white rounded-xl shadow-xl border border-mist p-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full max-w-md animate-fade-up"
-        >
-          <div className="flex items-center flex-1 min-w-0">
-            <MapPin className="text-ink/40 ml-2 shrink-0" size={20} />
-            <input
-              type="text"
-              placeholder="Search by location (e.g. Yaba, Lekki)"
-              value={heroSearch}
-              onChange={(e) => setHeroSearch(e.target.value)}
-              className="flex-1 min-w-0 outline-none text-ink py-2 px-2"
-            />
+      {/* Promises the product actually keeps today. */}
+      <section aria-label="Why Ile" className="mx-auto max-w-7xl px-4 pt-12 sm:px-6">
+        <ul className="grid gap-4 sm:grid-cols-3">
+          {[
+            { icon: Wallet, text: "Free to search, save and view" },
+            { icon: ShieldCheck, text: "No inspection or search fees" },
+            { icon: Eye, text: "Prices shown upfront on every listing" },
+          ].map(({ icon: Icon, text }) => (
+            <li key={text} className="flex items-center gap-3 text-sm font-semibold text-ink">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-palm-soft text-palm">
+                <Icon size={19} aria-hidden="true" />
+              </span>
+              {text}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Latest listings */}
+      <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">Fresh on Ile</h2>
+            <p className="mt-1 text-ink-muted">The newest homes and property listed across Nigeria.</p>
           </div>
-          <button
-            type="submit"
-            className="bg-palm text-white px-4 py-2 rounded-lg font-medium hover:bg-palm-dark transition-colors flex items-center justify-center gap-1.5 shrink-0 w-full sm:w-auto"
+          <Link href="/listings" className="hidden shrink-0 items-center gap-1 font-semibold text-palm hover:underline sm:flex">
+            See all <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <SkeletonGrid count={4} className={GRID} />
+        ) : latest.length === 0 ? (
+          <EmptyState
+            icon={HomeIcon}
+            title="No listings yet"
+            action={
+              <Link href="/signup?role=landlord&next=/listings/new" className={button()}>
+                List the first property
+              </Link>
+            }
           >
-            <Search size={16} /> Search
-          </button>
-        </form>
-      </div>
-
-      {/* Featured Listings */}
-      <section className="max-w-6xl mx-auto px-6 pt-14 pb-16">
-        <Reveal>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-3xl font-semibold text-ink">Featured Listings</h2>
-            <Link href="/listings" className="text-palm font-medium flex items-center gap-1 hover:underline">
-              View all <ArrowRight size={16} />
-            </Link>
-          </div>
-        </Reveal>
-
-        {loadingFeatured ? (
-          <div className="grid grid-cols-4 gap-2 md:flex md:gap-4 md:flex-wrap">
-            {[0, 1, 2, 3].map((i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        ) : featured.length === 0 ? (
-          <Reveal>
-            <div className="flex flex-col items-center gap-3 py-16 text-center border border-dashed border-mist rounded-xl">
-              <HomeIcon className="text-ink/30" size={32} />
-              <p className="text-ink/60">
-                No listings posted yet.{" "}
-                <Link href="/listings/new" className="text-palm underline">
-                  Be the first to list a property
-                </Link>
-              </p>
-            </div>
-          </Reveal>
+            Be the first to list a property on Ile. It&apos;s free.
+          </EmptyState>
         ) : (
-          <div className="grid grid-cols-4 gap-2 md:flex md:gap-4 md:flex-wrap">
-            {featured.map((listing, i) => (
-              <Reveal key={listing.id} delay={i * 120}>
-                <Link href={`/listings/${listing.id}`} className="no-underline text-inherit">
-                  <PropertyCard
-                    title={listing.title}
-                    location={listing.location}
-                    price={listing.price}
-                    bedrooms={listing.bedrooms}
-                    imageUrl={listing.image_url}
-                    listingType={listing.listing_type}
-                  />
-                </Link>
-              </Reveal>
+          <div className={GRID}>
+            {latest.map((listing, i) => (
+              <PropertyCard key={listing.id} listing={listing} priority={i < 4} />
             ))}
           </div>
         )}
+
+        <Link href="/listings" className={button({ variant: "neutral", full: true, className: "mt-6 sm:hidden" })}>
+          See all listings
+        </Link>
       </section>
 
-      {/* Wave divider */}
-      <svg viewBox="0 0 1200 60" className="w-full h-10 text-palm/20" preserveAspectRatio="none">
-        <path
-          d="M0,30 C150,60 350,0 600,30 C850,60 1050,0 1200,30 L1200,60 L0,60 Z"
-          fill="currentColor"
-        />
-      </svg>
-
-      {/* Journey */}
-      <section className="bg-mist/30 py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <Reveal>
-            <h2 className="font-display text-3xl font-semibold text-center text-ink mb-12">
-              Three steps. No middleman toll.
-            </h2>
-          </Reveal>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Reveal delay={0}>
-              <div className="text-center">
-                <div className="w-14 h-14 mx-auto rounded-full bg-palm/10 flex items-center justify-center mb-4">
-                  <Search className="text-palm" size={26} />
-                </div>
-                <h3 className="font-display text-xl font-semibold text-ink mb-2">Search</h3>
-                <p className="text-ink/70">
-                  Filter by location and budget. Every listing is free to browse — no
-                  search fee, ever.
-                </p>
-              </div>
-            </Reveal>
-            <Reveal delay={150}>
-              <div className="text-center">
-                <div className="w-14 h-14 mx-auto rounded-full bg-sun/15 flex items-center justify-center mb-4">
-                  <HomeIcon className="text-sun" size={26} />
-                </div>
-                <h3 className="font-display text-xl font-semibold text-ink mb-2">Inspect</h3>
-                <p className="text-ink/70">
-                  Book a physical inspection only for homes you've already shortlisted
-                  — one clear fee, shown upfront.
-                </p>
-              </div>
-            </Reveal>
-            <Reveal delay={300}>
-              <div className="text-center">
-                <div className="w-14 h-14 mx-auto rounded-full bg-clay/15 flex items-center justify-center mb-4">
-                  <Wallet className="text-clay" size={26} />
-                </div>
-                <h3 className="font-display text-xl font-semibold text-ink mb-2">Move in</h3>
-                <p className="text-ink/70">
-                  Pay the landlord directly. No ghost agents, no stacked commissions.
-                </p>
-              </div>
-            </Reveal>
-          </div>
+      {/* Browse by category */}
+      <section className="mx-auto max-w-7xl px-4 pt-20 sm:px-6">
+        <h2 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">Rent or buy</h2>
+        <div className="mt-6 grid gap-5 md:grid-cols-2">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.href}
+              href={c.href}
+              className="group relative isolate flex min-h-[260px] flex-col justify-end overflow-hidden rounded-[var(--radius-hero)] p-6 text-white"
+            >
+              <img
+                src={c.image}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+              />
+              <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0F1C15]/85 via-[#0F1C15]/30 to-transparent" />
+              <h3 className="font-serif text-3xl font-semibold">{c.title}</h3>
+              <p className="mt-1 max-w-sm text-white/85">{c.blurb}</p>
+              <span className="mt-4 inline-flex items-center gap-1.5 font-semibold">
+                Browse <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Trust strip */}
-      <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-8">
-        <Reveal>
-          <div className="flex gap-4">
-            <ShieldCheck className="text-palm shrink-0" size={28} />
-            <div>
-              <h3 className="font-display text-lg font-semibold text-ink mb-1">
-                Nothing to pay until you're ready
-              </h3>
-              <p className="text-ink/70">
-                Search and shortlist for free. You only pay once you book a real
-                inspection or sign a lease.
-              </p>
-            </div>
-          </div>
-        </Reveal>
-        <Reveal delay={150}>
-          <div className="flex gap-4">
-            <HomeIcon className="text-palm shrink-0" size={28} />
-            <div>
-              <h3 className="font-display text-lg font-semibold text-ink mb-1">
-                Landlords list directly
-              </h3>
-              <p className="text-ink/70">
-                No agent required to reach real, verified tenants — post a listing in
-                minutes.
-              </p>
-            </div>
-          </div>
-        </Reveal>
+      {/* How it works */}
+      <section className="mx-auto max-w-7xl px-4 pt-20 sm:px-6">
+        <div className="rounded-[var(--radius-hero)] border border-line bg-surface px-6 py-12 md:px-12">
+          <h2 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+            How Ile works
+          </h2>
+          <ol className="mt-8 grid gap-8 md:grid-cols-3">
+            {STEPS.map(({ icon: Icon, title, body }, i) => (
+              <li key={title} className="flex gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-palm text-white">
+                  <Icon size={20} aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-ink-muted">Step {i + 1}</p>
+                  <h3 className="mt-0.5 text-lg font-semibold text-ink">{title}</h3>
+                  <p className="mt-1 text-ink-muted">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
 
-      {/* Bottom CTA banner with photo */}
-      <section className="relative py-24 px-6 text-center">
-        <img
-          src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=70"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-ink/70" />
-        <Reveal className="relative z-10 max-w-xl mx-auto">
-          <h2 className="font-display text-3xl font-semibold text-white mb-4">
-            Ready to find your next home?
-          </h2>
-          <Link
-            href="/listings"
-            className="inline-flex items-center gap-2 bg-palm text-white px-6 py-3 rounded-lg font-medium hover:bg-palm-dark transition-colors"
-          >
-            Browse Listings <ArrowRight size={18} />
-          </Link>
-        </Reveal>
+      {/* Lister call to action */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+        <div className="grid items-center gap-8 overflow-hidden rounded-[var(--radius-hero)] bg-palm-dark text-white md:grid-cols-2">
+          <div className="px-6 py-12 md:px-12">
+            <p className="text-sm font-bold uppercase tracking-wider text-gold">For owners and agents</p>
+            <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight md:text-4xl">
+              Have a property to let or sell?
+            </h2>
+            <p className="mt-3 max-w-md text-white/80">
+              List it free in a few minutes. Serious home-seekers book viewings straight from your
+              listing, and you manage every request in one dashboard.
+            </p>
+            <Link
+              href="/signup?role=landlord&next=/listings/new"
+              className={button({ variant: "onDark", size: "lg", className: "mt-7" })}
+            >
+              List your property free <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+          <img
+            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=70"
+            alt=""
+            loading="lazy"
+            className="hidden h-full min-h-[340px] w-full object-cover md:block"
+          />
+        </div>
       </section>
     </div>
   );
