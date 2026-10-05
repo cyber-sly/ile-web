@@ -27,3 +27,13 @@ export function isLandlord(user) {
 export function loginHref(next) {
   return next && next !== "/" ? `/login?next=${encodeURIComponent(next)}` : "/login";
 }
+
+// Whether the signed-in user is an Ile moderator (see supabase/trust_safety.sql).
+export function useIsAdmin(user) {
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase.rpc("is_admin").then(({ data }) => setAdmin(Boolean(data)));
+  }, [user]);
+  return Boolean(user) && admin;
+}

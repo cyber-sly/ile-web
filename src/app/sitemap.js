@@ -1,5 +1,6 @@
 import { supabaseServer } from "@/lib/supabaseServer";
 import { SITE_URL } from "@/lib/site";
+import { freshCutoff } from "@/lib/property";
 
 // Rebuilt at most once an hour.
 export const revalidate = 3600;
@@ -11,6 +12,7 @@ export default async function sitemap() {
     .from("listings")
     .select("id, created_at, state, category, listing_type")
     .eq("status", "active")
+    .gte("last_confirmed_at", freshCutoff())
     .order("created_at", { ascending: false })
     .limit(10000);
 

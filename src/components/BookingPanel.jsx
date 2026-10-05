@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { loginHref } from "@/lib/useUser";
 import { formatNaira, formatDateTime } from "@/lib/format";
-import { priceParts, periodOf, periodLabel, moveInCost, feeWarning, isAvailable, listerLabel } from "@/lib/property";
+import { priceParts, periodOf, periodLabel, moveInCost, feeWarning, isAvailable, listerLabel, isModerated, needsConfirming, daysSinceConfirmed } from "@/lib/property";
 import { fetchNames } from "@/lib/messaging";
 import MessageButton from "@/components/MessageButton";
 import SlotPicker from "@/components/SlotPicker";
@@ -130,14 +130,38 @@ function OwnerActions({ listing, onDelete, onStatusChange }) {
   const [error, setError] = useState("");
   const closedLabel = listing.listing_type === "sale" ? "sold" : "let";
 
-  async function changeStatus(next) {
+  async function update(changes) {
     setBusy(true);
     setError("");
-    const { error: updateError } = await supabase.from("listings").update({ status: next }).eq("id", listing.id);
+    const { error: updateError } = await supabase.from("listings").update(changes).eq("id", listing.id);
     setBusy(false);
     if (updateError) setError(updateError.message);
-    else onStatusChange?.(next);
+    else onStatusChange?.(changes);
   }
+  const confirmNow = { last_confirmed_at: new Date().toISOString() };
+
+  if (isModerated(listing)) {
+    return (
+      <div>
+        <p className="font-semibold text-ink">{status === "removed" ? "Removed by Ile" : "Under review"}</p>
+        <p className="mt-1 text-sm text-ink-muted">
+          {status === "removed"
+            ? "Our moderators removed this listing after reports from users. It can't be relisted."
+            : "Several people reported this listing, so it's hidden from search while our team reviews it."}{" "}
+          If you think this is a mistake, email{" "}
+          <a href="mailto:hello@ile.app" className="font-semibold text-palm hover:underline">
+            hello@ile.app
+          </a>
+          .
+        </p>
+        <button type="button" onClick={onDelete} className={button({ variant: "danger-ghost", full: true, className: "mt-4" })}>
+          <Trash2 size={15} aria-hidden="true" /> Delete listing
+        </button>
+      </div>
+    );
+  }
+
+  const days = daysSinceConfirmed(listing);
 
   return (
     <div>
@@ -145,16 +169,25 @@ function OwnerActions({ listing, onDelete, onStatusChange }) {
       <p className="mt-1 text-sm text-ink-muted">
         {status === "active" ? "Viewing requests appear in your dashboard." : `Marked as ${status}. It's hidden from search.`}
       </p>
+      {status === "active" && needsConfirming(listing) && (
+        <div className="mt-3 rounded-[var(--radius-control)] bg-gold-soft p-3 text-sm text-ink">
+          <p className="font-semibold">Is this still available?</p>
+          <p className="text-ink-muted">Last confirmed {days} days ago. Listings unconfirmed for 45 days leave search.</p>
+          <button type="button" disabled={busy} onClick={() => update(confirmNow)} className={button({ size: "sm", className: "mt-2" })}>
+            Yes, still available
+          </button>
+        </div>
+      )}
       <div className="mt-4 flex flex-col gap-2">
         <Link href="/dashboard" className={button({ full: true })}>
           Open dashboard
         </Link>
         {status === "active" ? (
-          <button type="button" disabled={busy} onClick={() => changeStatus(closedLabel)} className={button({ variant: "neutral", full: true })}>
+          <button type="button" disabled={busy} onClick={() => update({ status: closedLabel })} className={button({ variant: "neutral", full: true })}>
             Mark as {closedLabel}
           </button>
         ) : (
-          <button type="button" disabled={busy} onClick={() => changeStatus("active")} className={button({ variant: "neutral", full: true })}>
+          <button type="button" disabled={busy} onClick={() => update({ status: "active", ...confirmNow })} className={button({ variant: "neutral", full: true })}>
             <RotateCcw size={15} aria-hidden="true" /> Relist
           </button>
         )}

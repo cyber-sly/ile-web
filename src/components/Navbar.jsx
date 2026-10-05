@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useUser, isLandlord, loginHref } from "@/lib/useUser";
+import { useUser, isLandlord, loginHref, useIsAdmin } from "@/lib/useUser";
 import { useUnreadCount } from "@/lib/messaging";
 import { button } from "@/components/ui/Button";
 import Logo from "@/components/Logo";
-import { Plus, Heart, CalendarDays, LayoutDashboard, LogOut, ChevronDown, UserRound, MessageCircle } from "lucide-react";
+import { Plus, Heart, CalendarDays, LayoutDashboard, LogOut, ChevronDown, UserRound, MessageCircle, ShieldCheck } from "lucide-react";
 
 const navLink =
   "rounded-full px-3.5 py-2 text-sm font-semibold transition-colors duration-200";
@@ -103,6 +103,7 @@ export default function Navbar() {
 }
 
 function AccountMenu({ user, landlord, onLogout }) {
+  const admin = useIsAdmin(user);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const name = user.user_metadata?.full_name || user.email;
@@ -162,6 +163,11 @@ function AccountMenu({ user, landlord, onLogout }) {
             <Link role="menuitem" href="/dashboard" className={item}>
               <LayoutDashboard size={16} aria-hidden="true" /> My listings
             </Link>
+            {admin && (
+              <Link role="menuitem" href="/admin" className={item}>
+                <ShieldCheck size={16} aria-hidden="true" /> Moderation
+              </Link>
+            )}
             <button role="menuitem" type="button" onClick={onLogout} className={`${item} w-full text-clay`}>
               <LogOut size={16} aria-hidden="true" /> Log out
             </button>

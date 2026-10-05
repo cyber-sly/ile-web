@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useUser, isLandlord } from "@/lib/useUser";
+import { useUser, isLandlord, useIsAdmin } from "@/lib/useUser";
 import EmptyState from "@/components/ui/EmptyState";
 import { button } from "@/components/ui/Button";
-import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight } from "lucide-react";
+import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck } from "lucide-react";
 
 export default function AccountPage() {
   const router = useRouter();
   const user = useUser();
+  const admin = useIsAdmin(user);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -52,6 +53,7 @@ export default function AccountPage() {
     { href: "/my-bookings", label: "My viewings", icon: CalendarDays },
     { href: "/dashboard", label: "My listings", icon: LayoutDashboard },
     { href: "/listings/new", label: "List a property", icon: Plus },
+    ...(admin ? [{ href: "/admin", label: "Moderation", icon: ShieldCheck }] : []),
   ];
 
   return (

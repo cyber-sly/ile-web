@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
 import { formatDateTime } from "@/lib/format";
-import { priceParts, placeLabel, isAvailable } from "@/lib/property";
+import { priceParts, placeLabel, isAvailable, isModerated, isExpired, needsConfirming, STATUS_LABELS } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
 import Field from "@/components/ui/Field";
@@ -93,15 +93,16 @@ export default function DashboardPage() {
     setListings((prev) => prev.filter((l) => l.id !== id));
   }
 
-  async function setListingStatus(listing, status) {
+  async function updateListing(listing, changes) {
     setMutationError("");
-    const { error: updateError } = await supabase.from("listings").update({ status }).eq("id", listing.id);
+    const { error: updateError } = await supabase.from("listings").update(changes).eq("id", listing.id);
     if (updateError) {
       setMutationError(updateError.message);
       return;
     }
-    setListings((prev) => prev.map((l) => (l.id === listing.id ? { ...l, status } : l)));
+    setListings((prev) => prev.map((l) => (l.id === listing.id ? { ...l, ...changes } : l)));
   }
+  const confirmNow = () => ({ last_confirmed_at: new Date().toISOString() });
 
   if (user === undefined || (user && loading)) return <PageSkeleton />;
 
@@ -144,7 +145,7 @@ export default function DashboardPage() {
 
       <dl className="mt-8 grid grid-cols-3 gap-3">
         {[
-          { label: "Live listings", value: listings.filter(isAvailable).length },
+          { label: "Live listings", value: listings.filter((l) => isAvailable(l) && !isExpired(l)).length },
           { label: "Need a reply", value: count(["pending"]), highlight: count(["pending"]) > 0 },
           { label: "Confirmed", value: count(["confirmed"]) },
         ].map((s) => (
@@ -163,6 +164,14 @@ export default function DashboardPage() {
       </dl>
 
       {mutationError && <Alert className="mt-6">{mutationError}</Alert>}
+      {listings.some(needsConfirming) && (
+        <p className="mt-6 rounded-[var(--radius-card)] border border-gold bg-gold-soft px-4 py-3 text-sm text-ink">
+          <span className="font-semibold">
+            {listings.filter(needsConfirming).length} listing{listings.filter(needsConfirming).length === 1 ? "" : "s"} need confirming.
+          </span>{" "}
+          Tell us they&apos;re still available so they stay in search. Listings unconfirmed for 45 days are hidden.
+        </p>
+      )}
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]">
         {/* Viewing requests */}
@@ -243,7 +252,27 @@ export default function DashboardPage() {
                       <span className="font-medium text-ink-muted"> {priceParts(l, { short: true }).suffix}</span>
                     </p>
                     <p className="truncate text-xs text-ink-muted">{placeLabel(l)}</p>
-                    {!isAvailable(l) && <Badge tone="clay" className="mt-1 self-start">{l.status === "sold" ? "Sold" : "Let"} · hidden from search</Badge>}
+                    {!isAvailable(l) && (
+                      <Badge tone={isModerated(l) ? "clay" : "neutral"} className="mt-1 self-start">
+                        {STATUS_LABELS[l.status] || l.status} · hidden from search
+                      </Badge>
+                    )}
+                    {isExpired(l) && <Badge tone="gold" className="mt-1 self-start">Not confirmed · hidden from search</Badge>}
+                    {needsConfirming(l) && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-gold-soft px-2.5 py-1.5 text-xs text-ink">
+                        <span className="font-semibold">Still available?</span>
+                        <button type="button" onClick={() => updateListing(l, confirmNow())} className="font-semibold text-palm hover:underline">
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateListing(l, { status: l.listing_type === "sale" ? "sold" : "let" })}
+                          className="font-semibold text-ink-muted hover:underline"
+                        >
+                          No, it&apos;s {l.listing_type === "sale" ? "sold" : "let"}
+                        </button>
+                      </div>
+                    )}
                     <div className="mt-auto flex flex-wrap gap-1 pt-1">
                       <Link href={`/listings/${l.id}/viewings`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
                         <CalendarClock size={14} aria-hidden="true" /> Times
@@ -254,10 +283,10 @@ export default function DashboardPage() {
                       <Link href={`/listings/${l.id}/edit`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
                         <Pencil size={14} aria-hidden="true" /> Edit
                       </Link>
-                      {isAvailable(l) ? (
+                      {isModerated(l) ? null : isAvailable(l) ? (
                         <button
                           type="button"
-                          onClick={() => setListingStatus(l, l.listing_type === "sale" ? "sold" : "let")}
+                          onClick={() => updateListing(l, { status: l.listing_type === "sale" ? "sold" : "let" })}
                           className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
                         >
                           <CheckCircle2 size={14} aria-hidden="true" /> {l.listing_type === "sale" ? "Sold" : "Let"}
@@ -265,7 +294,7 @@ export default function DashboardPage() {
                       ) : (
                         <button
                           type="button"
-                          onClick={() => setListingStatus(l, "active")}
+                          onClick={() => updateListing(l, { status: "active", ...confirmNow() })}
                           className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
                         >
                           <RotateCcw size={14} aria-hidden="true" /> Relist

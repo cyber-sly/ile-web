@@ -8,13 +8,14 @@ import { useUser } from "@/lib/useUser";
 import { stateLabel } from "@/lib/nigeria";
 import {
   categoryOf, typeLabel, priceParts, fullPlace, formatSize, furnishingLabel, titleLabel, listerLabel,
-  isAvailable,
+  isAvailable, freshCutoff, isExpired, isModerated,
 } from "@/lib/property";
 import Lightbox from "@/components/Lightbox";
 import PhotoGallery from "@/components/PhotoGallery";
 import BookingPanel from "@/components/BookingPanel";
 import PropertyCard from "@/components/PropertyCard";
 import SaveButton from "@/components/SaveButton";
+import ReportListing from "@/components/ReportListing";
 import EmptyState from "@/components/ui/EmptyState";
 import Badge, { ListingTypeBadge, VerifiedBadge, BoostedBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
@@ -67,6 +68,7 @@ export default function ListingDetail({ initialListing }) {
         .from("listings")
         .select("*")
         .eq("status", "active")
+        .gte("last_confirmed_at", freshCutoff())
         .eq("category", categoryOf(data))
         .eq("listing_type", data.listing_type || "rent")
         .neq("id", id);
@@ -177,11 +179,30 @@ export default function ListingDetail({ initialListing }) {
         {!available && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border border-line-strong bg-surface px-5 py-4">
             <p className="font-semibold text-ink">
-              This property has been {listing.status === "sold" ? "sold" : "let"} and is no longer available.
+              {listing.status === "removed"
+                ? "This listing was removed by Ile's moderators."
+                : listing.status === "under_review"
+                  ? "This listing is being reviewed by Ile after reports from users."
+                  : `This property has been ${listing.status === "sold" ? "sold" : "let"} and is no longer available.`}
             </p>
             <Link href={browseBase} className={button({ size: "sm" })}>
               See similar listings
             </Link>
+          </div>
+        )}
+        {available && isExpired(listing) && (
+          <div className="mb-4 rounded-[var(--radius-card)] border border-gold bg-gold-soft px-5 py-4 text-sm text-ink">
+            {isOwner ? (
+              <>
+                <span className="font-semibold">This listing is hidden from search</span> because it hasn&apos;t been confirmed in a while.
+                Use &ldquo;Still available&rdquo; below to show it again.
+              </>
+            ) : (
+              <>
+                <span className="font-semibold">This listing may be out of date.</span> The lister hasn&apos;t confirmed it&apos;s still
+                available recently. Message them before you travel to view it.
+              </>
+            )}
           </div>
         )}
 
@@ -289,6 +310,7 @@ export default function ListingDetail({ initialListing }) {
                 </a>
               </div>
             </section>
+            {!isModerated(listing) && <ReportListing listing={listing} user={user} />}
           </div>
 
           {/* Action panel: pinned while the main column scrolls */}
@@ -299,7 +321,7 @@ export default function ListingDetail({ initialListing }) {
                 listing={listing}
                 user={user}
                 onDelete={handleDelete}
-                onStatusChange={(status) => setListing((l) => ({ ...l, status }))}
+                onStatusChange={(changes) => setListing((l) => ({ ...l, ...changes }))}
               />
             </div>
           </aside>

@@ -170,3 +170,41 @@ export function feeWarning(listing) {
 }
 
 export const isAvailable = (listing) => !listing.status || listing.status === "active";
+
+// Listings must be re-confirmed by the lister to stay in search.
+export const FRESH_DAYS = 45;
+export const STALE_WARNING_DAYS = 30;
+
+export function freshCutoff(days = FRESH_DAYS) {
+  return new Date(Date.now() - days * 86_400_000).toISOString();
+}
+
+export function daysSinceConfirmed(listing) {
+  const at = listing.last_confirmed_at || listing.created_at;
+  return at ? Math.floor((Date.now() - new Date(at).getTime()) / 86_400_000) : 0;
+}
+
+// Past the cutoff: hidden from search until the lister confirms it.
+export const isExpired = (listing) => isAvailable(listing) && daysSinceConfirmed(listing) >= FRESH_DAYS;
+// Getting close: the dashboard starts asking "still available?".
+export const needsConfirming = (listing) => isAvailable(listing) && daysSinceConfirmed(listing) >= STALE_WARNING_DAYS;
+
+export const isModerated = (listing) => listing.status === "under_review" || listing.status === "removed";
+
+export const STATUS_LABELS = {
+  active: "Live",
+  let: "Let",
+  sold: "Sold",
+  under_review: "Under review",
+  removed: "Removed by Ile",
+};
+
+export const REPORT_REASONS = [
+  { value: "fake", label: "Fake, or the property doesn't exist" },
+  { value: "unavailable", label: "Already let or sold" },
+  { value: "misleading", label: "Photos, price or details are misleading" },
+  { value: "upfront_fee", label: "Asked me to pay an inspection fee or deposit before viewing" },
+  { value: "scam", label: "Looks like a scam" },
+  { value: "duplicate", label: "Duplicate of another listing" },
+  { value: "other", label: "Something else" },
+];

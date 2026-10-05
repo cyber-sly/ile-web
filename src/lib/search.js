@@ -1,6 +1,7 @@
 // Listing search: URL params <-> filters <-> Supabase query.
 // Filters live in the URL so results can be shared and survive refresh.
 import { supabase } from "@/lib/supabaseClient";
+import { freshCutoff } from "@/lib/property";
 
 export const PAGE_SIZE = 24;
 
@@ -48,7 +49,11 @@ function clean(text) {
 }
 
 export function buildQuery(f, page = 0) {
-  let query = supabase.from("listings").select("*", { count: "exact" }).eq("status", "active");
+  let query = supabase
+    .from("listings")
+    .select("*", { count: "exact" })
+    .eq("status", "active")
+    .gte("last_confirmed_at", freshCutoff());
 
   if (f.tab === "rent" || f.tab === "sale") query = query.eq("category", "homes").eq("listing_type", f.tab);
   else {

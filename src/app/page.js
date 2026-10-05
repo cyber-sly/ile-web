@@ -8,6 +8,7 @@ import PropertyCard from "@/components/PropertyCard";
 import { SkeletonGrid } from "@/components/SkeletonCard";
 import EmptyState from "@/components/ui/EmptyState";
 import { button } from "@/components/ui/Button";
+import { freshCutoff } from "@/lib/property";
 import {
   ArrowRight, Search, CalendarCheck, KeyRound, Home as HomeIcon, Wallet, ShieldCheck, Eye,
 } from "lucide-react";
@@ -57,6 +58,7 @@ export default function Home() {
         .from("listings")
         .select("*")
         .eq("status", "active")
+        .gte("last_confirmed_at", freshCutoff())
         .order("created_at", { ascending: false })
         .limit(8);
       if (!error) setLatest(data);

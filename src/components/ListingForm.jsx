@@ -311,7 +311,14 @@ export default function ListingForm({ listing, userId }) {
     setStatus(editing ? "Saving changes…" : "Publishing…");
     const imageUrls = [...keptImages, ...uploadedImages];
     const videoUrls = [...keptVideos, ...uploadedVideos];
-    const toSave = { ...row, image_url: imageUrls[0] ?? null, image_urls: imageUrls, video_urls: videoUrls };
+    // Saving counts as confirming the listing is current.
+    const toSave = {
+      ...row,
+      image_url: imageUrls[0] ?? null,
+      image_urls: imageUrls,
+      video_urls: videoUrls,
+      last_confirmed_at: new Date().toISOString(),
+    };
 
     const { data, error } = editing
       ? await supabase.from("listings").update(toSave).eq("id", listing.id).select("id").single()
