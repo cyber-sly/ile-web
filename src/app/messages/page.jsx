@@ -29,24 +29,17 @@ async function loadThreads(userId) {
     .order("last_message_at", { ascending: false });
   if (convoError) return { threads: [], error: convoError.message };
 
-  const ids = convos.map((c) => c.id);
-  const [names, { data: msgs }] = await Promise.all([
+  const [names, { data: summary }] = await Promise.all([
     fetchNames(convos.map((c) => (c.tenant_id === userId ? c.landlord_id : c.tenant_id))),
-    ids.length
-      ? supabase
-          .from("messages")
-          .select("conversation_id, sender_id, body, created_at, read_at")
-          .in("conversation_id", ids)
-          .order("created_at", { ascending: false })
-          .limit(500)
-      : Promise.resolve({ data: [] }),
+    supabase.rpc("inbox_summary"),
   ]);
 
+  // Latest message and unread count per conversation, computed in the database.
   const latest = {};
   const unread = {};
-  for (const m of msgs || []) {
-    if (!latest[m.conversation_id]) latest[m.conversation_id] = m;
-    if (!m.read_at && m.sender_id !== userId) unread[m.conversation_id] = (unread[m.conversation_id] || 0) + 1;
+  for (const row of summary || []) {
+    if (row.last_at) latest[row.conversation_id] = { body: row.last_body, sender_id: row.last_sender, created_at: row.last_at };
+    unread[row.conversation_id] = row.unread;
   }
   const threads = convos.map((c) => {
     const otherId = c.tenant_id === userId ? c.landlord_id : c.tenant_id;

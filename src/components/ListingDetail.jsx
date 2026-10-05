@@ -237,7 +237,7 @@ export default function ListingDetail({ initialListing }) {
               {suffix && <span className="text-base font-medium text-ink-muted"> {suffix}</span>}
             </p>
 
-            <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line sm:grid-cols-3">
+            <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line sm:grid-cols-3 max-sm:[&>*:last-child:nth-child(odd)]:col-span-2">
               {facts.map(({ icon: Icon, label, value }) => (
                 <div key={label} className="bg-surface p-4">
                   <dt className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-muted">

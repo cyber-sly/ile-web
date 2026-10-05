@@ -77,15 +77,15 @@ export default function ViewingTimesPage() {
     }
 
     setSaving(true);
-    const { error: delError } = await supabase.from("listing_availability").delete().eq("listing_id", id);
-    const { error: insError } = rows.length
-      ? await supabase.from("listing_availability").insert(rows)
-      : { error: null };
-    const { error: updError } = await supabase.from("listings").update({ viewing_slot_minutes: minutes }).eq("id", id);
-    const err = delError || insError || updError;
-    if (err) {
+    // One transaction: the schedule is replaced completely or not at all.
+    const { error: saveError } = await supabase.rpc("set_listing_availability", {
+      p_listing: id,
+      p_minutes: minutes,
+      p_windows: rows.map(({ weekday, start_time, end_time }) => ({ weekday, start_time, end_time })),
+    });
+    if (saveError) {
       setSaving(false);
-      setMessage({ tone: "error", text: err.message });
+      setMessage({ tone: "error", text: saveError.message });
       return;
     }
     const { data: open } = await supabase.rpc("listing_open_slots", { p_listing: id, p_days: 14 });

@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import MessageButton from "@/components/MessageButton";
 import { fetchNames } from "@/lib/messaging";
-import { canReview, fetchReviewedIds } from "@/lib/reviews";
+import { canReview, fetchReviewedIds, viewingDateReached } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
 import { MapPin, CalendarDays, Clock, CalendarX, ImageOff } from "lucide-react";
 
@@ -40,7 +40,7 @@ export default function MyBookingsPage() {
         else {
           setBookings(data);
           fetchNames(data.map((b) => b.listings?.landlord_id)).then(setNames);
-          fetchReviewedIds(user.id, data.filter(canReview).map((b) => b.id)).then(setReviewed);
+          fetchReviewedIds(data.filter(canReview).map((b) => b.id)).then(setReviewed);
         }
         setLoading(false);
       });
@@ -195,6 +195,19 @@ export default function MyBookingsPage() {
                           onDone={() => setReviewed((prev) => new Set(prev).add(b.id))}
                         />
                       )}
+                    </div>
+                  )}
+
+                  {b.status === "confirmed" && !viewingDateReached(b) && (
+                    <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
+                      <p className="text-sm text-ink-muted">Can&apos;t make it? Cancel so the slot opens for someone else.</p>
+                      <button
+                        type="button"
+                        onClick={() => update(b, { status: "cancelled" }, "Cancel this viewing? The lister will see it's cancelled.")}
+                        className={button({ variant: "danger-ghost", size: "sm" })}
+                      >
+                        Cancel viewing
+                      </button>
                     </div>
                   )}
 

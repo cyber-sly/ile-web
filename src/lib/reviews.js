@@ -8,8 +8,14 @@ function todayInLagos() {
 // Mirrors leave_review(): the viewing was marked done, or it was confirmed
 // and its date has passed.
 export function canReview(inspection) {
-  if (inspection.status === "done") return true;
-  return inspection.status === "confirmed" && inspection.preferred_date < todayInLagos();
+  const today = todayInLagos();
+  if (inspection.status === "done") return inspection.preferred_date <= today;
+  return inspection.status === "confirmed" && inspection.preferred_date < today;
+}
+
+// Listers can mark a viewing done on or after its date.
+export function viewingDateReached(inspection) {
+  return inspection.preferred_date <= todayInLagos();
 }
 
 // { userId: { average, total, accurate_pct } } for listers or tenants.
@@ -20,13 +26,11 @@ export async function fetchRatings(userIds, role) {
   return Object.fromEntries((data || []).map((r) => [r.user_id, r]));
 }
 
-// Ids of viewings the current user has already reviewed, from a list.
-export async function fetchReviewedIds(userId, inspectionIds) {
+// Ids of viewings the signed-in user has already reviewed, from a list.
+// Reviewer ids aren't readable through the API, so this goes through an RPC
+// that only answers for the caller.
+export async function fetchReviewedIds(inspectionIds) {
   if (inspectionIds.length === 0) return new Set();
-  const { data } = await supabase
-    .from("reviews")
-    .select("inspection_id")
-    .eq("reviewer_id", userId)
-    .in("inspection_id", inspectionIds);
-  return new Set((data || []).map((r) => r.inspection_id));
+  const { data } = await supabase.rpc("my_reviewed_inspections", { p_ids: inspectionIds });
+  return new Set(data || []);
 }

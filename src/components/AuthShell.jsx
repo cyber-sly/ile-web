@@ -2,7 +2,7 @@
 export default function AuthShell({ title, subtitle, image, quote, children }) {
   return (
     <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl lg:grid-cols-2">
-      <div className="flex items-center justify-center px-4 py-10 sm:px-6 lg:py-16">
+      <div className="flex items-start justify-center px-4 py-8 sm:px-6 lg:items-center lg:py-16">
         <div className="animate-fade-up w-full max-w-md">
           <h1 className="font-serif text-4xl font-semibold tracking-tight text-ink">{title}</h1>
           {subtitle && <p className="mt-2 text-ink-muted">{subtitle}</p>}
@@ -25,6 +25,10 @@ export default function AuthShell({ title, subtitle, image, quote, children }) {
 }
 
 // Only allow same-site relative paths as post-login destinations.
+// Browsers treat "//x" and "/\x" as links to another site, so both are
+// rejected, as is any backslash or control character.
 export function safeNext(next) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+  if (!next || next[0] !== "/" || next[1] === "/") return null;
+  if (next.includes("\\") || /[\x00-\x1f]/.test(next)) return null;
+  return next;
 }

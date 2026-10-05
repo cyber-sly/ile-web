@@ -73,7 +73,9 @@ alter table public.listings add constraint listings_lister_type_check
 
 alter table public.listings drop constraint if exists listings_status_check;
 alter table public.listings add constraint listings_status_check
-  check (status in ('active', 'let', 'sold'));
+  -- under_review/removed come from trust_safety.sql; listed here so re-running
+  -- this file never drops them.
+  check (status in ('active', 'let', 'sold', 'under_review', 'removed'));
 
 alter table public.listings drop constraint if exists listings_numbers_check;
 alter table public.listings add constraint listings_numbers_check

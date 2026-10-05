@@ -92,11 +92,16 @@ function ListingsContent() {
 
   async function loadMore() {
     setLoadingMore(true);
+    const key = paramKey;
     const page = result.page + 1;
     const { data, error } = await buildQuery(f, page);
     setLoadingMore(false);
-    if (error) return setResult((r) => ({ ...r, error: error.message }));
-    setResult((r) => ({ ...r, items: [...r.items, ...(data || [])], page }));
+    // Ignore the response if the filters changed while it was loading.
+    setResult((r) => {
+      if (r.key !== key) return r;
+      if (error) return { ...r, error: error.message };
+      return { ...r, items: [...r.items, ...(data || [])], page };
+    });
   }
 
   const loading = result.key !== paramKey;

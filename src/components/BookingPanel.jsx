@@ -47,7 +47,9 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
           <OwnerActions listing={listing} onDelete={onDelete} onStatusChange={onStatusChange} />
         ) : !available ? (
           <p className="text-sm text-ink-muted">
-            This listing is no longer taking viewings because it has been {listing.status === "sold" ? "sold" : "let"}.
+            {isModerated(listing)
+              ? "This listing isn't taking viewings while Ile reviews it."
+              : `This listing is no longer taking viewings because it has been ${listing.status === "sold" ? "sold" : "let"}.`}
           </p>
         ) : !user ? (
           <SignedOut listingId={listing.id} />

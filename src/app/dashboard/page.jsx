@@ -14,7 +14,7 @@ import Badge, { StatusBadge, ListingTypeBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import MessageButton from "@/components/MessageButton";
 import { fetchNames } from "@/lib/messaging";
-import { canReview, fetchRatings, fetchReviewedIds } from "@/lib/reviews";
+import { canReview, fetchRatings, fetchReviewedIds, viewingDateReached } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
 import { RatingSummary } from "@/components/Stars";
 import {
@@ -71,7 +71,7 @@ export default function DashboardPage() {
           const [n, r, done] = await Promise.all([
             fetchNames(tenantIds),
             fetchRatings(tenantIds, "tenant"),
-            fetchReviewedIds(user.id, data.filter(canReview).map((i) => i.id)),
+            fetchReviewedIds(data.filter(canReview).map((i) => i.id)),
           ]);
           setNames(n);
           setRatings(r);
@@ -423,10 +423,21 @@ function RequestCard({ inspection, name, rating, reviewed, onReviewed, user, onU
       )}
 
       {inspection.status === "confirmed" && (
-        <div className="mt-4">
-          <button type="button" disabled={busy} onClick={() => act({ status: "done" })} className={button({ variant: "neutral", size: "sm" })}>
-            Mark as viewed
-          </button>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {viewingDateReached(inspection) ? (
+            <button type="button" disabled={busy} onClick={() => act({ status: "done" })} className={button({ variant: "neutral", size: "sm" })}>
+              Mark as viewed
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => act({ status: "declined" }, "Cancel this viewing? The home-seeker will see it's been cancelled.")}
+              className={button({ variant: "danger-ghost", size: "sm" })}
+            >
+              Cancel viewing
+            </button>
+          )}
         </div>
       )}
 
