@@ -12,8 +12,10 @@ import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import Badge, { StatusBadge, ListingTypeBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
+import MessageButton from "@/components/MessageButton";
+import { fetchNames } from "@/lib/messaging";
 import {
-  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw,
+  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, UserRound,
 } from "lucide-react";
 
 const GROUPS = [
@@ -31,6 +33,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mutationError, setMutationError] = useState("");
+  const [names, setNames] = useState({});
 
   useEffect(() => {
     if (!user) return;
@@ -57,7 +60,10 @@ export default function DashboardPage() {
           .in("listing_id", ids)
           .order("created_at", { ascending: false });
         if (inspectionsError) setError(inspectionsError.message);
-        else setInspections(data);
+        else {
+          setInspections(data);
+          setNames(await fetchNames(data.map((i) => i.tenant_id)));
+        }
       }
       setLoading(false);
     }
@@ -178,7 +184,13 @@ export default function DashboardPage() {
                 return (
                   <RequestGroup key={g.key} title={g.title} count={items.length} collapsed={g.collapsed}>
                     {items.map((inspection) => (
-                      <RequestCard key={inspection.id} inspection={inspection} onUpdate={updateInspection} />
+                      <RequestCard
+                        key={inspection.id}
+                        inspection={inspection}
+                        name={names[inspection.tenant_id]}
+                        user={user}
+                        onUpdate={updateInspection}
+                      />
                     ))}
                   </RequestGroup>
                 );
@@ -233,6 +245,9 @@ export default function DashboardPage() {
                     <p className="truncate text-xs text-ink-muted">{placeLabel(l)}</p>
                     {!isAvailable(l) && <Badge tone="clay" className="mt-1 self-start">{l.status === "sold" ? "Sold" : "Let"} · hidden from search</Badge>}
                     <div className="mt-auto flex flex-wrap gap-1 pt-1">
+                      <Link href={`/listings/${l.id}/viewings`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
+                        <CalendarClock size={14} aria-hidden="true" /> Times
+                      </Link>
                       <Link href={`/listings/${l.id}`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
                         <Eye size={14} aria-hidden="true" /> View
                       </Link>
@@ -293,7 +308,7 @@ function RequestGroup({ title, count, collapsed = false, children }) {
   );
 }
 
-function RequestCard({ inspection, onUpdate }) {
+function RequestCard({ inspection, name, user, onUpdate }) {
   const [proposing, setProposing] = useState(false);
   const [date, setDate] = useState(inspection.preferred_date || "");
   const [time, setTime] = useState(inspection.preferred_time || "");
@@ -321,7 +336,9 @@ function RequestCard({ inspection, onUpdate }) {
           <Link href={`/listings/${l?.id}`} className="line-clamp-1 font-semibold text-ink hover:text-palm">
             {l?.title || "Listing"}
           </Link>
-          {l?.location && <p className="text-sm text-ink-muted">{l.location}</p>}
+          <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-muted">
+            <UserRound size={14} aria-hidden="true" /> {name || "A home-seeker"}
+          </p>
         </div>
         <StatusBadge status={inspection.status} />
       </div>
@@ -377,6 +394,19 @@ function RequestCard({ inspection, onUpdate }) {
           >
             Withdraw
           </button>
+        </div>
+      )}
+
+      {["pending", "countered", "confirmed"].includes(inspection.status) && !proposing && (
+        <div className="mt-3 border-t border-line pt-3">
+          <MessageButton
+            listingId={inspection.listing_id}
+            tenantId={inspection.tenant_id}
+            user={user}
+            label={`Message ${name?.split(" ")[0] || "them"}`}
+            variant="ghost"
+            size="sm"
+          />
         </div>
       )}
 

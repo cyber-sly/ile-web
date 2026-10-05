@@ -5,9 +5,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser, isLandlord, loginHref } from "@/lib/useUser";
+import { useUnreadCount } from "@/lib/messaging";
 import { button } from "@/components/ui/Button";
 import Logo from "@/components/Logo";
-import { Plus, Heart, CalendarDays, LayoutDashboard, LogOut, ChevronDown, UserRound } from "lucide-react";
+import { Plus, Heart, CalendarDays, LayoutDashboard, LogOut, ChevronDown, UserRound, MessageCircle } from "lucide-react";
 
 const navLink =
   "rounded-full px-3.5 py-2 text-sm font-semibold transition-colors duration-200";
@@ -17,6 +18,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const user = useUser();
   const landlord = isLandlord(user);
+  const unread = useUnreadCount(user);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -66,6 +68,17 @@ export default function Navbar() {
           {landlord && (
             <Link href="/dashboard" className={linkClass("/dashboard")}>
               Dashboard
+            </Link>
+          )}
+          {user && (
+            <Link href="/messages" className={`${linkClass("/messages")} relative`}>
+              Messages
+              {unread > 0 && (
+                <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-bold text-white">
+                  {unread}
+                  <span className="sr-only"> unread</span>
+                </span>
+              )}
             </Link>
           )}
         </div>
@@ -136,6 +149,9 @@ function AccountMenu({ user, landlord, onLogout }) {
           <div className="pt-2" onClick={() => setOpen(false)}>
             <Link role="menuitem" href="/account" className={item}>
               <UserRound size={16} aria-hidden="true" /> Account
+            </Link>
+            <Link role="menuitem" href="/messages" className={item}>
+              <MessageCircle size={16} aria-hidden="true" /> Messages
             </Link>
             <Link role="menuitem" href="/saved" className={item}>
               <Heart size={16} aria-hidden="true" /> Saved homes

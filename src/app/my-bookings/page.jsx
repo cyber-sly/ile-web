@@ -11,6 +11,8 @@ import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
 import { StatusBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
+import MessageButton from "@/components/MessageButton";
+import { fetchNames } from "@/lib/messaging";
 import { MapPin, CalendarDays, Clock, CalendarX, ImageOff } from "lucide-react";
 
 const ACTIVE = ["countered", "pending", "confirmed"];
@@ -21,17 +23,21 @@ export default function MyBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mutationError, setMutationError] = useState("");
+  const [names, setNames] = useState({});
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("inspections")
-      .select("*, listings(id, title, location, state, lga, area, price, price_period, listing_type, image_url)")
+      .select("*, listings(id, title, location, state, lga, area, price, price_period, listing_type, image_url, landlord_id)")
       .eq("tenant_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data, error: fetchError }) => {
         if (fetchError) setError(fetchError.message);
-        else setBookings(data);
+        else {
+          setBookings(data);
+          fetchNames(data.map((b) => b.listings?.landlord_id)).then(setNames);
+        }
         setLoading(false);
       });
   }, [user]);
@@ -161,6 +167,15 @@ export default function MyBookingsPage() {
                           Decline
                         </button>
                       </div>
+                    </div>
+                  )}
+
+                  {l && ["pending", "countered", "confirmed"].includes(b.status) && (
+                    <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5">
+                      <span className="truncate text-sm text-ink-muted">
+                        Lister: <span className="font-semibold text-ink">{names[l.landlord_id] || "Lister"}</span>
+                      </span>
+                      <MessageButton listingId={l.id} user={user} label="Message" variant="ghost" size="sm" />
                     </div>
                   )}
 
