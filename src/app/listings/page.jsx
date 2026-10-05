@@ -167,7 +167,7 @@ function ListingsContent() {
 
       {/* Filters stay pinned under the navbar */}
       <div className="sticky top-16 z-30 border-b border-line bg-cream/90 backdrop-blur-xl">
-        <div className="no-scrollbar mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-4 py-3 sm:px-6">
+        <div className="no-scrollbar mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-4 py-3 sm:px-6 lg:flex-wrap lg:overflow-visible">
           <SlidersHorizontal size={17} className="shrink-0 text-ink-muted" aria-hidden="true" />
           <FilterSelect
             label="State"
