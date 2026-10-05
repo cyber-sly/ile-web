@@ -10,7 +10,7 @@ export const revalidate = 3600;
 export default async function sitemap() {
   const { data: listings } = await supabaseServer
     .from("listings")
-    .select("id, created_at, state, category, listing_type")
+    .select("id, created_at, state, category, listing_type, landlord_id")
     .eq("status", "active")
     .gte("last_confirmed_at", freshCutoff())
     .order("created_at", { ascending: false })
@@ -38,6 +38,11 @@ export default async function sitemap() {
   return [
     ...pages,
     ...[...statePages].map((url) => ({ url, changeFrequency: "daily", priority: 0.7 })),
+    ...[...new Set((listings || []).map((l) => l.landlord_id))].map((id) => ({
+      url: `${SITE_URL}/u/${id}`,
+      changeFrequency: "weekly",
+      priority: 0.4,
+    })),
     ...(listings || []).map((l) => ({
       url: `${SITE_URL}/listings/${l.id}`,
       lastModified: new Date(l.created_at),

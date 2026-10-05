@@ -36,7 +36,7 @@ async function loadQueue() {
       .order("created_at", { ascending: false })
       .limit(50),
   ]);
-  if (error) return { error: error.message, groups: [], removed: [] };
+  if (error) return { error: error.message, groups: [], removed: [], reviews: [] };
 
   const byListing = new Map();
   for (const r of reports || []) {
@@ -46,7 +46,13 @@ async function loadQueue() {
     byListing.set(r.listings.id, g);
   }
   const groups = [...byListing.values()].sort((a, b) => b.reports.length - a.reports.length);
-  return { error: "", groups, removed: removed || [] };
+  const { data: reviews } = await supabase
+    .from("reviews")
+    .select("id, rating, comment, reviewee_role, created_at, listings(id, title)")
+    .not("comment", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(30);
+  return { error: "", groups, removed: removed || [], reviews: reviews || [] };
 }
 
 function ListingSummary({ listing }) {
@@ -91,6 +97,14 @@ export default function AdminPage() {
       if (ok) refresh();
     });
   }, [user, refresh]);
+
+  async function deleteReview(id) {
+    if (!window.confirm("Delete this review? This can't be undone.")) return;
+    setError("");
+    const { error: delError } = await supabase.from("reviews").delete().eq("id", id);
+    if (delError) setError(delError.message);
+    else refresh();
+  }
 
   async function act(listingId, action) {
     if (action === "remove" && !window.confirm("Remove this listing? The lister won't be able to relist it.")) return;
@@ -156,6 +170,35 @@ export default function AdminPage() {
                     <X size={14} aria-hidden="true" /> Dismiss reports
                   </button>
                 </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-12">
+        <h2 className="font-serif text-2xl font-semibold text-ink">Recent reviews</h2>
+        <p className="mt-1 text-sm text-ink-muted">Written reviews, newest first. Delete anything abusive or off-topic.</p>
+        {data.reviews.length === 0 ? (
+          <p className="mt-3 text-ink-muted">No written reviews yet.</p>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-3">
+            {data.reviews.map((r) => (
+              <li key={r.id} className="flex items-start justify-between gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4">
+                <div className="min-w-0 text-sm">
+                  <p className="font-semibold text-ink">
+                    {"★".repeat(r.rating)}
+                    <span className="text-line-strong">{"★".repeat(5 - r.rating)}</span>
+                    <span className="ml-2 font-normal text-ink-muted">
+                      {r.reviewee_role === "lister" ? "About a lister" : "About a home-seeker"} · {timeAgo(r.created_at)}
+                      {r.listings && <> · {r.listings.title}</>}
+                    </span>
+                  </p>
+                  <p className="mt-1 text-ink">&ldquo;{r.comment}&rdquo;</p>
+                </div>
+                <button type="button" onClick={() => deleteReview(r.id)} className={button({ variant: "danger-ghost", size: "sm", className: "shrink-0" })}>
+                  <Trash2 size={14} aria-hidden="true" /> Delete
+                </button>
               </li>
             ))}
           </ul>

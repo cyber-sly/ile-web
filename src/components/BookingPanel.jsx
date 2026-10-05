@@ -7,6 +7,8 @@ import { loginHref } from "@/lib/useUser";
 import { formatNaira, formatDateTime } from "@/lib/format";
 import { priceParts, periodOf, periodLabel, moveInCost, feeWarning, isAvailable, listerLabel, isModerated, needsConfirming, daysSinceConfirmed } from "@/lib/property";
 import { fetchNames } from "@/lib/messaging";
+import { fetchRatings } from "@/lib/reviews";
+import { RatingSummary } from "@/components/Stars";
 import MessageButton from "@/components/MessageButton";
 import SlotPicker from "@/components/SlotPicker";
 import { button } from "@/components/ui/Button";
@@ -72,20 +74,27 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
 // "Listed by Adeyemi Homes · Agent"
 function ListerLine({ listing }) {
   const [name, setName] = useState("");
+  const [rating, setRating] = useState(null);
   useEffect(() => {
-    fetchNames([listing.landlord_id]).then((names) => setName(names[listing.landlord_id] || ""));
+    const id = listing.landlord_id;
+    fetchNames([id]).then((names) => setName(names[id] || ""));
+    fetchRatings([id], "lister").then((r) => setRating(r[id] || null));
   }, [listing.landlord_id]);
   const role = listing.lister_type ? listerLabel(listing.lister_type) : "Lister";
   return (
-    <p className="flex items-center gap-2 text-sm text-ink">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-palm-soft text-palm">
-        <UserRound size={16} aria-hidden="true" />
+    <Link href={`/u/${listing.landlord_id}`} className="group flex items-center gap-2 text-sm text-ink">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-palm-soft text-palm">
+        <UserRound size={17} aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className="block truncate font-semibold">{name || role}</span>
-        <span className="block text-xs text-ink-muted">{name ? role : "Listed on Ile"}</span>
+        <span className="block truncate font-semibold group-hover:text-palm">{name || role}</span>
+        {rating ? (
+          <RatingSummary rating={rating} className="text-xs" />
+        ) : (
+          <span className="block text-xs text-ink-muted">{name ? `${role} · No reviews yet` : "Listed on Ile"}</span>
+        )}
       </span>
-    </p>
+    </Link>
   );
 }
 

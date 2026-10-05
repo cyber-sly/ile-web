@@ -13,6 +13,8 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import MessageButton from "@/components/MessageButton";
 import { fetchNames } from "@/lib/messaging";
+import { canReview, fetchReviewedIds } from "@/lib/reviews";
+import ReviewForm from "@/components/ReviewForm";
 import { MapPin, CalendarDays, Clock, CalendarX, ImageOff } from "lucide-react";
 
 const ACTIVE = ["countered", "pending", "confirmed"];
@@ -24,6 +26,7 @@ export default function MyBookingsPage() {
   const [error, setError] = useState("");
   const [mutationError, setMutationError] = useState("");
   const [names, setNames] = useState({});
+  const [reviewed, setReviewed] = useState(new Set());
 
   useEffect(() => {
     if (!user) return;
@@ -37,6 +40,7 @@ export default function MyBookingsPage() {
         else {
           setBookings(data);
           fetchNames(data.map((b) => b.listings?.landlord_id)).then(setNames);
+          fetchReviewedIds(user.id, data.filter(canReview).map((b) => b.id)).then(setReviewed);
         }
         setLoading(false);
       });
@@ -176,6 +180,21 @@ export default function MyBookingsPage() {
                         Lister: <span className="font-semibold text-ink">{names[l.landlord_id] || "Lister"}</span>
                       </span>
                       <MessageButton listingId={l.id} user={user} label="Message" variant="ghost" size="sm" />
+                    </div>
+                  )}
+
+                  {l && canReview(b) && (
+                    <div className="border-t border-line px-4 py-3">
+                      {reviewed.has(b.id) ? (
+                        <p className="text-sm text-ink-muted">Thanks for your review.</p>
+                      ) : (
+                        <ReviewForm
+                          inspectionId={b.id}
+                          reviewing="lister"
+                          name={names[l.landlord_id]}
+                          onDone={() => setReviewed((prev) => new Set(prev).add(b.id))}
+                        />
+                      )}
                     </div>
                   )}
 

@@ -14,6 +14,9 @@ import Badge, { StatusBadge, ListingTypeBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import MessageButton from "@/components/MessageButton";
 import { fetchNames } from "@/lib/messaging";
+import { canReview, fetchRatings, fetchReviewedIds } from "@/lib/reviews";
+import ReviewForm from "@/components/ReviewForm";
+import { RatingSummary } from "@/components/Stars";
 import {
   Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, UserRound,
 } from "lucide-react";
@@ -34,6 +37,8 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [mutationError, setMutationError] = useState("");
   const [names, setNames] = useState({});
+  const [ratings, setRatings] = useState({});
+  const [reviewed, setReviewed] = useState(new Set());
 
   useEffect(() => {
     if (!user) return;
@@ -62,7 +67,15 @@ export default function DashboardPage() {
         if (inspectionsError) setError(inspectionsError.message);
         else {
           setInspections(data);
-          setNames(await fetchNames(data.map((i) => i.tenant_id)));
+          const tenantIds = data.map((i) => i.tenant_id);
+          const [n, r, done] = await Promise.all([
+            fetchNames(tenantIds),
+            fetchRatings(tenantIds, "tenant"),
+            fetchReviewedIds(user.id, data.filter(canReview).map((i) => i.id)),
+          ]);
+          setNames(n);
+          setRatings(r);
+          setReviewed(done);
         }
       }
       setLoading(false);
@@ -197,6 +210,9 @@ export default function DashboardPage() {
                         key={inspection.id}
                         inspection={inspection}
                         name={names[inspection.tenant_id]}
+                        rating={ratings[inspection.tenant_id]}
+                        reviewed={reviewed.has(inspection.id)}
+                        onReviewed={() => setReviewed((prev) => new Set(prev).add(inspection.id))}
                         user={user}
                         onUpdate={updateInspection}
                       />
@@ -337,7 +353,7 @@ function RequestGroup({ title, count, collapsed = false, children }) {
   );
 }
 
-function RequestCard({ inspection, name, user, onUpdate }) {
+function RequestCard({ inspection, name, rating, reviewed, onReviewed, user, onUpdate }) {
   const [proposing, setProposing] = useState(false);
   const [date, setDate] = useState(inspection.preferred_date || "");
   const [time, setTime] = useState(inspection.preferred_time || "");
@@ -368,6 +384,7 @@ function RequestCard({ inspection, name, user, onUpdate }) {
           <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-muted">
             <UserRound size={14} aria-hidden="true" /> {name || "A home-seeker"}
           </p>
+          <RatingSummary rating={rating} className="mt-0.5" />
         </div>
         <StatusBadge status={inspection.status} />
       </div>
@@ -423,6 +440,16 @@ function RequestCard({ inspection, name, user, onUpdate }) {
           >
             Withdraw
           </button>
+        </div>
+      )}
+
+      {canReview(inspection) && (
+        <div className="mt-3 border-t border-line pt-3">
+          {reviewed ? (
+            <p className="text-sm text-ink-muted">You rated this visit.</p>
+          ) : (
+            <ReviewForm inspectionId={inspection.id} reviewing="tenant" name={name} onDone={onReviewed} />
+          )}
         </div>
       )}
 
