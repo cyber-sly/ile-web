@@ -9,39 +9,64 @@
 -- stored: contact happens in the app.
 ---------------------------------------------------------------------------
 
+-- This project already has a profiles table (id, full_name, role, phone,
+-- created_at). Create it only if missing, with the same shape.
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
-  full_name text not null default '',
+  full_name text,
+  role text not null default 'tenant',
+  phone text,
   created_at timestamptz not null default now()
 );
 
 alter table public.profiles enable row level security;
 
--- New signups get a profile from the name they typed.
-create or replace function public.handle_new_user()
+-- Phone numbers stay private: other users can read names and roles only.
+-- (Column grants apply on top of the row policies below.)
+revoke select on public.profiles from anon, authenticated;
+grant select (id, full_name, role, created_at) on public.profiles to anon, authenticated;
+
+-- New signups get a profile from what they typed. Named ile_* so it never
+-- replaces a handle_new_user() trigger the project may already have.
+create or replace function public.ile_handle_new_user()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name)
-  values (new.id, coalesce(new.raw_user_meta_data ->> 'full_name', ''))
+  insert into public.profiles (id, full_name, role)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name', ''),
+    coalesce(new.raw_user_meta_data ->> 'role', 'tenant')
+  )
   on conflict (id) do nothing;
   return new;
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
+drop trigger if exists ile_on_auth_user_created on auth.users;
+create trigger ile_on_auth_user_created
 after insert on auth.users
-for each row execute function public.handle_new_user();
+for each row execute function public.ile_handle_new_user();
 
--- Existing users.
-insert into public.profiles (id, full_name)
-select id, coalesce(raw_user_meta_data ->> 'full_name', '')
+-- Existing users without a profile.
+insert into public.profiles (id, full_name, role)
+select
+  id,
+  coalesce(raw_user_meta_data ->> 'full_name', ''),
+  coalesce(raw_user_meta_data ->> 'role', 'tenant')
 from auth.users
 on conflict (id) do nothing;
+
+-- Fill in blank names on existing profiles from signup data.
+update public.profiles p
+set full_name = u.raw_user_meta_data ->> 'full_name'
+from auth.users u
+where u.id = p.id
+  and coalesce(trim(p.full_name), '') = ''
+  and coalesce(trim(u.raw_user_meta_data ->> 'full_name'), '') <> '';
 
 ---------------------------------------------------------------------------
 -- Conversations and messages
