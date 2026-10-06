@@ -145,8 +145,8 @@ function SignupForm() {
           type="password"
           icon={Lock}
           autoComplete="new-password"
-          minLength={6}
-          hint="At least 6 characters."
+          minLength={8}
+          hint="At least 8 characters."
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

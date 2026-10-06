@@ -74,6 +74,9 @@ function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        <Link href="/forgot-password" className="-mt-2 self-end text-sm font-semibold text-palm hover:underline">
+          Forgot password?
+        </Link>
         {error && <Alert>{error}</Alert>}
         <button type="submit" disabled={loading} className={button({ size: "lg", full: true })}>
           {loading ? "Logging in…" : "Log in"}

@@ -13,6 +13,7 @@ export default function robots() {
         "/my-bookings",
         "/saved",
         "/admin",
+        "/reset-password",
         "/listings/*/edit",
         "/listings/*/viewings",
       ],

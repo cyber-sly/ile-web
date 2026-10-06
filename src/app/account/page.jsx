@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser, isLandlord, useIsAdmin } from "@/lib/useUser";
 import EmptyState from "@/components/ui/EmptyState";
+import Alert from "@/components/ui/Alert";
+import NewPasswordForm from "@/components/NewPasswordForm";
 import { button } from "@/components/ui/Button";
-import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck } from "lucide-react";
+import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck, KeyRound } from "lucide-react";
 
 export default function AccountPage() {
   const router = useRouter();
   const user = useUser();
   const admin = useIsAdmin(user);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -82,6 +87,41 @@ export default function AccountPage() {
           </li>
         ))}
       </ul>
+
+      <section className="mt-4 rounded-[var(--radius-card)] border border-line bg-surface p-5">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 font-semibold text-ink">
+            <KeyRound size={18} className="text-palm" aria-hidden="true" /> Password
+          </h2>
+          {!changingPassword && (
+            <button
+              type="button"
+              onClick={() => {
+                setChangingPassword(true);
+                setPasswordChanged(false);
+              }}
+              className="text-sm font-semibold text-palm hover:underline"
+            >
+              Change password
+            </button>
+          )}
+        </div>
+        {passwordChanged && <Alert tone="success" className="mt-4">Your password has been changed.</Alert>}
+        {changingPassword && (
+          <div className="mt-4">
+            <NewPasswordForm
+              submitLabel="Change password"
+              onDone={() => {
+                setChangingPassword(false);
+                setPasswordChanged(true);
+              }}
+            />
+            <button type="button" onClick={() => setChangingPassword(false)} className={button({ variant: "ghost", full: true, className: "mt-2" })}>
+              Cancel
+            </button>
+          </div>
+        )}
+      </section>
 
       <button type="button" onClick={handleLogout} className={button({ variant: "danger-ghost", full: true, className: "mt-4" })}>
         <LogOut size={17} aria-hidden="true" /> Log out
