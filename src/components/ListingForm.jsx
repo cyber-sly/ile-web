@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { uploadFiles, removeFiles } from "@/lib/uploadMedia";
+import { uploadFiles, removeFiles, checkFiles, IMAGE_ACCEPT, VIDEO_ACCEPT } from "@/lib/uploadMedia";
 import { NIGERIA, STATES, stateLabel } from "@/lib/nigeria";
 import {
   CATEGORIES, PROPERTY_TYPES, FURNISHING, TITLE_DOCUMENTS, SIZE_UNITS, LISTER_TYPES,
@@ -17,7 +17,8 @@ import { ImagePlus, VideoIcon, X, MapPin, Star, Home, Trees, Store } from "lucid
 
 const MAX_PHOTOS = 20;
 const MAX_PHOTO_MB = 10;
-const MAX_VIDEO_MB = 50; // Supabase's default per-file upload limit
+const MAX_VIDEO_MB = 50; // matches the listing-videos bucket limit
+const MAX_VIDEOS = 5;
 const CATEGORY_ICONS = { homes: Home, land: Trees, commercial: Store };
 
 const EMPTY = {
@@ -204,30 +205,38 @@ export default function ListingForm({ listing, userId }) {
   const previews = useMemo(() => newImages.map((f) => URL.createObjectURL(f)), [newImages]);
   useEffect(() => () => previews.forEach((u) => URL.revokeObjectURL(u)), [previews]);
 
-  function pickImages(e) {
-    const files = Array.from(e.target.files || []);
-    e.target.value = "";
-    const limit = MAX_PHOTO_MB * 1024 * 1024;
-    const tooBig = files.filter((f) => f.size > limit);
-    const ok = files.filter((f) => f.size <= limit);
-    const room = MAX_PHOTOS - keptImages.length - newImages.length;
-    setNewImages((prev) => [...prev, ...ok.slice(0, Math.max(room, 0))]);
-    setErrors((er) => ({
-      ...er,
-      photos: tooBig.length
-        ? `${tooBig.length} photo(s) skipped: each must be under ${MAX_PHOTO_MB}MB.`
-        : ok.length > room
-          ? `You can add up to ${MAX_PHOTOS} photos.`
-          : undefined,
-    }));
+  // Files are checked by their actual contents (not their name) before upload.
+  function rejectionMessage(rejected, maxMb, kindLabel, formats) {
+    const badType = rejected.filter((r) => r.reason === "type").length;
+    const tooBig = rejected.filter((r) => r.reason === "size").length;
+    return [
+      badType && `${badType} file(s) skipped: ${kindLabel} must be ${formats}.`,
+      tooBig && `${tooBig} file(s) skipped: each must be under ${maxMb}MB.`,
+    ]
+      .filter(Boolean)
+      .join(" ");
   }
 
-  function pickVideos(e) {
+  async function pickImages(e) {
     const files = Array.from(e.target.files || []);
     e.target.value = "";
-    const ok = files.filter((f) => f.size <= MAX_VIDEO_MB * 1024 * 1024);
-    setNewVideos((prev) => [...prev, ...ok]);
-    setErrors((er) => ({ ...er, videos: ok.length < files.length ? `Videos must be under ${MAX_VIDEO_MB}MB each.` : undefined }));
+    const { ok, rejected } = await checkFiles(files, "image", MAX_PHOTO_MB);
+    const room = Math.max(MAX_PHOTOS - keptImages.length - newImages.length, 0);
+    setNewImages((prev) => [...prev, ...ok.slice(0, room)]);
+    const parts = [rejectionMessage(rejected, MAX_PHOTO_MB, "photos", "JPG, PNG, WebP or HEIC")];
+    if (ok.length > room) parts.push(`You can add up to ${MAX_PHOTOS} photos.`);
+    setErrors((er) => ({ ...er, photos: parts.filter(Boolean).join(" ") || undefined }));
+  }
+
+  async function pickVideos(e) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    const { ok, rejected } = await checkFiles(files, "video", MAX_VIDEO_MB);
+    const room = Math.max(MAX_VIDEOS - keptVideos.length - newVideos.length, 0);
+    setNewVideos((prev) => [...prev, ...ok.slice(0, room)]);
+    const parts = [rejectionMessage(rejected, MAX_VIDEO_MB, "videos", "MP4, MOV or WebM")];
+    if (ok.length > room) parts.push(`You can add up to ${MAX_VIDEOS} videos.`);
+    setErrors((er) => ({ ...er, videos: parts.filter(Boolean).join(" ") || undefined }));
   }
 
   // The row as it would be saved; also drives the live cost preview.
@@ -422,6 +431,7 @@ export default function ListingForm({ listing, userId }) {
           placeholder="e.g. Lekki Phase 1, Wuse 2, Bodija"
           hint="The name people actually use for the area."
           list="area-suggestions"
+          maxLength={100}
           value={v.area}
           onChange={set("area")}
         />
@@ -435,6 +445,7 @@ export default function ListingForm({ listing, userId }) {
           optional
           placeholder="e.g. 12 Admiralty Way"
           hint="Shown on the listing so people can find the property."
+          maxLength={200}
           value={v.address}
           onChange={set("address")}
         />
@@ -570,7 +581,7 @@ export default function ListingForm({ listing, userId }) {
         <Field
           label="Title"
           placeholder={isHomes ? "e.g. 3 bedroom flat with BQ" : isLand ? "e.g. Dry 600sqm plot in a gated estate" : "e.g. Ground-floor shop on a busy road"}
-          maxLength={90}
+          maxLength={120}
           value={v.title}
           onChange={set("title")}
           error={errors.title}
@@ -582,6 +593,7 @@ export default function ListingForm({ listing, userId }) {
           optional
           rows={6}
           placeholder="What makes this worth seeing? Mention power, water, security, road access and the neighbourhood."
+          maxLength={5000}
           value={v.description}
           onChange={set("description")}
         />
@@ -616,7 +628,7 @@ export default function ListingForm({ listing, userId }) {
             <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[var(--radius-control)] border-2 border-dashed border-line-strong text-sm font-semibold text-palm transition-colors hover:border-palm hover:bg-palm-soft has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-palm">
               <ImagePlus size={24} aria-hidden="true" />
               Add photos
-              <input type="file" accept="image/*" multiple onChange={pickImages} className="sr-only" />
+              <input type="file" accept={IMAGE_ACCEPT} multiple onChange={pickImages} className="sr-only" />
             </label>
           )}
         </div>
@@ -637,7 +649,7 @@ export default function ListingForm({ listing, userId }) {
           ))}
           <label className={button({ variant: "neutral", className: "cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-palm" })}>
             <VideoIcon size={17} aria-hidden="true" /> Add a video tour
-            <input type="file" accept="video/*" multiple onChange={pickVideos} className="sr-only" />
+            <input type="file" accept={VIDEO_ACCEPT} multiple onChange={pickVideos} className="sr-only" />
           </label>
           <p className="mt-1.5 text-sm text-ink-muted">Optional. Up to {MAX_VIDEO_MB}MB per video.</p>
           {errors.videos && <p className="mt-1 text-sm font-medium text-clay">{errors.videos}</p>}
