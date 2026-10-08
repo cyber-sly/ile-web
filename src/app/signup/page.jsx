@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase, setRememberMe } from "@/lib/supabaseClient";
 import AuthShell, { safeNext } from "@/components/AuthShell";
+import GoogleButton from "@/components/GoogleButton";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
@@ -123,6 +124,8 @@ function SignupForm() {
             })}
           </div>
         </fieldset>
+
+        <GoogleButton role={role} next={next} label="Sign up with Google" />
 
         <Field
           label="Full name"

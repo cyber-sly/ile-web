@@ -14,6 +14,7 @@ export default function robots() {
         "/saved",
         "/admin",
         "/reset-password",
+        "/auth/",
         "/listings/*/edit",
         "/listings/*/viewings",
       ],

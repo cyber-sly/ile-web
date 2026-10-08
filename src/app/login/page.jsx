@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase, setRememberMe } from "@/lib/supabaseClient";
 import AuthShell, { safeNext } from "@/components/AuthShell";
+import GoogleButton from "@/components/GoogleButton";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
@@ -58,6 +59,7 @@ function LoginForm() {
       image="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1400&q=70"
       quote={<>Your next place is <em>already listed.</em></>}
     >
+      <GoogleButton next={next} remember={remember} />
       <form onSubmit={handleLogin} className="flex flex-col gap-5">
         <Field
           label="Email"
