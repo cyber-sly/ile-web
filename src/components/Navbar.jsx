@@ -29,7 +29,8 @@ export default function Navbar() {
   }, []);
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    // This device only; "Log out of all devices" lives on the Account page.
+    await supabase.auth.signOut({ scope: "local" });
     router.push("/");
     router.refresh();
   }

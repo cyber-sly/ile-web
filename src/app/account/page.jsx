@@ -9,7 +9,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
 import NewPasswordForm from "@/components/NewPasswordForm";
 import { button } from "@/components/ui/Button";
-import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck, KeyRound } from "lucide-react";
+import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck, KeyRound, MonitorSmartphone } from "lucide-react";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -18,9 +18,27 @@ export default function AccountPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
 
+  const [loggingOutAll, setLoggingOutAll] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+
   async function handleLogout() {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     router.push("/");
+    router.refresh();
+  }
+
+  // Ends every session for this account, on every phone and computer.
+  async function handleLogoutEverywhere() {
+    if (!window.confirm("Log out of Ile on every device, including this one?")) return;
+    setLoggingOutAll(true);
+    setLogoutError("");
+    const { error } = await supabase.auth.signOut({ scope: "global" });
+    setLoggingOutAll(false);
+    if (error) {
+      setLogoutError(error.message);
+      return;
+    }
+    router.push("/login");
     router.refresh();
   }
 
@@ -123,8 +141,26 @@ export default function AccountPage() {
         )}
       </section>
 
+      <section className="mt-4 rounded-[var(--radius-card)] border border-line bg-surface p-5">
+        <h2 className="flex items-center gap-2 font-semibold text-ink">
+          <MonitorSmartphone size={18} className="text-palm" aria-hidden="true" /> Devices
+        </h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Lost a phone, or logged in on a shared computer and forgot to log out? End every session at once.
+        </p>
+        {logoutError && <Alert className="mt-3">{logoutError}</Alert>}
+        <button
+          type="button"
+          onClick={handleLogoutEverywhere}
+          disabled={loggingOutAll}
+          className={button({ variant: "neutral", full: true, className: "mt-3" })}
+        >
+          {loggingOutAll ? "Logging out…" : "Log out of all devices"}
+        </button>
+      </section>
+
       <button type="button" onClick={handleLogout} className={button({ variant: "danger-ghost", full: true, className: "mt-4" })}>
-        <LogOut size={17} aria-hidden="true" /> Log out
+        <LogOut size={17} aria-hidden="true" /> Log out of this device
       </button>
     </div>
   );

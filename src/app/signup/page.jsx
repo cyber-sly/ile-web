@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, setRememberMe } from "@/lib/supabaseClient";
 import AuthShell, { safeNext } from "@/components/AuthShell";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
@@ -41,6 +41,7 @@ function SignupForm() {
     setError("");
     setLoading(true);
 
+    setRememberMe(true);
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

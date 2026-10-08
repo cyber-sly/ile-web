@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, setRememberMe } from "@/lib/supabaseClient";
 import AuthShell, { safeNext } from "@/components/AuthShell";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
@@ -25,6 +25,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -33,6 +34,8 @@ function LoginForm() {
     setError("");
     setLoading(true);
 
+    // Decides where the session is stored, so it must happen before sign-in.
+    setRememberMe(remember);
     const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
     if (loginError) {
       setError(loginError.message);
@@ -74,9 +77,25 @@ function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <Link href="/forgot-password" className="-mt-2 self-end text-sm font-semibold text-palm hover:underline">
-          Forgot password?
-        </Link>
+        <div className="-mt-2 flex flex-wrap items-center justify-between gap-3">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="h-4 w-4 accent-[var(--color-palm)]"
+            />
+            Keep me logged in
+          </label>
+          <Link href="/forgot-password" className="text-sm font-semibold text-palm hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+        {!remember && (
+          <p className="-mt-2 text-xs text-ink-muted">
+            You&apos;ll be logged out when you close this browser. Best for shared or public computers.
+          </p>
+        )}
         {error && <Alert>{error}</Alert>}
         <button type="submit" disabled={loading} className={button({ size: "lg", full: true })}>
           {loading ? "Logging in…" : "Log in"}
