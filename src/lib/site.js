@@ -12,3 +12,10 @@ function resolveSiteUrl() {
 export const SITE_URL = resolveSiteUrl();
 export const SITE_NAME = "Ile";
 export const DEFAULT_OG_IMAGE = "/videos/hero-poster.jpg";
+
+// Where users reach Ile (privacy requests, moderation appeals, support).
+// Change here once the real mailbox on the domain exists.
+export const CONTACT_EMAIL = "hello@ile.app";
+
+// Date the current Privacy Policy and Terms took effect.
+export const LEGAL_UPDATED = "8 October 2026";

@@ -10,6 +10,7 @@ import { fetchNames } from "@/lib/messaging";
 import { fetchRatings } from "@/lib/reviews";
 import { RatingSummary } from "@/components/Stars";
 import MessageButton from "@/components/MessageButton";
+import { CONTACT_EMAIL } from "@/lib/site";
 import SlotPicker from "@/components/SlotPicker";
 import { button } from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
@@ -160,8 +161,8 @@ function OwnerActions({ listing, onDelete, onStatusChange }) {
             ? "Our moderators removed this listing after reports from users. It can't be relisted."
             : "Several people reported this listing, so it's hidden from search while our team reviews it."}{" "}
           If you think this is a mistake, email{" "}
-          <a href="mailto:hello@ile.app" className="font-semibold text-palm hover:underline">
-            hello@ile.app
+          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-palm hover:underline">
+            {CONTACT_EMAIL}
           </a>
           .
         </p>

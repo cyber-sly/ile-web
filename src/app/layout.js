@@ -2,7 +2,7 @@ import { Fraunces, Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import MobileTabBar from "@/components/MobileTabBar";
 import Footer from "@/components/Footer";
-import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE, CONTACT_EMAIL } from "@/lib/site";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -47,7 +47,7 @@ const SITE_SCHEMA = {
       "@id": `${SITE_URL}#org`,
       name: SITE_NAME,
       url: SITE_URL,
-      email: "hello@ile.app",
+      email: CONTACT_EMAIL,
       areaServed: { "@type": "Country", name: "Nigeria" },
     },
     {

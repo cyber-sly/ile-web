@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import { CONTACT_EMAIL } from "@/lib/site";
 import { Mail } from "lucide-react";
 
 const columns = [
@@ -39,10 +40,10 @@ export default function Footer() {
               Find your place in Nigeria, <em>without the wahala.</em>
             </p>
             <a
-              href="mailto:hello@ile.app"
+              href={`mailto:${CONTACT_EMAIL}`}
               className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-palm hover:underline"
             >
-              <Mail size={16} aria-hidden="true" /> hello@ile.app
+              <Mail size={16} aria-hidden="true" /> {CONTACT_EMAIL}
             </a>
           </div>
 
@@ -65,7 +66,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-2 border-t border-line pt-6 text-sm text-ink-muted sm:flex-row sm:justify-between">
-          <p>© {new Date().getFullYear()} Ile. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} Ile. All rights reserved. ·{" "}
+            <Link href="/privacy" className="hover:text-ink">Privacy</Link> ·{" "}
+            <Link href="/terms" className="hover:text-ink">Terms</Link>
+          </p>
           <p>Free to search. Free viewings. No inspection fees.</p>
         </div>
       </div>
