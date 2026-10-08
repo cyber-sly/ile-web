@@ -18,7 +18,7 @@ import { canReview, fetchRatings, fetchReviewedIds, viewingDateReached } from "@
 import ReviewForm from "@/components/ReviewForm";
 import { RatingSummary } from "@/components/Stars";
 import {
-  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, UserRound,
+  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, UserRound, ChevronRight,
 } from "lucide-react";
 
 const GROUPS = [
@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [mutationError, setMutationError] = useState("");
   const [names, setNames] = useState({});
+  const [myViewings, setMyViewings] = useState([]);
   const [ratings, setRatings] = useState({});
   const [reviewed, setReviewed] = useState(new Set());
 
@@ -82,6 +83,15 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData();
+
+    // Viewings this account has booked on other people's properties (agents
+    // viewing for clients, landlords looking to rent or buy).
+    supabase
+      .from("inspections")
+      .select("status")
+      .eq("tenant_id", user.id)
+      .in("status", ["pending", "countered", "confirmed"])
+      .then(({ data }) => setMyViewings(data || []));
   }, [user]);
 
   async function updateInspection(id, changes) {
@@ -155,6 +165,28 @@ export default function DashboardPage() {
           <Plus size={17} aria-hidden="true" /> New listing
         </Link>
       </div>
+
+      {myViewings.length > 0 && (
+        <Link
+          href="/my-bookings"
+          className="mt-6 flex items-center gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-4 py-3.5 transition-colors hover:border-line-strong"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-palm-soft text-palm">
+            <CalendarDays size={18} aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-ink">
+              Viewings you&apos;ve booked ({myViewings.length})
+            </span>
+            <span className="block text-sm text-ink-muted">
+              {myViewings.some((v) => v.status === "countered")
+                ? "A lister suggested a new time. Reply in My viewings."
+                : "Properties you're going to see on other people's listings."}
+            </span>
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-ink-muted" aria-hidden="true" />
+        </Link>
+      )}
 
       <dl className="mt-8 grid grid-cols-3 gap-3">
         {[

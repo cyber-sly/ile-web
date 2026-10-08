@@ -52,16 +52,16 @@ export default function Navbar() {
         <Logo className="mr-4" />
 
         <div className="hidden items-center gap-1 md:flex">
-          <Link href="/listings?type=rent" className={`${navLink} text-ink-muted hover:bg-ink/5 hover:text-ink`}>
+          <Link href="/listings" className={`${navLink} text-ink-muted hover:bg-ink/5 hover:text-ink`}>
             Rent
           </Link>
-          <Link href="/listings?type=sale" className={`${navLink} text-ink-muted hover:bg-ink/5 hover:text-ink`}>
+          <Link href="/listings?tab=sale" className={`${navLink} text-ink-muted hover:bg-ink/5 hover:text-ink`}>
             Buy
           </Link>
           <Link href="/saved" className={linkClass("/saved")}>
             Saved
           </Link>
-          {user && !landlord && (
+          {user && (
             <Link href="/my-bookings" className={linkClass("/my-bookings")}>
               My viewings
             </Link>
