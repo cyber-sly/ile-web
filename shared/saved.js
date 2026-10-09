@@ -29,10 +29,15 @@ export async function unsaveListing(client, userId, listingId) {
   if (error) throw new Error(error.message);
 }
 
-// Move device saves into the account (duplicates ignored).
+// Move device saves into the account (duplicates ignored). Saves of listings
+// that no longer exist are dropped, or one stale id would fail the batch.
 export async function importSavedIds(client, userId, ids) {
   if (!ids.length) return;
-  const rows = ids.map((id) => ({ user_id: userId, listing_id: id }));
+  const { data, error: lookupError } = await client.from("listings").select("id").in("id", ids);
+  if (lookupError) throw new Error(lookupError.message);
+  const live = new Set((data || []).map((r) => String(r.id)));
+  const rows = ids.filter((id) => live.has(String(id))).map((id) => ({ user_id: userId, listing_id: id }));
+  if (!rows.length) return;
   const { error } = await client
     .from("saved_listings")
     .upsert(rows, { onConflict: "user_id,listing_id", ignoreDuplicates: true });

@@ -45,15 +45,19 @@ async function switchAccount(user) {
   }
   if (user.id === userId) return;
   userId = user.id;
-  try {
-    const local = readLocal();
-    if (local.length) {
+  const local = readLocal();
+  if (local.length) {
+    try {
       await importSavedIds(supabase, user.id, local);
       writeLocal([]);
+    } catch {
+      // Device saves stay in this browser; the next login retries.
     }
+  }
+  try {
     if (userId === user.id) emit(await fetchSavedIds(supabase));
   } catch {
-    // Keep showing what we have; the next login or refresh retries.
+    // Keep showing what we have; the next refresh retries.
   }
 }
 

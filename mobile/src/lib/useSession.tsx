@@ -4,6 +4,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { loadRememberMe } from "./secureStore";
 import { enforceInactivity, touchActivity } from "./session";
+import { createStartupGate } from "./startupGate";
 
 type SessionState = { session: Session | null; user: User | null; loading: boolean };
 const SessionContext = createContext<SessionState>({ session: null, user: null, loading: true });
@@ -15,16 +16,20 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    const gate = createStartupGate();
     (async () => {
       await loadRememberMe();
       await enforceInactivity();
       await touchActivity();
       const { data } = await supabase.auth.getSession();
       if (active) setState({ session: data.session, user: data.session?.user ?? null, loading: false });
+      gate.open();
     })();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setState({ session, user: session?.user ?? null, loading: false });
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      gate.wrap((_event, session) => {
+        setState({ session, user: session?.user ?? null, loading: false });
+      })
+    );
     const sub = AppState.addEventListener("change", async (s) => {
       if (s === "active") {
         await enforceInactivity();
