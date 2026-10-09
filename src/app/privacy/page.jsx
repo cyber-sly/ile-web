@@ -91,7 +91,7 @@ const sections = [
           <li>Your login session, so you stay signed in. If you untick &ldquo;Keep me logged in&rdquo;, it&apos;s cleared when you close the browser.</li>
           <li>When you last used Ile on that device, so we can sign you out after 30 days of no use.</li>
           <li>Your &ldquo;Keep me logged in&rdquo; choice.</li>
-          <li>Homes you&apos;ve saved with the heart button. These stay on your device only.</li>
+          <li>Homes you save with the heart button while logged out. When you log in, they move to your account so they sync across your devices.</li>
         </ul>
         <p>You can clear these at any time in your browser settings.</p>
       </>

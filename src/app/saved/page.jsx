@@ -24,6 +24,8 @@ export default function SavedPage() {
       .from("listings")
       .select("*")
       .in("id", idKey.split(","))
+      // Let, sold or removed homes drop off the saved list.
+      .eq("status", "active")
       .then(({ data }) => {
         setListings(data || []);
         setLoadedKey(idKey);
@@ -38,7 +40,7 @@ export default function SavedPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-12">
       <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-5xl">Saved homes</h1>
       <p className="mt-2 text-ink-muted">
-        Tap the heart on any listing to keep it here. Saved homes stay on this device.
+        Tap the heart on any listing to keep it here. When you&apos;re logged in, saved homes sync across your devices and the app.
       </p>
 
       <div className="mt-8">
