@@ -12,6 +12,7 @@ import type { PersistedClient } from "@tanstack/react-query-persist-client";
 //   ["lister", userId]         lister name, photo, rating, reply time
 //   ["viewings", userId]       my viewings (kept offline)
 //   ["inbox", userId]          my conversations (kept offline)
+//   ["dashboard", userId]      lister's listings and requests (kept offline)
 //   ["chat", id, userId]       one conversation (the 10 latest kept offline)
 
 export const PERSIST_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
@@ -40,7 +41,7 @@ export function shouldPersist(query: { queryKey: readonly unknown[]; state: { st
   const [kind, arg] = query.queryKey;
   if (kind === "listing") return current.listingIds.has(String(arg));
   if (kind === "search") return JSON.stringify(arg) === current.searchKey;
-  if (kind === "viewings" || kind === "inbox") return true;
+  if (kind === "viewings" || kind === "inbox" || kind === "dashboard") return true;
   if (kind === "chat") return current.chatIds.has(String(arg));
   return false;
 }

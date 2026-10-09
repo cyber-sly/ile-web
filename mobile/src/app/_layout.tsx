@@ -58,6 +58,10 @@ export default function RootLayout() {
               options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.85, 1], sheetGrabberVisible: true }}
             />
             <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="my-viewings" options={{ title: "My viewings" }} />
+            <Stack.Screen name="list/new" options={{ title: "List a property" }} />
+            <Stack.Screen name="list/[id]/edit" options={{ title: "Edit listing" }} />
+            <Stack.Screen name="list/[id]/times" options={{ title: "Viewing times" }} />
             <Stack.Screen name="(auth)/login" options={{ title: "Log in", presentation: "modal" }} />
             <Stack.Screen name="(auth)/signup" options={{ title: "Create account", presentation: "modal" }} />
             <Stack.Screen name="(auth)/forgot-password" options={{ title: "Forgot password", presentation: "modal" }} />

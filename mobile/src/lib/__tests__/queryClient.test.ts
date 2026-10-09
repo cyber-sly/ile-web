@@ -22,6 +22,10 @@ describe("shouldPersist", () => {
     expect(shouldPersist(query(["search", { tab: "land" }]), scope)).toBe(false);
   });
 
+  test("keeps the dashboard", () => {
+    expect(shouldPersist(query(["dashboard", "u1"]), scope)).toBe(true);
+  });
+
   test("keeps the viewings list", () => {
     expect(shouldPersist(query(["viewings", "u1"]), scope)).toBe(true);
   });
