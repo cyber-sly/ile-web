@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { EMPTY_DRAFT, draftFromListing, draftToRow, validateDraft, MAX_PHOTOS, MAX_PHOTO_MB, MAX_VIDEOS, MAX_VIDEO_MB } from "@shared/lister.js";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { uploadFiles, removeFiles, checkFiles, IMAGE_ACCEPT, VIDEO_ACCEPT } from "@/lib/uploadMedia";
@@ -16,76 +17,10 @@ import { button } from "@/components/ui/Button";
 import { formatNaira } from "@/lib/format";
 import { ImagePlus, VideoIcon, X, MapPin, Star, Home, Trees, Store } from "lucide-react";
 
-const MAX_PHOTOS = 20;
-const MAX_PHOTO_MB = 10;
-const MAX_VIDEO_MB = 50; // matches the listing-videos bucket limit
-const MAX_VIDEOS = 5;
 const CATEGORY_ICONS = { homes: Home, land: Trees, commercial: Store };
 
-const EMPTY = {
-  category: "homes",
-  listingType: "rent",
-  propertyType: "flat",
-  listerType: "owner",
-  state: "",
-  lga: "",
-  area: "",
-  address: "",
-  title: "",
-  price: "",
-  pricePeriod: "year",
-  bedrooms: "",
-  bathrooms: "",
-  toilets: "",
-  furnishing: "",
-  serviced: false,
-  sizeValue: "",
-  sizeUnit: "sqm",
-  titleDocument: "",
-  parkingSpaces: "",
-  agencyFee: "",
-  legalFee: "",
-  caution: "",
-  serviceCharge: "",
-  description: "",
-  features: "",
-};
-
-const str = (v) => (v === null || v === undefined ? "" : String(v));
-
-function fromListing(l) {
-  return {
-    category: l.category || "homes",
-    listingType: l.listing_type || "rent",
-    propertyType: l.property_type || "flat",
-    listerType: l.lister_type || "owner",
-    state: l.state || "",
-    lga: l.lga || "",
-    // Older listings only have free-text `location`; offer it as the area.
-    area: l.area || (l.state ? "" : l.location || ""),
-    address: l.address || "",
-    title: l.title || "",
-    price: str(l.price),
-    pricePeriod: l.price_period || defaultPeriod(l.listing_type),
-    bedrooms: str(l.bedrooms),
-    bathrooms: str(l.bathrooms),
-    toilets: str(l.toilets),
-    furnishing: l.furnishing || "",
-    serviced: Boolean(l.serviced),
-    sizeValue: str(l.size_value),
-    sizeUnit: l.size_unit || "sqm",
-    titleDocument: l.title_document || "",
-    parkingSpaces: str(l.parking_spaces),
-    agencyFee: str(l.agency_fee_percent),
-    legalFee: str(l.legal_fee_percent),
-    caution: str(l.caution_deposit),
-    serviceCharge: str(l.service_charge),
-    description: l.description || "",
-    features: (l.features || []).join(", "),
-  };
-}
-
-const num = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
+const EMPTY = EMPTY_DRAFT;
+const fromListing = draftFromListing;
 
 function Section({ title, description, children }) {
   return (
@@ -249,50 +184,12 @@ export default function ListingForm({ listing, userId }) {
   }
 
   // The row as it would be saved; also drives the live cost preview.
-  const row = {
-    category: v.category,
-    listing_type: v.listingType,
-    property_type: v.propertyType,
-    lister_type: v.listerType,
-    state: v.state || null,
-    lga: v.lga || null,
-    area: v.area.trim() || null,
-    location: [v.area.trim() || v.lga, stateLabel(v.state)].filter(Boolean).join(", "),
-    address: v.address.trim(),
-    title: v.title.trim(),
-    price: Number(v.price) || 0,
-    price_period: v.pricePeriod,
-    bedrooms: isHomes ? num(v.bedrooms) ?? 0 : 0,
-    bathrooms: isHomes ? num(v.bathrooms) : null,
-    toilets: isLand ? null : num(v.toilets),
-    furnishing: isHomes ? v.furnishing || null : null,
-    serviced: isHomes ? v.serviced : false,
-    size_value: num(v.sizeValue),
-    size_unit: v.sizeValue ? (isLand ? v.sizeUnit : "sqm") : null,
-    title_document: isLand ? v.titleDocument || null : null,
-    parking_spaces: isLand ? null : num(v.parkingSpaces),
-    agency_fee_percent: num(v.agencyFee),
-    legal_fee_percent: num(v.legalFee),
-    caution_deposit: isRent ? num(v.caution) : null,
-    service_charge: isLand ? null : num(v.serviceCharge),
-    description: v.description.trim(),
-    features: v.features.split(",").map((f) => f.trim()).filter(Boolean),
-  };
+  const row = draftToRow(v);
   const cost = moveInCost(row);
   const warning = feeWarning(row);
 
   function validate() {
-    const er = {};
-    if (!v.state) er.state = "Choose a state.";
-    if (!v.lga) er.lga = "Choose an LGA.";
-    if (!v.title.trim()) er.title = "Give your listing a title.";
-    if (!(Number(v.price) > 0)) er.price = "Enter a price above ₦0.";
-    if (isHomes && (v.bedrooms === "" || Number(v.bedrooms) < 0 || !Number.isInteger(Number(v.bedrooms))))
-      er.bedrooms = "Enter a whole number of bedrooms (0 for a room or studio).";
-    if (isLand && !(Number(v.sizeValue) > 0)) er.sizeValue = "Enter the plot size.";
-    for (const k of ["agencyFee", "legalFee"]) {
-      if (v[k] !== "" && (Number(v[k]) < 0 || Number(v[k]) > 100)) er[k] = "Enter a percentage between 0 and 100.";
-    }
+    const er = validateDraft(v);
     setErrors((prev) => ({ photos: prev.photos, videos: prev.videos, ...er }));
     return Object.keys(er).length === 0;
   }

@@ -28,3 +28,11 @@ export async function fetchResponseTimes(client, ids) {
   const { data } = await client.rpc("lister_response_times", { p_users: unique });
   return Object.fromEntries((data || []).map((r) => [r.user_id, r.median_minutes]));
 }
+
+// { id: { occupation, move_in_timeline } } for home-seekers who booked with me.
+export async function fetchTenantDetails(client, ids) {
+  const unique = uniqueIds(ids);
+  if (unique.length === 0) return {};
+  const { data } = await client.rpc("tenant_details", { p_ids: unique });
+  return Object.fromEntries((data || []).map((r) => [r.id, r]));
+}

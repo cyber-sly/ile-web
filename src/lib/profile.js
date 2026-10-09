@@ -2,7 +2,11 @@
 
 import { supabase } from "@/lib/supabaseClient";
 import { checkFiles } from "@/lib/uploadMedia";
-import { fetchPeople as fetchPeopleWith, fetchResponseTimes as fetchResponseTimesWith } from "@shared/people.js";
+import {
+  fetchPeople as fetchPeopleWith,
+  fetchResponseTimes as fetchResponseTimesWith,
+  fetchTenantDetails as fetchTenantDetailsWith,
+} from "@shared/people.js";
 
 // Display helpers and form choices live in profileDisplay.js (usable on the
 // server); re-exported here for convenience.
@@ -62,11 +66,8 @@ export function fetchPeople(ids) {
 }
 
 // { id: { occupation, move_in_timeline } } for home-seekers who booked with me.
-export async function fetchTenantDetails(ids) {
-  const unique = [...new Set(ids.filter(Boolean))];
-  if (unique.length === 0) return {};
-  const { data } = await supabase.rpc("tenant_details", { p_ids: unique });
-  return Object.fromEntries((data || []).map((r) => [r.id, r]));
+export function fetchTenantDetails(ids) {
+  return fetchTenantDetailsWith(supabase, ids);
 }
 
 // { id: minutes } median first-reply time (only listers with enough chats).

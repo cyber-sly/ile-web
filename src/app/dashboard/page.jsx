@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { listingActions, requestActions, takenStatus } from "@shared/lister.js";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
@@ -312,7 +313,7 @@ export default function DashboardPage() {
                       </Badge>
                     )}
                     {isExpired(l) && <Badge tone="gold" className="mt-1 self-start">Not confirmed · hidden from search</Badge>}
-                    {needsConfirming(l) && (
+                    {listingActions(l).confirm && (
                       <div className="mt-2 flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-gold-soft px-2.5 py-1.5 text-xs text-ink">
                         <span className="font-semibold">Still available?</span>
                         <button type="button" onClick={() => updateListing(l, confirmNow())} className="font-semibold text-palm hover:underline">
@@ -320,10 +321,10 @@ export default function DashboardPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => updateListing(l, { status: l.listing_type === "sale" ? "sold" : "let" })}
+                          onClick={() => updateListing(l, { status: takenStatus(l) })}
                           className="font-semibold text-ink-muted hover:underline"
                         >
-                          No, it&apos;s {l.listing_type === "sale" ? "sold" : "let"}
+                          No, it&apos;s {takenStatus(l)}
                         </button>
                       </div>
                     )}
@@ -337,15 +338,15 @@ export default function DashboardPage() {
                       <Link href={`/listings/${l.id}/edit`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
                         <Pencil size={14} aria-hidden="true" /> Edit
                       </Link>
-                      {isModerated(l) ? null : isAvailable(l) ? (
+                      {listingActions(l).markTaken ? (
                         <button
                           type="button"
-                          onClick={() => updateListing(l, { status: l.listing_type === "sale" ? "sold" : "let" })}
+                          onClick={() => updateListing(l, { status: takenStatus(l) })}
                           className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
                         >
                           <CheckCircle2 size={14} aria-hidden="true" /> {l.listing_type === "sale" ? "Sold" : "Let"}
                         </button>
-                      ) : (
+                      ) : listingActions(l).relist ? (
                         <button
                           type="button"
                           onClick={() => updateListing(l, { status: "active", ...confirmNow() })}
@@ -353,7 +354,7 @@ export default function DashboardPage() {
                         >
                           <RotateCcw size={14} aria-hidden="true" /> Relist
                         </button>
-                      )}
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => deleteListing(l.id)}
@@ -449,7 +450,7 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
         <p className="mt-1.5 text-sm text-ink-muted">Your note: &ldquo;{inspection.landlord_note}&rdquo;</p>
       )}
 
-      {inspection.status === "pending" && !proposing && (
+      {requestActions(inspection).confirm && !proposing && (
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" disabled={busy} onClick={() => act({ status: "confirmed" })} className={button({ size: "sm" })}>
             Confirm
@@ -468,9 +469,9 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
         </div>
       )}
 
-      {inspection.status === "confirmed" && (
+      {(requestActions(inspection).done || requestActions(inspection).cancel) && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {viewingDateReached(inspection) ? (
+          {requestActions(inspection).done ? (
             <button type="button" disabled={busy} onClick={() => act({ status: "done" })} className={button({ variant: "neutral", size: "sm" })}>
               Mark as viewed
             </button>
@@ -487,7 +488,7 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
         </div>
       )}
 
-      {inspection.status === "countered" && (
+      {requestActions(inspection).withdraw && (
         <div className="mt-4">
           <button
             type="button"

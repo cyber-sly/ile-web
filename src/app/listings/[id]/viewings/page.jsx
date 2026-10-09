@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { WEEKDAYS, SLOT_LENGTHS, DEFAULT_WINDOW, availabilityRows } from "@shared/lister.js";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
@@ -10,18 +11,7 @@ import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { ArrowLeft, Copy } from "lucide-react";
 
-// Monday-first for display; values match Postgres extract(dow): 0 = Sunday.
-const WEEKDAYS = [
-  { value: 1, label: "Monday" },
-  { value: 2, label: "Tuesday" },
-  { value: 3, label: "Wednesday" },
-  { value: 4, label: "Thursday" },
-  { value: 5, label: "Friday" },
-  { value: 6, label: "Saturday" },
-  { value: 0, label: "Sunday" },
-];
-const LENGTHS = [15, 30, 45, 60];
-const DEFAULT_WINDOW = { start: "10:00", end: "14:00" };
+const LENGTHS = SLOT_LENGTHS;
 
 const hhmm = (t) => (t || "").slice(0, 5);
 const timeInput =
@@ -64,15 +54,9 @@ export default function ViewingTimesPage() {
 
   async function save() {
     setMessage(null);
-    const rows = WEEKDAYS.filter((w) => days[w.value]?.on).map((w) => ({
-      listing_id: id,
-      weekday: w.value,
-      start_time: days[w.value].start,
-      end_time: days[w.value].end,
-    }));
-    const bad = rows.find((r) => !r.start_time || !r.end_time || r.end_time <= r.start_time);
-    if (bad) {
-      setMessage({ tone: "error", text: "Each day's end time must be after its start time." });
+    const { rows, error: rowsError } = availabilityRows(days);
+    if (rowsError) {
+      setMessage({ tone: "error", text: rowsError });
       return;
     }
 

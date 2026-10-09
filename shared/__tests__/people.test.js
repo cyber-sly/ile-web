@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fetchPeople, fetchRatings, fetchResponseTimes } from "../people.js";
+import { fetchPeople, fetchRatings, fetchResponseTimes, fetchTenantDetails } from "../people.js";
 
 // Fake Supabase client: returns `rows` for any table query or RPC and records calls.
 function fakeClient(rows) {
@@ -48,4 +48,11 @@ test("fetchResponseTimes maps median_minutes by user", async () => {
   const client = fakeClient([{ user_id: "a", median_minutes: 42 }]);
   assert.deepEqual(await fetchResponseTimes(client, ["a"]), { a: 42 });
   assert.deepEqual(client.calls[0], ["rpc", "lister_response_times", { p_users: ["a"] }]);
+});
+
+test("fetchTenantDetails asks tenant_details for unique ids", async () => {
+  const client = fakeClient([{ id: "t1", occupation: "student", move_in_timeline: "now" }]);
+  const out = await fetchTenantDetails(client, ["t1", "t1", null]);
+  assert.deepEqual(client.calls[0], ["rpc", "tenant_details", { p_ids: ["t1"] }]);
+  assert.equal(out.t1.occupation, "student");
 });
