@@ -241,10 +241,12 @@ export async function deleteListing(client, id) {
 }
 
 export async function fetchAvailability(client, id) {
-  const [{ data: listing }, { data: windows }] = await Promise.all([
+  const [{ data: listing, error }, { data: windows, error: windowsError }] = await Promise.all([
     client.from("listings").select("id, title, landlord_id, viewing_slot_minutes").eq("id", id).maybeSingle(),
     client.from("listing_availability").select("weekday, start_time, end_time").eq("listing_id", id),
   ]);
+  // A failed load must not look like "no such listing".
+  if (error || windowsError) throw new Error((error || windowsError).message);
   return { listing: listing ?? null, windows: windows || [] };
 }
 

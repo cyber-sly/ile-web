@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { draftFromListing, draftToRow, EMPTY_DRAFT, mediaChanges, saveListing } from "@shared/lister.js";
 import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
-import { createDraftStore, type Draft, type PhotoItem } from "@/lib/draftStore";
+import { createAutosave, draftKey, listingFingerprint, restoreDraft, type Draft, type PhotoItem } from "@/lib/draftStore";
+import { drafts } from "@/lib/drafts";
 import { forgetLocal, removeUploaded, uploadOne, type LocalMedia } from "@/lib/media";
 import { uploadAll } from "@/lib/uploadQueue";
 import { STEPS, STEP_TITLES, stepErrors } from "@/lib/wizardSteps";
@@ -22,12 +22,12 @@ import Photos from "./steps/Photos";
 import Review from "./steps/Review";
 import { colors, fonts } from "@/theme";
 
-const drafts = createDraftStore(AsyncStorage);
 
 type Listing = Record<string, any>;
 
 function startingDraft(listing: Listing | null): Draft {
   if (!listing) return { values: { ...EMPTY_DRAFT }, photos: [], videos: [], uploaded: {}, step: 0 };
+  const base = listingFingerprint(listing);
   const images: string[] = listing.image_urls?.length ? listing.image_urls : listing.image_url ? [listing.image_url] : [];
   return {
     values: draftFromListing(listing),
@@ -35,6 +35,7 @@ function startingDraft(listing: Listing | null): Draft {
     videos: (listing.video_urls || []).map((url: string) => ({ kind: "saved" as const, url })),
     uploaded: {},
     step: 0,
+    base,
   };
 }
 
@@ -45,36 +46,48 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
   const { user } = useSession();
   const online = useOnline();
   const queryClient = useQueryClient();
-  const key = listing ? `edit:${listing.id}` : "new";
+  const key = draftKey(user?.id ?? "anon", listing ? String(listing.id) : null);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [changed, setChanged] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("");
   const [formError, setFormError] = useState("");
   const scrollRef = useRef<ScrollView>(null);
+  // Saved half a second after each change the lister makes (not just from
+  // opening the form); stopped once the listing is published.
+  const [autosave] = useState(() => createAutosave<Draft>((d) => drafts.save(key, d)));
+  useEffect(() => () => autosave.stop(), [autosave]);
 
   // Pick up where the lister left off, if a draft was saved.
   useEffect(() => {
     let cancelled = false;
     drafts.load(key).then((saved) => {
-      if (!cancelled) setDraft(saved ?? startingDraft(listing));
+      if (cancelled) return;
+      const restored = restoreDraft(saved, listing, startingDraft(listing));
+      // A draft made before the listing changed elsewhere is thrown away.
+      if (saved && restored !== saved) drafts.clear(key);
+      setDraft(restored);
+      setChanged(restored === saved);
     });
     return () => {
       cancelled = true;
     };
   }, [key, listing]);
 
-  // Save the draft half a second after each change.
-  useEffect(() => {
-    if (!draft) return;
-    const t = setTimeout(() => drafts.save(key, draft), 500);
-    return () => clearTimeout(t);
-  }, [draft, key]);
-
   if (!draft) return <ActivityIndicator color={colors.palm} style={styles.loading} />;
 
   const step = STEPS[draft.step];
-  const update = (changes: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...changes } : d));
-  const set = (changes: Record<string, any>) => setDraft((d) => (d ? { ...d, values: { ...d.values, ...changes } } : d));
+  function change(make: (d: Draft) => Draft) {
+    setChanged(true);
+    setDraft((d) => {
+      if (!d) return d;
+      const next = make(d);
+      autosave.schedule(next);
+      return next;
+    });
+  }
+  const update = (changes: Partial<Draft>) => change((d) => ({ ...d, ...changes }));
+  const set = (changes: Record<string, any>) => change((d) => ({ ...d, values: { ...d.values, ...changes } }));
 
   function goTo(index: number) {
     setErrors({});
@@ -104,7 +117,13 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
     const { urls: uploaded, failed } = await uploadAll<LocalMedia>(
       local.map((media) => ({ key: media.id, media })),
       (media) => uploadOne(media, user.id),
-      { done: d.uploaded, onProgress: (n, t) => setStatus(`Uploading (${n} of ${t})…`) }
+      {
+        done: d.uploaded,
+        onProgress: (n, t) => setStatus(`Uploading (${n} of ${t})…`),
+        // Remember each finished file at once, so closing the app mid-upload
+        // doesn't mean uploading it again.
+        onUploaded: (fileKey, url) => change((cur) => ({ ...cur, uploaded: { ...cur.uploaded, [fileKey]: url } })),
+      }
     );
     update({ uploaded });
     if (failed.length) {
@@ -137,6 +156,7 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
         },
         { id: listing?.id, userId: user.id }
       );
+      autosave.stop();
       removeUploaded("listing-images", removedImages);
       removeUploaded("listing-videos", removedVideos);
       forgetLocal(local);
@@ -155,6 +175,7 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
     forgetLocal([...localOf(draft!.photos), ...localOf(draft!.videos)]);
     await drafts.clear(key);
     setDraft(startingDraft(listing));
+    setChanged(false);
     setErrors({});
   }
 
@@ -181,9 +202,7 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
         )}
         {step === "review" && <Review values={draft.values} photoCount={draft.photos.length} videoCount={draft.videos.length} errors={errors} goTo={goTo} />}
         {formError ? <Text style={styles.error}>{formError}</Text> : null}
-        {!listing && draft.step === 0 && (draft.values.title || draft.photos.length > 0) ? (
-          <Button label="Start over" variant="ghost" onPress={discard} />
-        ) : null}
+        {changed && !busy ? <Button label={listing ? "Discard my changes" : "Start over"} variant="ghost" onPress={discard} /> : null}
       </ScrollView>
       <View style={styles.footer}>
         {draft.step > 0 && (

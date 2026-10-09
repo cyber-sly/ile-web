@@ -23,7 +23,15 @@ export default function ViewingTimesScreen() {
   const online = useOnline();
   const data = useQuery({ queryKey: ["availability", id], queryFn: () => fetchAvailability(supabase, id), staleTime: 0 });
 
+  if (data.isPending && !online) return <Screen title="Viewing times need a connection" subtitle="Connect to the internet to see and change them." />;
   if (data.isPending) return <ActivityIndicator color={colors.palm} style={styles.loading} />;
+  if (data.isError && !data.data) {
+    return (
+      <Screen title="Couldn't load viewing times" subtitle="Check your connection and try again.">
+        <Button label="Try again" onPress={() => data.refetch()} />
+      </Screen>
+    );
+  }
 
   const listing = data.data?.listing;
   if (!listing || !user || listing.landlord_id !== user.id) {

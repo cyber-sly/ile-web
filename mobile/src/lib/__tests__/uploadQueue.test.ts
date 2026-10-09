@@ -51,3 +51,12 @@ describe("uploadAll", () => {
     expect(urls.a).toBe("old-A");
   });
 });
+
+test("reports each upload as soon as it finishes, so progress survives the app closing", async () => {
+  const seen: [string, string][] = [];
+  await uploadAll(items, async (m) => {
+    if (m === "C") throw new Error("killed");
+    return `url-${m}`;
+  }, { retries: 0, onUploaded: (key, url) => seen.push([key, url]) });
+  expect(seen).toEqual([["a", "url-A"], ["b", "url-B"]]);
+});

@@ -9,6 +9,7 @@ import { syncSavedAccount } from "./saved";
 import { syncOutboxAccount } from "./outboxApp";
 import { persister, queryClient } from "./queryClient";
 import { accountChanged } from "./accountChange";
+import { drafts } from "./drafts";
 
 type SessionState = { session: Session | null; user: User | null; loading: boolean };
 const SessionContext = createContext<SessionState>({ session: null, user: null, loading: true });
@@ -56,6 +57,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (accountChanged(previousUser.current, userId)) {
       queryClient.clear();
       persister.removeClient();
+      // Unfinished listings stay with their account.
+      if (previousUser.current) drafts.clearUser(previousUser.current);
     }
     previousUser.current = userId;
     syncSavedAccount(userId);

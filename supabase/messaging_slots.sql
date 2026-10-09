@@ -26,25 +26,29 @@ alter table public.profiles enable row level security;
 revoke select on public.profiles from anon, authenticated;
 grant select (id, full_name, role, created_at) on public.profiles to anon, authenticated;
 
--- New signups get a profile from what they typed. Named ile_* so it never
--- replaces a handle_new_user() trigger the project may already have.
+-- New signups get a profile from what they typed. Only the two real roles
+-- are accepted and the name is capped at the profile limit. Kept identical
+-- to supabase/fix_signup_trigger.sql, which also removes the project's
+-- older duplicate trigger.
 create or replace function public.ile_handle_new_user()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $
+declare
+  requested text := new.raw_user_meta_data ->> 'role';
 begin
   insert into public.profiles (id, full_name, role)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'full_name', ''),
-    coalesce(new.raw_user_meta_data ->> 'role', 'tenant')
+    left(coalesce(new.raw_user_meta_data ->> 'full_name', ''), 80),
+    case when requested in ('tenant', 'landlord') then requested else 'tenant' end
   )
   on conflict (id) do nothing;
   return new;
 end;
-$$;
+$;
 
 drop trigger if exists ile_on_auth_user_created on auth.users;
 create trigger ile_on_auth_user_created

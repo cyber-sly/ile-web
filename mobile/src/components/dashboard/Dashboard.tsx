@@ -165,9 +165,8 @@ export default function Dashboard() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="List a property"
-            disabled={!online}
             onPress={() => router.push("/list/new")}
-            style={[styles.add, !online && styles.dim]}
+            style={styles.add}
           >
             <Plus color={colors.white} size={18} />
             <Text style={styles.addText}>List a property</Text>

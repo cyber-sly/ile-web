@@ -151,3 +151,17 @@ test("availabilityRows blocks an end before the start", () => {
   const { error } = availabilityRows({ 3: { on: true, start: "14:00", end: "10:00" } });
   assert.equal(error, "Each day's end time must be after its start time.");
 });
+
+test("fetchAvailability reports a failed load instead of 'no listing'", async () => {
+  const { fetchAvailability } = await import("../lister.js");
+  const failing = {};
+  failing.from = (table) => ({
+    select: () => ({
+      eq: () =>
+        table === "listings"
+          ? { maybeSingle: async () => ({ data: null, error: { message: "Network request failed" } }) }
+          : Promise.resolve({ data: [], error: null }),
+    }),
+  });
+  await assert.rejects(fetchAvailability(failing, "l1"));
+});

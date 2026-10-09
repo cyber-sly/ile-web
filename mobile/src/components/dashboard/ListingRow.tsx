@@ -96,7 +96,7 @@ export default function ListingRow({ listing: l, online, onUpdate, onDelete }: P
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <View style={styles.actions}>
-        {actions.edit && <Small label="Edit" disabled={!online} onPress={() => router.push({ pathname: "/list/[id]/edit", params: { id: String(l.id) } })} />}
+        {actions.edit && <Small label="Edit" onPress={() => router.push({ pathname: "/list/[id]/edit", params: { id: String(l.id) } })} />}
         {actions.times && <Small label="Viewing times" disabled={!online} onPress={() => router.push({ pathname: "/list/[id]/times", params: { id: String(l.id) } })} />}
         {actions.markTaken && <Small label={taken === "sold" ? "Mark as sold" : "Mark as let"} disabled={disabled} onPress={() => run(() => onUpdate({ status: taken }))} />}
         {actions.relist && <Small label="Relist" disabled={disabled} onPress={() => run(() => onUpdate({ status: "active", ...confirmNow() }))} />}
