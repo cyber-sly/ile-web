@@ -10,11 +10,12 @@ import type { PersistedClient } from "@tanstack/react-query-persist-client";
 //   ["similar", id]            similar listings on the listing screen
 //   ["saved-listings", ids]    the Saved tab
 //   ["lister", userId]         lister name, photo, rating, reply time
+//   ["viewings", userId]       my viewings (kept offline)
 
 export const PERSIST_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 // What is kept across restarts: listings that are saved or recently viewed,
-// and the current search's first page. Nothing else, so the cache stays
+// the current search's first page, and my viewings. Nothing else, so the cache stays
 // small (Android limits AsyncStorage size). Kept current by saved.ts,
 // recent.ts and filters.ts.
 type Scope = { listingIds: Set<string>; searchKey: string };
@@ -36,6 +37,7 @@ export function shouldPersist(query: { queryKey: readonly unknown[]; state: { st
   const [kind, arg] = query.queryKey;
   if (kind === "listing") return current.listingIds.has(String(arg));
   if (kind === "search") return JSON.stringify(arg) === current.searchKey;
+  if (kind === "viewings") return true;
   return false;
 }
 

@@ -22,6 +22,10 @@ describe("shouldPersist", () => {
     expect(shouldPersist(query(["search", { tab: "land" }]), scope)).toBe(false);
   });
 
+  test("keeps the viewings list", () => {
+    expect(shouldPersist(query(["viewings", "u1"]), scope)).toBe(true);
+  });
+
   test("skips failed queries and other keys", () => {
     expect(shouldPersist(query(["listing", "saved-1"], "error"), scope)).toBe(false);
     expect(shouldPersist(query(["lister", "x"]), scope)).toBe(false);

@@ -2,6 +2,16 @@
 // what a home-seeker can do with each one. Shared by the website and the app.
 import { viewingDateReached } from "./reviews.js";
 
+// Label and colour tone for each viewing status.
+export const VIEWING_STATUS = {
+  pending: { tone: "gold", label: "Awaiting reply" },
+  countered: { tone: "clay", label: "New time proposed" },
+  confirmed: { tone: "palm", label: "Confirmed" },
+  declined: { tone: "neutral", label: "Declined" },
+  cancelled: { tone: "neutral", label: "Cancelled" },
+  done: { tone: "neutral", label: "Viewed" },
+};
+
 // Needs attention first: a new time to answer, then waiting, then booked.
 export const ACTIVE_STATUSES = ["countered", "pending", "confirmed"];
 

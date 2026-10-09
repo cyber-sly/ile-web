@@ -1,4 +1,5 @@
 import { BadgeCheck, Zap } from "lucide-react";
+import { VIEWING_STATUS } from "@shared/viewings.js";
 
 // Small status pill. Colour is never the only signal: every tone pairs with text.
 const tones = {
@@ -54,14 +55,7 @@ export function ListingTypeBadge({ type, className = "" }) {
 }
 
 // Inspection lifecycle (see supabase/inspections_booking_flow.sql).
-const STATUS = {
-  pending: { tone: "gold", label: "Awaiting reply" },
-  countered: { tone: "clay", label: "New time proposed" },
-  confirmed: { tone: "palm", label: "Confirmed" },
-  declined: { tone: "neutral", label: "Declined" },
-  cancelled: { tone: "neutral", label: "Cancelled" },
-  done: { tone: "neutral", label: "Viewed" },
-};
+const STATUS = VIEWING_STATUS;
 
 export function StatusBadge({ status }) {
   const s = STATUS[status] || { tone: "neutral", label: status };

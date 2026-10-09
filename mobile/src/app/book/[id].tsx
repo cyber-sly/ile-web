@@ -5,12 +5,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, ShieldCheck, Zap } from "lucide-react-native";
 import { bookSlot, fetchActiveViewing, fetchOpenSlots, groupSlotsByDay, requestViewing } from "@shared/viewings.js";
 import { formatDateTime, formatTime } from "@shared/format.js";
-import { STATUS_LABELS } from "@shared/property.js";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import { REQUEST_TIMES, requestDays, todayInLagos } from "@/lib/requestTimes";
 import DayTimePicker from "@/components/DayTimePicker";
 import Button from "@/components/Button";
+import StatusBadge from "@/components/StatusBadge";
 import { colors, fonts, radius } from "@/theme";
 
 type Viewing = { id: string; status: string; preferred_date: string; preferred_time: string | null; proposed_date?: string; proposed_time?: string };
@@ -51,7 +51,7 @@ export default function BookSheet() {
       <View style={styles.section}>
         <View style={styles.rowBetween}>
           <Text style={styles.heading}>Your viewing</Text>
-          <Text style={styles.badge}>{STATUS_LABELS[v.status as keyof typeof STATUS_LABELS] || v.status}</Text>
+          <StatusBadge status={v.status} />
         </View>
         <View style={styles.row}>
           <CalendarDays color={colors.palm} size={18} />
@@ -211,16 +211,6 @@ const styles = StyleSheet.create({
   heading: { fontFamily: fonts.serif, fontSize: 22, color: colors.ink },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  badge: {
-    fontFamily: fonts.sansSemi,
-    fontSize: 12,
-    color: colors.palm,
-    backgroundColor: colors.palmSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    overflow: "hidden",
-  },
   body: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 15, color: colors.ink },
   muted: { flex: 1, fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
   error: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.clay },

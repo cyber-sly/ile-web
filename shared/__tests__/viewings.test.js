@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { groupSlotsByDay, sortViewings, viewingActions, acceptChanges, requestViewing, bookSlot } from "../viewings.js";
+import { groupSlotsByDay, sortViewings, viewingActions, acceptChanges, requestViewing, bookSlot, VIEWING_STATUS } from "../viewings.js";
 
 const lagosDay = (offset) => {
   const d = new Date(Date.now() + offset * 86_400_000);
@@ -62,4 +62,11 @@ test("requestViewing explains a taken time", async () => {
 test("bookSlot passes the RPC error message on", async () => {
   const client = { rpc: async () => ({ data: null, error: { message: "That time was just taken" } }) };
   await assert.rejects(bookSlot(client, "l1", "2026-11-02", "10:00:00"), { message: "That time was just taken" });
+});
+
+test("VIEWING_STATUS labels every viewing status like the website", () => {
+  assert.equal(VIEWING_STATUS.pending.label, "Awaiting reply");
+  assert.equal(VIEWING_STATUS.countered.label, "New time proposed");
+  assert.equal(VIEWING_STATUS.done.label, "Viewed");
+  assert.equal(VIEWING_STATUS.confirmed.tone, "palm");
 });
