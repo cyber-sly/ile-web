@@ -8,6 +8,7 @@ import { useUser, isLandlord, useIsAdmin } from "@/lib/useUser";
 import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
 import NewPasswordForm from "@/components/NewPasswordForm";
+import DeleteAccount from "@/components/DeleteAccount";
 import { button } from "@/components/ui/Button";
 import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck, KeyRound, MonitorSmartphone } from "lucide-react";
 
@@ -162,6 +163,8 @@ export default function AccountPage() {
       <button type="button" onClick={handleLogout} className={button({ variant: "danger-ghost", full: true, className: "mt-4" })}>
         <LogOut size={17} aria-hidden="true" /> Log out of this device
       </button>
+
+      <DeleteAccount user={user} />
     </div>
   );
 }

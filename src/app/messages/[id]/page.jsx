@@ -68,7 +68,7 @@ export default function ConversationPage() {
       ]);
       if (cancelled) return;
       setConvo(c);
-      setOtherName(names[otherId] || (c.tenant_id === user.id ? "The lister" : "Home-seeker"));
+      setOtherName(otherId ? names[otherId] || (c.tenant_id === user.id ? "The lister" : "Home-seeker") : "Deleted user");
       setMessages(msgs || []);
       markRead(msgs || []);
     }
@@ -209,7 +209,12 @@ export default function ConversationPage() {
         <div ref={endRef} />
       </div>
 
-      {/* Composer */}
+      {/* Composer (hidden once the other person has deleted their account) */}
+      {!convo.tenant_id || !convo.landlord_id ? (
+        <p className="border-t border-line bg-surface p-4 text-center text-sm text-ink-muted sm:rounded-b-[var(--radius-card)] sm:border sm:border-t-0">
+          This person has deleted their Ile account, so you can&apos;t reply.
+        </p>
+      ) : (
       <form onSubmit={send} className="border-t border-line bg-surface p-3 sm:rounded-b-[var(--radius-card)] sm:border sm:border-t-0">
         {error && <Alert className="mb-2">{error}</Alert>}
         <div className="flex items-end gap-2">
@@ -240,6 +245,7 @@ export default function ConversationPage() {
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 }

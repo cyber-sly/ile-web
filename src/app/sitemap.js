@@ -26,6 +26,7 @@ export default async function sitemap() {
     { url: `${SITE_URL}/listings/new`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE_URL}/delete-account`, changeFrequency: "yearly", priority: 0.1 },
   ];
 
   const tabOf = (l) => (l.category === "homes" ? (l.listing_type === "sale" ? "sale" : null) : l.category);

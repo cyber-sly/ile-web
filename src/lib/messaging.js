@@ -51,7 +51,7 @@ export async function refreshUnread() {
     .from("messages")
     .select("id", { count: "exact", head: true })
     .is("read_at", null)
-    .neq("sender_id", currentUser);
+    .or(`sender_id.is.null,sender_id.neq.${currentUser}`);
   count = c || 0;
   emit();
 }

@@ -45,7 +45,7 @@ async function loadThreads(userId) {
     const otherId = c.tenant_id === userId ? c.landlord_id : c.tenant_id;
     return {
       ...c,
-      otherName: names[otherId] || (c.tenant_id === userId ? "Lister" : "Home-seeker"),
+      otherName: otherId ? names[otherId] || (c.tenant_id === userId ? "Lister" : "Home-seeker") : "Deleted user",
       role: c.tenant_id === userId ? "Lister" : "Home-seeker",
       latest: latest[c.id],
       unread: unread[c.id] || 0,

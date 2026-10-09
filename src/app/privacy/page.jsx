@@ -102,7 +102,12 @@ const sections = [
       <>
         <ul>
           <li>Account details, listings, viewings, messages and reviews are kept while your account is open.</li>
-          <li>When you delete your account, we delete or anonymise your personal data, except where we need to keep some of it to resolve disputes, prevent fraud or meet legal obligations.</li>
+          <li>
+            When you delete your account, we delete your profile, login, listings (with their photos and videos),
+            viewings and reviews about you. Messages you sent stay visible to the people you chatted with, shown as
+            from a &ldquo;Deleted user&rdquo;, and reviews you wrote and reports you made stay without your name. We
+            may also keep limited data where needed to resolve disputes, prevent fraud or meet legal obligations.
+          </li>
           <li>Reports and moderation records may be kept for up to two years to keep repeat offenders off Ile.</li>
           <li>Technical logs are kept for a short period by our providers, in line with their own policies.</li>
         </ul>
@@ -123,7 +128,11 @@ const sections = [
           <li>receive your data in a portable format;</li>
           <li>withdraw consent where we rely on it.</li>
         </ul>
-        <p>To use any of these rights, including deleting your account, email <Mail /> from the address on your account. We&apos;ll respond within the time the law requires.</p>
+        <p>
+          <strong>You can delete your account yourself</strong> at any time from <strong>Account → Delete account</strong>{" "}
+          (<Link href="/delete-account" className="font-semibold text-palm hover:underline">how it works</Link>). For any other
+          request, email <Mail /> from the address on your account. We&apos;ll respond within the time the law requires.
+        </p>
         <p>If you&apos;re unhappy with how we&apos;ve handled your data, you can complain to the Nigeria Data Protection Commission (NDPC).</p>
       </>
     ),

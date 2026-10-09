@@ -18,4 +18,4 @@ export const DEFAULT_OG_IMAGE = "/videos/hero-poster.jpg";
 export const CONTACT_EMAIL = "hello@ile.app";
 
 // Date the current Privacy Policy and Terms took effect.
-export const LEGAL_UPDATED = "8 October 2026";
+export const LEGAL_UPDATED = "9 October 2026";

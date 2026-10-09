@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import HomeHero from "@/components/HomeHero";
+import AccountDeletedNotice from "@/components/AccountDeletedNotice";
 import PropertyCard from "@/components/PropertyCard";
 import { SkeletonGrid } from "@/components/SkeletonCard";
 import EmptyState from "@/components/ui/EmptyState";
@@ -69,6 +70,7 @@ export default function Home() {
 
   return (
     <div>
+      <AccountDeletedNotice />
       <HomeHero />
 
       {/* Promises the product actually keeps today. */}

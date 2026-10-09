@@ -139,7 +139,8 @@ const sections = [
     id: "ending",
     title: "Ending your account",
     body: (
-      <p>You can stop using Ile at any time and ask us to delete your account by emailing <Mail />. We may close accounts that break these Terms. Sections that by their nature should continue (such as liability limits and the licence for content already shared) survive after an account is closed.</p>
+      <p>You can delete your account at any time from Account → Delete account (see{" "}
+        <Link href="/delete-account" className="font-semibold text-palm hover:underline">how it works</Link>), or by emailing <Mail />. We may close accounts that break these Terms. Sections that by their nature should continue (such as liability limits and the licence for content already shared) survive after an account is closed.</p>
     ),
   },
   {
