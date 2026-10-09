@@ -35,7 +35,7 @@ export default function PhotoCarousel({ photos, title }: { photos: string[]; tit
             contentFit="cover"
             cachePolicy="disk"
             transition={150}
-            accessibilityLabel={`${title}, photo ${i + 1} of ${photos.length}`}
+            alt={`${title}, photo ${i + 1} of ${photos.length}`}
           />
         )}
       />

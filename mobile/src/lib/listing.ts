@@ -17,7 +17,6 @@ export function listingUrl(id: string): string {
   return `${process.env.EXPO_PUBLIC_SITE_URL}/listings/${id}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Client = any;
 
 export async function fetchListing(client: Client, id: string): Promise<ListingRow | null> {

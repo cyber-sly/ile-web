@@ -4,7 +4,6 @@ import { fetchSavedIds, importSavedIds, saveListing, unsaveListing } from "@shar
 // list lives on the device; at login, device saves move into the account.
 type Storage = { read(): Promise<string[]>; write(ids: string[]): Promise<void> };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createSavedStore({ client, storage }: { client: any; storage: Storage }) {
   let ids: string[] = [];
   let userId: string | null = null;

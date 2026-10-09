@@ -6,7 +6,6 @@ import { useSavedIds } from "./saved";
 import { listingPhotos } from "./listing";
 import type { ListingRow } from "@/components/PropertyCard";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Client = any;
 
 // Saved listings that are still available, in saved order (newest first).

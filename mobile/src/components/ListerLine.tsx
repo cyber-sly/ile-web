@@ -30,7 +30,7 @@ export default function ListerLine({ listing }: { listing: ListingRow }) {
   return (
     <View style={styles.row}>
       {data?.person?.avatar ? (
-        <Image source={{ uri: data.person.avatar }} style={styles.avatar} cachePolicy="disk" />
+        <Image source={{ uri: data.person.avatar }} style={styles.avatar} cachePolicy="disk" alt="" />
       ) : (
         <View style={[styles.avatar, styles.initial]}>
           <Text style={styles.initialText}>{initial}</Text>

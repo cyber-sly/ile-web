@@ -6,7 +6,6 @@ import { keyFacts, placeLabel, priceParts } from "@shared/property.js";
 import SaveButton from "@/components/SaveButton";
 import { colors, fonts, radius } from "@/theme";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ListingRow = Record<string, any>;
 
 export function coverPhoto(listing: ListingRow): string | null {
@@ -27,7 +26,7 @@ export default function PropertyCard({ listing }: { listing: ListingRow }) {
     >
       <View style={styles.photoWrap}>
         {cover ? (
-          <Image source={{ uri: cover }} style={styles.photo} contentFit="cover" cachePolicy="disk" transition={150} />
+          <Image source={{ uri: cover }} style={styles.photo} contentFit="cover" cachePolicy="disk" transition={150} alt="" />
         ) : (
           <View style={[styles.photo, styles.noPhoto]}>
             <ImageOff color={colors.inkMuted} size={28} />
