@@ -2,7 +2,7 @@
 
 import { supabase } from "@/lib/supabaseClient";
 
-const MEDIA_BUCKETS = ["listing-images", "listing-videos"];
+const MEDIA_BUCKETS = ["listing-images", "listing-videos", "avatars"];
 
 // Every file in a user's folder (<user id>/...) in one bucket.
 async function listUserFiles(bucket, userId) {

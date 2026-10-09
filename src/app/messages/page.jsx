@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
-import { fetchNames } from "@/lib/messaging";
+import { fetchPeople } from "@/lib/profile";
+import Avatar from "@/components/Avatar";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
@@ -29,8 +30,8 @@ async function loadThreads(userId) {
     .order("last_message_at", { ascending: false });
   if (convoError) return { threads: [], error: convoError.message };
 
-  const [names, { data: summary }] = await Promise.all([
-    fetchNames(convos.map((c) => (c.tenant_id === userId ? c.landlord_id : c.tenant_id))),
+  const [people, { data: summary }] = await Promise.all([
+    fetchPeople(convos.map((c) => (c.tenant_id === userId ? c.landlord_id : c.tenant_id))),
     supabase.rpc("inbox_summary"),
   ]);
 
@@ -45,7 +46,8 @@ async function loadThreads(userId) {
     const otherId = c.tenant_id === userId ? c.landlord_id : c.tenant_id;
     return {
       ...c,
-      otherName: otherId ? names[otherId] || (c.tenant_id === userId ? "Lister" : "Home-seeker") : "Deleted user",
+      otherName: otherId ? people[otherId]?.name || (c.tenant_id === userId ? "Lister" : "Home-seeker") : "Deleted user",
+      otherAvatar: otherId ? people[otherId]?.avatar || null : null,
       role: c.tenant_id === userId ? "Lister" : "Home-seeker",
       latest: latest[c.id],
       unread: unread[c.id] || 0,
@@ -114,7 +116,10 @@ export default function InboxPage() {
             {threads.map((t) => (
               <li key={t.id}>
                 <Link href={`/messages/${t.id}`} className="flex items-center gap-3 px-4 py-4 transition-colors hover:bg-ink/[0.03]">
-                  <span className="h-14 w-14 shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-line">
+                  <span className="relative shrink-0">
+                    <Avatar src={t.otherAvatar} name={t.otherName} size="md" />
+                  </span>
+                  <span className="hidden h-12 w-12 shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-line sm:block">
                     {t.listings?.image_url ? (
                       <img src={t.listings.image_url} alt="" loading="lazy" className="h-full w-full object-cover" />
                     ) : (

@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { loginHref } from "@/lib/useUser";
 import { formatNaira, formatDateTime } from "@/lib/format";
 import { priceParts, periodOf, periodLabel, moveInCost, feeWarning, isAvailable, listerLabel, isModerated, needsConfirming, daysSinceConfirmed } from "@/lib/property";
-import { fetchNames } from "@/lib/messaging";
+import { fetchPeople, fetchResponseTimes, formatResponseTime } from "@/lib/profile";
+import Avatar from "@/components/Avatar";
 import { fetchRatings } from "@/lib/reviews";
 import { RatingSummary } from "@/components/Stars";
 import MessageButton from "@/components/MessageButton";
@@ -16,7 +17,7 @@ import { button } from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { StatusBadge } from "@/components/ui/Badge";
-import { CalendarDays, Clock, Pencil, Trash2, ShieldCheck, AlertTriangle, RotateCcw, KeyRound, UserRound } from "lucide-react";
+import { CalendarDays, Clock, Pencil, Trash2, ShieldCheck, AlertTriangle, RotateCcw, KeyRound } from "lucide-react";
 
 const ACTIVE = ["pending", "countered", "confirmed"];
 
@@ -76,26 +77,29 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
 
 // "Listed by Adeyemi Homes · Agent"
 function ListerLine({ listing }) {
-  const [name, setName] = useState("");
+  const [person, setPerson] = useState(null);
   const [rating, setRating] = useState(null);
+  const [reply, setReply] = useState(null);
   useEffect(() => {
     const id = listing.landlord_id;
-    fetchNames([id]).then((names) => setName(names[id] || ""));
+    fetchPeople([id]).then((p) => setPerson(p[id] || null));
     fetchRatings([id], "lister").then((r) => setRating(r[id] || null));
+    fetchResponseTimes([id]).then((r) => setReply(formatResponseTime(r[id])));
   }, [listing.landlord_id]);
   const role = listing.lister_type ? listerLabel(listing.lister_type) : "Lister";
+  const name = person?.name;
   return (
-    <Link href={`/u/${listing.landlord_id}`} className="group flex items-center gap-2 text-sm text-ink">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-palm-soft text-palm">
-        <UserRound size={17} aria-hidden="true" />
-      </span>
+    <Link href={`/u/${listing.landlord_id}`} className="group flex items-center gap-3 text-sm text-ink">
+      <Avatar src={person?.avatar} name={name || role} size="md" />
       <span className="min-w-0">
         <span className="block truncate font-semibold group-hover:text-palm">{name || role}</span>
+        <span className="block text-xs text-ink-muted">{name ? role : "Listed on Ile"}</span>
         {rating ? (
           <RatingSummary rating={rating} className="text-xs" />
         ) : (
-          <span className="block text-xs text-ink-muted">{name ? `${role} · No reviews yet` : "Listed on Ile"}</span>
+          name && <span className="block text-xs text-ink-muted">No reviews yet</span>
         )}
+        {reply && <span className="block text-xs font-medium text-palm">{reply}</span>}
       </span>
     </Link>
   );

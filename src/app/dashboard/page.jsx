@@ -13,12 +13,13 @@ import Alert from "@/components/ui/Alert";
 import Badge, { StatusBadge, ListingTypeBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import MessageButton from "@/components/MessageButton";
-import { fetchNames } from "@/lib/messaging";
+import { fetchPeople, fetchTenantDetails, occupationLabel, moveInLabel } from "@/lib/profile";
+import Avatar from "@/components/Avatar";
 import { canReview, fetchRatings, fetchReviewedIds, viewingDateReached } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
 import { RatingSummary } from "@/components/Stars";
 import {
-  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, UserRound, ChevronRight,
+  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, ChevronRight,
 } from "lucide-react";
 
 const GROUPS = [
@@ -36,7 +37,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mutationError, setMutationError] = useState("");
-  const [names, setNames] = useState({});
+  const [people, setPeople] = useState({});
+  const [tenantInfo, setTenantInfo] = useState({});
   const [myViewings, setMyViewings] = useState([]);
   const [ratings, setRatings] = useState({});
   const [reviewed, setReviewed] = useState(new Set());
@@ -69,12 +71,14 @@ export default function DashboardPage() {
         else {
           setInspections(data);
           const tenantIds = data.map((i) => i.tenant_id);
-          const [n, r, done] = await Promise.all([
-            fetchNames(tenantIds),
+          const [p, info, r, done] = await Promise.all([
+            fetchPeople(tenantIds),
+            fetchTenantDetails(tenantIds),
             fetchRatings(tenantIds, "tenant"),
             fetchReviewedIds(data.filter(canReview).map((i) => i.id)),
           ]);
-          setNames(n);
+          setPeople(p);
+          setTenantInfo(info);
           setRatings(r);
           setReviewed(done);
         }
@@ -241,7 +245,9 @@ export default function DashboardPage() {
                       <RequestCard
                         key={inspection.id}
                         inspection={inspection}
-                        name={names[inspection.tenant_id]}
+                        name={people[inspection.tenant_id]?.name}
+                        avatar={people[inspection.tenant_id]?.avatar}
+                        info={tenantInfo[inspection.tenant_id]}
                         rating={ratings[inspection.tenant_id]}
                         reviewed={reviewed.has(inspection.id)}
                         onReviewed={() => setReviewed((prev) => new Set(prev).add(inspection.id))}
@@ -385,7 +391,7 @@ function RequestGroup({ title, count, collapsed = false, children }) {
   );
 }
 
-function RequestCard({ inspection, name, rating, reviewed, onReviewed, user, onUpdate }) {
+function RequestCard({ inspection, name, avatar, info, rating, reviewed, onReviewed, user, onUpdate }) {
   const [proposing, setProposing] = useState(false);
   const [date, setDate] = useState(inspection.preferred_date || "");
   const [time, setTime] = useState(inspection.preferred_time || "");
@@ -413,10 +419,18 @@ function RequestCard({ inspection, name, rating, reviewed, onReviewed, user, onU
           <Link href={`/listings/${l?.id}`} className="line-clamp-1 font-semibold text-ink hover:text-palm">
             {l?.title || "Listing"}
           </Link>
-          <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-muted">
-            <UserRound size={14} aria-hidden="true" /> {name || "A home-seeker"}
-          </p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <Avatar src={avatar} name={name || "Home-seeker"} size="xs" />
+            <span className="text-sm text-ink">{name || "A home-seeker"}</span>
+          </div>
           <RatingSummary rating={rating} className="mt-0.5" />
+          {(info?.occupation || info?.move_in_timeline) && (
+            <p className="mt-0.5 text-xs text-ink-muted">
+              {[occupationLabel(info.occupation), info.move_in_timeline && `Moving: ${moveInLabel(info.move_in_timeline).toLowerCase()}`]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          )}
         </div>
         <StatusBadge status={inspection.status} />
       </div>

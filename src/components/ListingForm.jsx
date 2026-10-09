@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { uploadFiles, removeFiles, checkFiles, IMAGE_ACCEPT, VIDEO_ACCEPT } from "@/lib/uploadMedia";
 import { NIGERIA, STATES, stateLabel } from "@/lib/nigeria";
+import { fetchMyProfile } from "@/lib/profile";
 import {
   CATEGORIES, PROPERTY_TYPES, FURNISHING, TITLE_DOCUMENTS, SIZE_UNITS, LISTER_TYPES,
   periodOptions, periodLabel, defaultPeriod, moveInCost, feeWarning,
@@ -181,6 +182,14 @@ export default function ListingForm({ listing, userId }) {
   function setListingType(listingType) {
     patch({ listingType, pricePeriod: defaultPeriod(listingType) });
   }
+
+  // New listings start with the "I usually list as" choice from the profile.
+  useEffect(() => {
+    if (editing) return;
+    fetchMyProfile()
+      .then((p) => p?.lister_type && setValues((prev) => ({ ...prev, listerType: p.lister_type })))
+      .catch(() => {});
+  }, [editing]);
 
   // Suggest area names other listers have used in this LGA.
   useEffect(() => {

@@ -5,7 +5,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
-import { fetchNames, refreshUnread } from "@/lib/messaging";
+import { refreshUnread } from "@/lib/messaging";
+import { fetchPeople } from "@/lib/profile";
+import Avatar from "@/components/Avatar";
 import { priceParts } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import Alert from "@/components/ui/Alert";
@@ -28,6 +30,7 @@ export default function ConversationPage() {
   const user = useUser();
   const [convo, setConvo] = useState(undefined);
   const [otherName, setOtherName] = useState("");
+  const [otherAvatar, setOtherAvatar] = useState(null);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -62,13 +65,14 @@ export default function ConversationPage() {
         return;
       }
       const otherId = c.tenant_id === user.id ? c.landlord_id : c.tenant_id;
-      const [names, { data: msgs }] = await Promise.all([
-        fetchNames([otherId]),
+      const [people, { data: msgs }] = await Promise.all([
+        fetchPeople([otherId]),
         supabase.from("messages").select("*").eq("conversation_id", id).order("created_at"),
       ]);
       if (cancelled) return;
       setConvo(c);
-      setOtherName(otherId ? names[otherId] || (c.tenant_id === user.id ? "The lister" : "Home-seeker") : "Deleted user");
+      setOtherName(otherId ? people[otherId]?.name || (c.tenant_id === user.id ? "The lister" : "Home-seeker") : "Deleted user");
+      setOtherAvatar(otherId ? people[otherId]?.avatar || null : null);
       setMessages(msgs || []);
       markRead(msgs || []);
     }
@@ -149,6 +153,7 @@ export default function ConversationPage() {
         <Link href="/messages" aria-label="Back to messages" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-ink/5 hover:text-ink">
           <ArrowLeft size={18} aria-hidden="true" />
         </Link>
+        <Avatar src={otherAvatar} name={otherName} size="sm" />
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-ink">{otherName}</p>
           <p className="text-xs text-ink-muted">{isTenant ? "Lister" : "Home-seeker"}</p>

@@ -21,6 +21,7 @@ const sections = [
     body: (
       <>
         <p><strong>Account details.</strong> Your name, email address, the password you choose (stored only as a secure, irreversible hash that we can never read), and whether you joined to find a place or to list property.</p>
+        <p><strong>Profile details you choose to add</strong> (all optional): a profile photo, a short bio, languages you speak, the state you live in, and, for listers, your business name, office address, areas you cover, when you started listing and a professional registration (body and number). Home-seekers can also add their occupation and when they plan to move.</p>
         <p><strong>If you sign in with Google</strong>, Google shares your name, email address and profile picture with us. We never see your Google password.</p>
         <p><strong>Listings you post.</strong> Titles, descriptions, photos, videos, location (state, LGA, area and any street address you enter), prices, fees, property details and who is listing (owner, agent, caretaker or developer).</p>
         <p><strong>Viewings.</strong> The dates and times you request or offer, and the status of each booking.</p>
@@ -54,7 +55,8 @@ const sections = [
       <>
         <ul>
           <li><strong>Listings are public</strong>, including photos, price, location and street address if you add one, and your name as the lister.</li>
-          <li><strong>Lister profiles are public</strong>: your name, when you joined, your live listings, your average rating and reviews about you.</li>
+          <li><strong>Lister profiles are public</strong>: your name, photo, bio, languages, business name, office address, areas you cover, when you started listing, which professional body you&apos;re registered with (not the number), how quickly you usually reply, your live listings, your average rating and reviews about you.</li>
+          <li><strong>Private to you:</strong> the state you live in, your registration number and any phone number. Your occupation and move-in timing are shown only to listers you book a viewing with.</li>
           <li><strong>Reviews of listers are public, but the reviewer stays anonymous.</strong> Reviews of home-seekers are only visible to listers that home-seeker books viewings with.</li>
           <li><strong>Messages</strong> are visible only to the two people in the conversation.</li>
           <li>When you book a viewing, the lister sees your name and the time you chose.</li>

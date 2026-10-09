@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser, isLandlord, useIsAdmin } from "@/lib/useUser";
@@ -9,18 +9,25 @@ import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
 import NewPasswordForm from "@/components/NewPasswordForm";
 import DeleteAccount from "@/components/DeleteAccount";
+import Avatar from "@/components/Avatar";
+import { fetchMyProfile, profileCompleteness } from "@/lib/profile";
 import { button } from "@/components/ui/Button";
-import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck, KeyRound, MonitorSmartphone } from "lucide-react";
+import { Heart, CalendarDays, LayoutDashboard, Plus, LogOut, UserRound, ChevronRight, ShieldCheck, KeyRound, MonitorSmartphone, Pencil } from "lucide-react";
 
 export default function AccountPage() {
   const router = useRouter();
   const user = useUser();
   const admin = useIsAdmin(user);
+  const [profile, setProfile] = useState(null);
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
 
   const [loggingOutAll, setLoggingOutAll] = useState(false);
   const [logoutError, setLogoutError] = useState("");
+
+  useEffect(() => {
+    if (user) fetchMyProfile().then(setProfile).catch(() => {});
+  }, [user]);
 
   async function handleLogout() {
     await supabase.auth.signOut({ scope: "local" });
@@ -82,17 +89,33 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8 md:py-12">
-      <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-5">
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-palm font-serif text-2xl font-semibold text-white">
-          {name.trim()[0]?.toUpperCase()}
-        </span>
-        <div className="min-w-0">
-          <h1 className="truncate font-serif text-2xl font-semibold text-ink">{name}</h1>
-          <p className="truncate text-sm text-ink-muted">{user.email}</p>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-palm">
-            {landlord ? "Lister account" : "Home-seeker account"}
-          </p>
+      <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5">
+        <div className="flex items-center gap-4">
+          <Avatar src={profile?.avatar_url} name={profile?.full_name || name} size="md" />
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-serif text-2xl font-semibold text-ink">{profile?.full_name || name}</h1>
+            <p className="truncate text-sm text-ink-muted">{user.email}</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-palm">
+              {landlord ? "Lister account" : "Home-seeker account"}
+            </p>
+          </div>
         </div>
+        {profile && profileCompleteness(profile, landlord || Boolean(profile.lister_type)).percent < 100 && (
+          <div className="mt-4">
+            <div className="flex justify-between text-xs font-semibold text-ink-muted">
+              <span>Profile {profileCompleteness(profile, landlord || Boolean(profile.lister_type)).percent}% complete</span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line">
+              <div
+                className="h-full rounded-full bg-palm"
+                style={{ width: `${profileCompleteness(profile, landlord || Boolean(profile.lister_type)).percent}%` }}
+              />
+            </div>
+          </div>
+        )}
+        <Link href="/account/profile" className={button({ variant: "secondary", full: true, size: "sm", className: "mt-4" })}>
+          <Pencil size={15} aria-hidden="true" /> Edit profile
+        </Link>
       </div>
 
       <ul className="mt-4 divide-y divide-line overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
