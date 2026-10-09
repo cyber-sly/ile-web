@@ -13,11 +13,11 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import MessageButton from "@/components/MessageButton";
 import { fetchNames } from "@/lib/messaging";
-import { canReview, fetchReviewedIds, viewingDateReached } from "@/lib/reviews";
+import { canReview, fetchReviewedIds } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
+import { acceptChanges, fetchMyViewings, sortViewings, viewingActions } from "@shared/viewings.js";
 import { MapPin, CalendarDays, Clock, CalendarX, ImageOff } from "lucide-react";
 
-const ACTIVE = ["countered", "pending", "confirmed"];
 
 export default function MyBookingsPage() {
   const user = useUser();
@@ -30,12 +30,9 @@ export default function MyBookingsPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("inspections")
-      .select("*, listings(id, title, location, state, lga, area, price, price_period, listing_type, image_url, landlord_id)")
-      .eq("tenant_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data, error: fetchError }) => {
+    fetchMyViewings(supabase, user.id)
+      .then((data) => ({ data }), (e) => ({ fetchError: e }))
+      .then(({ data, fetchError }) => {
         if (fetchError) setError(fetchError.message);
         else {
           setBookings(data);
@@ -72,8 +69,7 @@ export default function MyBookingsPage() {
   }
 
   // Things that need the user's attention first, then upcoming, then history.
-  const order = (b) => (ACTIVE.includes(b.status) ? ACTIVE.indexOf(b.status) : 9);
-  const sorted = [...bookings].sort((a, b) => order(a) - order(b));
+  const sorted = sortViewings(bookings);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 md:py-12">
@@ -153,11 +149,7 @@ export default function MyBookingsPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            update(b, {
-                              status: "confirmed",
-                              preferred_date: b.proposed_date,
-                              preferred_time: b.proposed_time,
-                            })
+                            update(b, acceptChanges(b))
                           }
                           className={button({ size: "sm" })}
                         >
@@ -174,7 +166,7 @@ export default function MyBookingsPage() {
                     </div>
                   )}
 
-                  {l && ["pending", "countered", "confirmed"].includes(b.status) && (
+                  {l && viewingActions(b).message && (
                     <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5">
                       <span className="truncate text-sm text-ink-muted">
                         Lister: <span className="font-semibold text-ink">{names[l.landlord_id] || "Lister"}</span>
@@ -198,7 +190,7 @@ export default function MyBookingsPage() {
                     </div>
                   )}
 
-                  {b.status === "confirmed" && !viewingDateReached(b) && (
+                  {b.status === "confirmed" && viewingActions(b).cancel && (
                     <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
                       <p className="text-sm text-ink-muted">Can&apos;t make it? Cancel so the slot opens for someone else.</p>
                       <button

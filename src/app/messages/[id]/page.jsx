@@ -7,21 +7,12 @@ import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
 import { refreshUnread } from "@/lib/messaging";
 import { fetchPeople } from "@/lib/profile";
+import { dayLabel } from "@shared/messaging.js";
 import Avatar from "@/components/Avatar";
 import { priceParts } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import Alert from "@/components/ui/Alert";
 import { ArrowLeft, Send, ShieldCheck, ImageOff } from "lucide-react";
-
-function dayLabel(iso) {
-  const d = new Date(iso);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return "Today";
-  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
-  return d.toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
-}
 
 const clock = (iso) => new Date(iso).toLocaleTimeString("en-NG", { hour: "numeric", minute: "2-digit" });
 

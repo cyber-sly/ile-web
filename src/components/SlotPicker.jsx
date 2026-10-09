@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatTime, formatDateTime } from "@/lib/format";
+import { bookSlot, groupSlotsByDay } from "@shared/viewings.js";
 import { button } from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { Zap } from "lucide-react";
@@ -20,14 +21,7 @@ function dayParts(isoDate) {
 // Pick from the lister's open viewing times; booking is confirmed instantly.
 // `slots` is [{ slot_date: "2026-10-12", slot_time: "10:00:00" }, ...].
 export default function SlotPicker({ listingId, slots, onBooked }) {
-  const days = useMemo(() => {
-    const byDay = new Map();
-    for (const s of slots) {
-      if (!byDay.has(s.slot_date)) byDay.set(s.slot_date, []);
-      byDay.get(s.slot_date).push(s.slot_time);
-    }
-    return [...byDay.entries()].map(([date, times]) => ({ date, times }));
-  }, [slots]);
+  const days = useMemo(() => groupSlotsByDay(slots), [slots]);
 
   const [date, setDate] = useState(days[0]?.date);
   const [time, setTime] = useState(null);
@@ -38,17 +32,16 @@ export default function SlotPicker({ listingId, slots, onBooked }) {
   async function book() {
     setBooking(true);
     setError("");
-    const { data, error: rpcError } = await supabase.rpc("book_viewing_slot", {
-      p_listing: listingId,
-      p_date: date,
-      p_time: time,
-    });
-    setBooking(false);
-    if (rpcError) {
-      setError(rpcError.message);
+    let id;
+    try {
+      id = await bookSlot(supabase, listingId, date, time);
+    } catch (err) {
+      setBooking(false);
+      setError(err.message);
       return;
     }
-    onBooked({ id: data, status: "confirmed", preferred_date: date, preferred_time: time });
+    setBooking(false);
+    onBooked({ id, status: "confirmed", preferred_date: date, preferred_time: time });
   }
 
   return (

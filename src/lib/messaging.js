@@ -2,16 +2,12 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { startConversation as startConversationWith, fetchUnreadCount } from "@shared/messaging.js";
 
 // Get or create the conversation for a listing and return its id.
 // Listers pass the tenant they want to message.
-export async function startConversation(listingId, tenantId = null) {
-  const { data, error } = await supabase.rpc("start_conversation", {
-    p_listing: listingId,
-    p_tenant: tenantId,
-  });
-  if (error) throw new Error(error.message);
-  return data;
+export function startConversation(listingId, tenantId = null) {
+  return startConversationWith(supabase, listingId, tenantId);
 }
 
 // Names for a set of user ids, as { id: "Full Name" }.
@@ -46,13 +42,7 @@ export async function refreshUnread() {
     emit();
     return;
   }
-  // RLS limits this to the user's own conversations.
-  const { count: c } = await supabase
-    .from("messages")
-    .select("id", { count: "exact", head: true })
-    .is("read_at", null)
-    .or(`sender_id.is.null,sender_id.neq.${currentUser}`);
-  count = c || 0;
+  count = await fetchUnreadCount(supabase, currentUser);
   emit();
 }
 

@@ -13,13 +13,13 @@ import { RatingSummary } from "@/components/Stars";
 import MessageButton from "@/components/MessageButton";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SlotPicker from "@/components/SlotPicker";
+import { ACTIVE_STATUSES, fetchActiveViewing, fetchOpenSlots, requestViewing } from "@shared/viewings.js";
 import { button } from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { StatusBadge } from "@/components/ui/Badge";
 import { CalendarDays, Clock, Pencil, Trash2, ShieldCheck, AlertTriangle, RotateCcw, KeyRound } from "lucide-react";
 
-const ACTIVE = ["pending", "countered", "confirmed"];
 
 // Sticky action panel on the listing page. Shows one of: the owner's manage
 // actions, a login prompt, the visitor's existing booking, or the booking form.
@@ -246,18 +246,10 @@ function BookingForm({ listing, user }) {
 
   // One active request per listing: show it instead of letting people book twice.
   useEffect(() => {
-    supabase
-      .from("inspections")
-      .select("id, status, preferred_date, preferred_time, proposed_date, proposed_time")
-      .eq("listing_id", listing.id)
-      .eq("tenant_id", user.id)
-      .in("status", ACTIVE)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .then(({ data }) => setExisting(data?.[0] ?? null));
-    supabase
-      .rpc("listing_open_slots", { p_listing: listing.id, p_days: 14 })
-      .then(({ data, error }) => setSlots(error ? [] : data || []));
+    fetchActiveViewing(supabase, listing.id, user.id)
+      .then(setExisting)
+      .catch(() => setExisting(null));
+    fetchOpenSlots(supabase, listing.id).then(setSlots);
   }, [listing.id, user.id]);
 
   if (existing === undefined || slots === undefined) return <div className="skeleton h-40 rounded-[var(--radius-control)]" />;
@@ -320,22 +312,14 @@ function RequestForm({ listing, user, onBooked }) {
     e.preventDefault();
     setError("");
     setBooking(true);
-    const { data, error: insertError } = await supabase
-      .from("inspections")
-      .insert({
-        listing_id: listing.id,
-        tenant_id: user.id,
-        preferred_date: date,
-        preferred_time: time || null,
-      })
-      .select("id, status, preferred_date, preferred_time")
-      .single();
-    setBooking(false);
-    if (insertError) {
-      setError(insertError.code === "23505" ? "That time is already taken. Please choose another." : insertError.message);
-      return;
+    try {
+      const data = await requestViewing(supabase, listing.id, user.id, date, time);
+      setBooking(false);
+      onBooked(data);
+    } catch (err) {
+      setBooking(false);
+      setError(err.message);
     }
-    onBooked(data);
   }
 
   const today = new Date().toISOString().slice(0, 10);

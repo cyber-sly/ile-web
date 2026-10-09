@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
-import { fetchPeople } from "@/lib/profile";
+import { loadThreads as loadThreadsWith, shortTime } from "@shared/messaging.js";
 import Avatar from "@/components/Avatar";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
@@ -12,48 +12,10 @@ import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { MessagesSquare, ImageOff } from "lucide-react";
 
-function timeAgo(iso) {
-  const d = new Date(iso);
-  const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return "now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-  if (diff < 7 * 86400) return d.toLocaleDateString("en-NG", { weekday: "short" });
-  return d.toLocaleDateString("en-NG", { day: "numeric", month: "short" });
-}
 
 // Conversations with the other person's name, latest message and unread count.
-async function loadThreads(userId) {
-  const { data: convos, error: convoError } = await supabase
-    .from("conversations")
-    .select("id, tenant_id, landlord_id, last_message_at, listings(id, title, image_url)")
-    .order("last_message_at", { ascending: false });
-  if (convoError) return { threads: [], error: convoError.message };
-
-  const [people, { data: summary }] = await Promise.all([
-    fetchPeople(convos.map((c) => (c.tenant_id === userId ? c.landlord_id : c.tenant_id))),
-    supabase.rpc("inbox_summary"),
-  ]);
-
-  // Latest message and unread count per conversation, computed in the database.
-  const latest = {};
-  const unread = {};
-  for (const row of summary || []) {
-    if (row.last_at) latest[row.conversation_id] = { body: row.last_body, sender_id: row.last_sender, created_at: row.last_at };
-    unread[row.conversation_id] = row.unread;
-  }
-  const threads = convos.map((c) => {
-    const otherId = c.tenant_id === userId ? c.landlord_id : c.tenant_id;
-    return {
-      ...c,
-      otherName: otherId ? people[otherId]?.name || (c.tenant_id === userId ? "Lister" : "Home-seeker") : "Deleted user",
-      otherAvatar: otherId ? people[otherId]?.avatar || null : null,
-      role: c.tenant_id === userId ? "Lister" : "Home-seeker",
-      latest: latest[c.id],
-      unread: unread[c.id] || 0,
-    };
-  });
-  return { threads, error: "" };
+function loadThreads(userId) {
+  return loadThreadsWith(supabase, userId);
 }
 
 export default function InboxPage() {
@@ -131,7 +93,7 @@ export default function InboxPage() {
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
                       <span className={`truncate ${t.unread ? "font-bold" : "font-semibold"} text-ink`}>{t.otherName}</span>
-                      {t.latest && <span className="shrink-0 text-xs text-ink-muted">{timeAgo(t.latest.created_at)}</span>}
+                      {t.latest && <span className="shrink-0 text-xs text-ink-muted">{shortTime(t.latest.created_at)}</span>}
                     </span>
                     <span className="block truncate text-xs text-ink-muted">
                       {t.role} · {t.listings?.title || "Listing removed"}
