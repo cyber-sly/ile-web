@@ -2,7 +2,7 @@ import { describe, expect, jest, test } from "@jest/globals";
 import { QueryClient } from "@tanstack/react-query";
 
 
-import { cachedListings, seedListings, shouldPersist, trimSearchPages } from "../queryClient";
+import { cachedListings, queryClient as appClient, seedListings, shouldPersist, trimSearchPages } from "../queryClient";
 
 const query = (queryKey: unknown[], status = "success") => ({ queryKey, state: { status } });
 const scope = { listingIds: new Set(["saved-1", "recent-1"]), searchKey: JSON.stringify({ tab: "rent" }), chatIds: new Set(["c1"]) };
@@ -49,4 +49,11 @@ test("seeded listings can be read back from the cache in order", () => {
   expect(client.getQueryData(["listing", "1"])).toEqual({ id: 1, title: "A" });
   expect(cachedListings(client, ["2", "missing", "1"]).map((l) => l.title)).toEqual(["B", "A"]);
   client.clear();
+});
+
+test("chats in the cached inbox stay offline even if the Inbox tab wasn't opened", () => {
+  appClient.setQueryData(["inbox", "u1"], [{ id: "c9" }, { id: "c8" }]);
+  expect(shouldPersist(query(["chat", "c9", "u1"]))).toBe(true);
+  expect(shouldPersist(query(["chat", "zz", "u1"]))).toBe(false);
+  appClient.clear();
 });

@@ -13,6 +13,8 @@ import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 import { SessionProvider } from "@/lib/useSession";
 import { persister, PERSIST_MAX_AGE, queryClient, shouldPersist } from "@/lib/queryClient";
 import OfflineBanner from "@/components/OfflineBanner";
+// Started here, not from a screen: screens load lazily in release builds.
+import "@/lib/outboxApp";
 import { colors, fonts } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();

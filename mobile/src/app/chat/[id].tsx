@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, AppState, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useIsFocused, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { onlineManager, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, ShieldCheck } from "lucide-react-native";
@@ -11,7 +11,8 @@ import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import { outbox, useOutboxItems } from "@/lib/outboxApp";
 import { refreshUnread } from "@/lib/unread";
-import { lastSeenId, mergeMessages, withDayBreaks, type ChatRow, type Message } from "@/lib/chatMessages";
+import { idsToMarkRead, lastSeenId, mergeMessages, withDayBreaks, type ChatRow, type Message } from "@/lib/chatMessages";
+import { uniqueTopic } from "@/lib/realtime";
 import { keyboardBehavior } from "@/components/keyboardBehavior";
 import MessageBubble from "@/components/MessageBubble";
 import Button from "@/components/Button";
@@ -41,17 +42,18 @@ export default function ChatScreen() {
   const [draft, setDraft] = useState("");
   const listRef = useRef<FlatList>(null);
 
-  const chat = useQuery({ queryKey: ["chat", id], queryFn: () => loadChat(id, userId), enabled: Boolean(userId) });
+  const chatKey = ["chat", id, userId];
+  const chat = useQuery({ queryKey: chatKey, queryFn: () => loadChat(id, userId), enabled: Boolean(userId) });
 
   // Live updates for this conversation.
   useEffect(() => {
     const channel = supabase
-      .channel(`chat-${id}`)
+      .channel(uniqueTopic(`chat-${id}`))
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${id}` }, (payload) =>
-        queryClient.setQueryData<Thread>(["chat", id], (t) => (t ? { ...t, messages: [...t.messages, payload.new as Message] } : t))
+        queryClient.setQueryData<Thread>(["chat", id, userId], (t) => (t ? { ...t, messages: [...t.messages, payload.new as Message] } : t))
       )
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${id}` }, (payload) =>
-        queryClient.setQueryData<Thread>(["chat", id], (t) =>
+        queryClient.setQueryData<Thread>(["chat", id, userId], (t) =>
           t ? { ...t, messages: t.messages.map((m) => (m.id === (payload.new as Message).id ? { ...m, ...(payload.new as Message) } : m)) } : t
         )
       )
@@ -68,15 +70,25 @@ export default function ChatScreen() {
       sub.remove();
       unsubOnline();
     };
-  }, [id, queryClient]);
+  }, [id, userId, queryClient]);
 
-  // Mark the other person's messages read while the chat is open.
+  // Mark the other person's messages read only while this chat is on screen
+  // and the app is open, and ask for each message once.
   const messages = chat.data?.messages;
+  const focused = useIsFocused();
+  const [appActive, setAppActive] = useState(AppState.currentState === "active");
+  const requested = useRef(new Set<string>());
   useEffect(() => {
-    if (!messages || !userId) return;
-    const unread = messages.filter((m) => !m.read_at && m.sender_id !== userId).map((m) => m.id);
-    if (unread.length) markRead(supabase, unread).then(refreshUnread, () => {});
-  }, [messages, userId]);
+    const sub = AppState.addEventListener("change", (s) => setAppActive(s === "active"));
+    return () => sub.remove();
+  }, []);
+  useEffect(() => {
+    if (!messages || !userId || !focused || !appActive) return;
+    const ids = idsToMarkRead(messages, userId, requested.current);
+    if (ids.length === 0) return;
+    ids.forEach((i) => requested.current.add(i));
+    markRead(supabase, ids).then(refreshUnread, () => ids.forEach((i) => requested.current.delete(i)));
+  }, [messages, userId, focused, appActive]);
 
   const rows = useMemo(() => mergeMessages(messages || [], pending), [messages, pending]);
   const items = useMemo(() => withDayBreaks(rows).reverse(), [rows]);

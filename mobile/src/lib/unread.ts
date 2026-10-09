@@ -4,6 +4,7 @@ import { onlineManager } from "@tanstack/react-query";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { fetchUnreadCount } from "@shared/messaging.js";
 import { supabase } from "./supabase";
+import { uniqueTopic } from "./realtime";
 
 // Unread message count for the Inbox tab badge: one query and one realtime
 // channel for the whole app, refreshed on reconnect and when reopened.
@@ -34,7 +35,7 @@ function connect(nextUser: string | null) {
   refreshUnread();
   if (!nextUser) return;
   channel = supabase
-    .channel(`unread-${nextUser}`)
+    .channel(uniqueTopic(`unread-${nextUser}`))
     .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => refreshUnread())
     .subscribe();
 }

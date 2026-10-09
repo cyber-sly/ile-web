@@ -74,19 +74,20 @@ export async function fetchThread(client, id) {
   return { convo, messages: messages || [] };
 }
 
-export async function sendMessage(client, conversationId, senderId, body) {
-  const { data, error } = await client
-    .from("messages")
-    .insert({ conversation_id: conversationId, sender_id: senderId, body })
-    .select()
-    .single();
+// `id` (optional) is made on the phone, so a retry after a lost response
+// can't save the message twice: the second insert hits the same id.
+/** @param {any} client @param {string} conversationId @param {string} senderId @param {string} body @param {string} [id] */
+export async function sendMessage(client, conversationId, senderId, body, id) {
+  const row = { conversation_id: conversationId, sender_id: senderId, body, ...(id && { id }) };
+  const { data, error } = await client.from("messages").insert(row).select().single();
+  if (error && id && error.code === "23505") return { ...row, created_at: new Date().toISOString(), read_at: null };
   if (error) throw Object.assign(new Error(error.message), { code: error.code });
   return data;
 }
 
 export async function markRead(client, ids) {
   if (ids.length === 0) return;
-  await client.from("messages").update({ read_at: new Date().toISOString() }).in("id", ids);
+  await client.from("messages").update({ read_at: new Date().toISOString() }).in("id", ids).is("read_at", null);
 }
 
 // Inbox time: "now", "5m", "3h", "Tue", "12 Oct".

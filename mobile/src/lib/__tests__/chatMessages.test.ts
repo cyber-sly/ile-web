@@ -7,7 +7,7 @@ describe("mergeMessages", () => {
   test("orders by time, drops duplicates, and appends pending", () => {
     const m1 = msg("m1", "2026-10-09T10:00:00Z");
     const m2 = msg("m2", "2026-10-09T10:01:00Z");
-    const pending = [{ localId: "p1", conversationId: "c1", body: "later", createdAt: "2026-10-09T09:00:00Z", state: "waiting" as const }];
+    const pending = [{ localId: "p1", messageId: "p1-id", userId: "me", conversationId: "c1", body: "later", createdAt: "2026-10-09T09:00:00Z", state: "waiting" as const }];
     const rows = mergeMessages([m2, m1, m1], pending);
     expect(rows.map((r) => r.id)).toEqual(["m1", "m2", "p1"]);
     expect(rows[2].pending).toBe("waiting");

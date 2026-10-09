@@ -12,7 +12,7 @@ import type { PersistedClient } from "@tanstack/react-query-persist-client";
 //   ["lister", userId]         lister name, photo, rating, reply time
 //   ["viewings", userId]       my viewings (kept offline)
 //   ["inbox", userId]          my conversations (kept offline)
-//   ["chat", id]               one conversation (the 10 latest kept offline)
+//   ["chat", id, userId]       one conversation (the 10 latest kept offline)
 
 export const PERSIST_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -67,6 +67,15 @@ export function cachedListings(client: QueryClient, ids: string[]): Row[] {
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { gcTime: PERSIST_MAX_AGE, staleTime: 60 * 1000 } },
+});
+
+// The 10 latest chats in the cached inbox are kept offline. Read from the
+// cache (also right after a restore), not from the Inbox screen, which may
+// not have been opened this session.
+queryClient.getQueryCache().subscribe((event) => {
+  const q = event.query;
+  if (q.queryKey[0] !== "inbox" || !Array.isArray(q.state.data)) return;
+  setPersistScope({ chatIds: (q.state.data as { id: string }[]).slice(0, 10).map((t) => String(t.id)) });
 });
 
 export const persister = createAsyncStoragePersister({

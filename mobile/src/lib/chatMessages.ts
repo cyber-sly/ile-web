@@ -44,3 +44,8 @@ export function lastSeenId(rows: ChatRow[], userId: string): string | null {
   }
   return null;
 }
+
+// The other person's unread messages that haven't been sent to markRead yet.
+export function idsToMarkRead(rows: Message[], userId: string, requested: Set<string>): string[] {
+  return rows.filter((m) => !m.read_at && m.sender_id !== userId && !requested.has(m.id)).map((m) => m.id);
+}

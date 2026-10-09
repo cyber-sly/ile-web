@@ -7,7 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MessagesSquare, WifiOff } from "lucide-react-native";
 import { loadThreads, shortTime } from "@shared/messaging.js";
 import { supabase } from "@/lib/supabase";
-import { setPersistScope } from "@/lib/queryClient";
+import { uniqueTopic } from "@/lib/realtime";
 import { useSession } from "@/lib/useSession";
 import Screen from "@/components/Screen";
 import Button from "@/components/Button";
@@ -38,15 +38,10 @@ export default function InboxTab() {
   const userId = user?.id ?? "";
   const inbox = useQuery({ queryKey: ["inbox", userId], queryFn: () => fetchInbox(userId), enabled: Boolean(userId) });
 
-  // The 10 latest chats stay readable offline.
-  useEffect(() => {
-    if (inbox.data) setPersistScope({ chatIds: inbox.data.slice(0, 10).map((t) => String(t.id)) });
-  }, [inbox.data]);
-
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
-      .channel(`inbox-${userId}`)
+      .channel(uniqueTopic(`inbox-${userId}`))
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () =>
         queryClient.invalidateQueries({ queryKey: ["inbox", userId] })
       )

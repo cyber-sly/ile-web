@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
@@ -6,6 +6,9 @@ import { loadRememberMe } from "./secureStore";
 import { enforceInactivity, touchActivity } from "./session";
 import { createStartupGate } from "./startupGate";
 import { syncSavedAccount } from "./saved";
+import { syncOutboxAccount } from "./outboxApp";
+import { persister, queryClient } from "./queryClient";
+import { accountChanged } from "./accountChange";
 
 type SessionState = { session: Session | null; user: User | null; loading: boolean };
 const SessionContext = createContext<SessionState>({ session: null, user: null, loading: true });
@@ -44,10 +47,19 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Saved homes follow the signed-in account.
+  // Saved homes and waiting messages follow the signed-in account; another
+  // account (or logging out) clears the previous one's cached data.
   const userId = state.user?.id ?? null;
+  const previousUser = useRef<string | null>(null);
   useEffect(() => {
-    if (!state.loading) syncSavedAccount(userId);
+    if (state.loading) return;
+    if (accountChanged(previousUser.current, userId)) {
+      queryClient.clear();
+      persister.removeClient();
+    }
+    previousUser.current = userId;
+    syncSavedAccount(userId);
+    syncOutboxAccount(userId);
   }, [state.loading, userId]);
 
   return <SessionContext.Provider value={state}>{children}</SessionContext.Provider>;
