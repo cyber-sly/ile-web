@@ -5,6 +5,7 @@ import { supabase } from "./supabase";
 import { loadRememberMe } from "./secureStore";
 import { enforceInactivity, touchActivity } from "./session";
 import { createStartupGate } from "./startupGate";
+import { syncSavedAccount } from "./saved";
 
 type SessionState = { session: Session | null; user: User | null; loading: boolean };
 const SessionContext = createContext<SessionState>({ session: null, user: null, loading: true });
@@ -42,6 +43,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       sub.remove();
     };
   }, []);
+
+  // Saved homes follow the signed-in account.
+  const userId = state.user?.id ?? null;
+  useEffect(() => {
+    if (!state.loading) syncSavedAccount(userId);
+  }, [state.loading, userId]);
 
   return <SessionContext.Provider value={state}>{children}</SessionContext.Provider>;
 }
