@@ -7,8 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
 import { stateLabel } from "@/lib/nigeria";
 import {
-  categoryOf, typeLabel, priceParts, fullPlace, formatSize, furnishingLabel, titleLabel, listerLabel,
-  isAvailable, freshCutoff, isExpired, isModerated,
+  categoryOf, priceParts, fullPlace, detailFacts, isAvailable, freshCutoff, isExpired, isModerated,
 } from "@/lib/property";
 import Lightbox from "@/components/Lightbox";
 import PhotoGallery from "@/components/PhotoGallery";
@@ -26,26 +25,14 @@ import {
 
 const TAB_FOR = { homes: null, land: "land", commercial: "commercial" };
 
-// The facts grid adapts to what kind of property this is.
+// The facts grid adapts to what kind of property this is (rules in shared/property.js).
+const FACT_ICONS = {
+  type: Building2, bedrooms: BedDouble, bathrooms: Bath, furnishing: Sofa, size: Ruler, title: FileCheck2,
+  parking: Car, toilets: Bath, lister: UserRound,
+};
+
 function factsFor(listing) {
-  const category = categoryOf(listing);
-  const size = formatSize(listing);
-  const facts = [{ icon: Building2, label: "Type", value: typeLabel(listing.property_type) }];
-  if (category === "homes") {
-    facts.push({ icon: BedDouble, label: "Bedrooms", value: Number(listing.bedrooms) || "Studio" });
-    if (listing.bathrooms) facts.push({ icon: Bath, label: "Bathrooms", value: listing.bathrooms });
-    if (listing.furnishing) facts.push({ icon: Sofa, label: "Furnishing", value: furnishingLabel(listing.furnishing) });
-    if (size) facts.push({ icon: Ruler, label: "Size", value: size });
-  } else if (category === "land") {
-    if (size) facts.push({ icon: Ruler, label: "Plot size", value: size });
-    facts.push({ icon: FileCheck2, label: "Title", value: listing.title_document ? titleLabel(listing.title_document) : "Not stated" });
-  } else {
-    if (size) facts.push({ icon: Ruler, label: "Floor area", value: size });
-    if (listing.parking_spaces) facts.push({ icon: Car, label: "Parking", value: `${listing.parking_spaces} spaces` });
-    if (listing.toilets) facts.push({ icon: Bath, label: "Toilets", value: listing.toilets });
-  }
-  if (listing.lister_type) facts.push({ icon: UserRound, label: "Listed by", value: listerLabel(listing.lister_type) });
-  return facts;
+  return detailFacts(listing).map((f) => ({ ...f, icon: FACT_ICONS[f.key] }));
 }
 
 // Interactive listing page. The listing itself is fetched on the server (see

@@ -208,3 +208,25 @@ export const REPORT_REASONS = [
   { value: "duplicate", label: "Duplicate of another listing" },
   { value: "other", label: "Something else" },
 ];
+
+// The facts grid on the listing page: [{ key, label, value }], by category.
+export function detailFacts(listing) {
+  const category = categoryOf(listing);
+  const size = formatSize(listing);
+  const facts = [{ key: "type", label: "Type", value: typeLabel(listing.property_type) }];
+  if (category === "homes") {
+    facts.push({ key: "bedrooms", label: "Bedrooms", value: Number(listing.bedrooms) || "Studio" });
+    if (listing.bathrooms) facts.push({ key: "bathrooms", label: "Bathrooms", value: listing.bathrooms });
+    if (listing.furnishing) facts.push({ key: "furnishing", label: "Furnishing", value: furnishingLabel(listing.furnishing) });
+    if (size) facts.push({ key: "size", label: "Size", value: size });
+  } else if (category === "land") {
+    if (size) facts.push({ key: "size", label: "Plot size", value: size });
+    facts.push({ key: "title", label: "Title", value: listing.title_document ? titleLabel(listing.title_document) : "Not stated" });
+  } else {
+    if (size) facts.push({ key: "size", label: "Floor area", value: size });
+    if (listing.parking_spaces) facts.push({ key: "parking", label: "Parking", value: `${listing.parking_spaces} spaces` });
+    if (listing.toilets) facts.push({ key: "toilets", label: "Toilets", value: listing.toilets });
+  }
+  if (listing.lister_type) facts.push({ key: "lister", label: "Listed by", value: listerLabel(listing.lister_type) });
+  return facts;
+}

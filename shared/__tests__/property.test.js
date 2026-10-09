@@ -35,3 +35,20 @@ test("splits price into amount and period suffix", () => {
     suffix: "/year",
   });
 });
+
+test("detailFacts lists type, bedrooms and furnishing for homes", async () => {
+  const { detailFacts } = await import("../property.js");
+  const facts = detailFacts({ category: "homes", property_type: "flat", bedrooms: 0, furnishing: "furnished", lister_type: "agent" });
+  assert.deepEqual(facts.map((f) => [f.key, f.value]), [
+    ["type", "Flat / apartment"],
+    ["bedrooms", "Studio"],
+    ["furnishing", "Furnished"],
+    ["lister", "Agent"],
+  ]);
+});
+
+test("detailFacts says when land has no title document", async () => {
+  const { detailFacts } = await import("../property.js");
+  const facts = detailFacts({ category: "land", property_type: "residential_land" });
+  assert.equal(facts.find((f) => f.key === "title").value, "Not stated");
+});
