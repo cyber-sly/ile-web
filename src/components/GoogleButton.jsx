@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { supabase, setRememberMe } from "@/lib/supabaseClient";
 import { PENDING_ROLE_KEY, useProviderEnabled } from "@/lib/oauth";
 
@@ -52,7 +53,7 @@ export default function GoogleButton({ next, role, remember = true, label = "Con
       setError(
         /provider is not enabled|unsupported provider/i.test(oauthError.message)
           ? "Google sign-in isn't switched on yet. Please use email for now."
-          : oauthError.message
+          : friendlyError(oauthError)
       );
     }
   }

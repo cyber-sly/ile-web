@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import { Search, Building2, MailCheck } from "lucide-react-native";
@@ -40,7 +41,7 @@ export default function SignupScreen() {
     });
     setBusy(false);
     if (signUpError) {
-      setError(signUpError.message);
+      setError(friendlyError(signUpError));
       return;
     }
     if (!data.session) {

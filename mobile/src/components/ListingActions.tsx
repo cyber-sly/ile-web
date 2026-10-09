@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,7 +34,7 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
     try {
       await openChat(String(listing.id));
     } catch (e) {
-      setError((e as Error).message);
+      setError(friendlyError(e));
     } finally {
       setOpening(false);
     }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -131,7 +132,7 @@ function SlotBooking({
       const viewingId = await bookSlot(supabase, listingId, day, time);
       onBooked({ id: viewingId, status: "confirmed", preferred_date: day, preferred_time: time });
     } catch (e) {
-      setError((e as Error).message);
+      setError(friendlyError(e));
       setTime(null);
       onTaken(); // someone may have just taken it: reload the open times
     } finally {
@@ -178,7 +179,7 @@ function RequestBooking({ listingId, userId, onBooked }: { listingId: string; us
     try {
       onBooked(await requestViewing(supabase, listingId, userId, day, time || null));
     } catch (e) {
-      setError((e as Error).message);
+      setError(friendlyError(e));
     } finally {
       setBusy(false);
     }

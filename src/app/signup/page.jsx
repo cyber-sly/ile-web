@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase, setRememberMe } from "@/lib/supabaseClient";
@@ -50,7 +51,7 @@ function SignupForm() {
     });
 
     if (signUpError) {
-      setError(signUpError.message);
+      setError(friendlyError(signUpError));
       setLoading(false);
       return;
     }

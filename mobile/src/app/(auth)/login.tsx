@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { StyleSheet, Switch, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import Screen from "@/components/Screen";
@@ -22,7 +23,7 @@ export default function LoginScreen() {
     const { error: loginError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
     if (loginError) {
-      setError(loginError.message);
+      setError(friendlyError(loginError));
       return;
     }
     router.dismissAll();

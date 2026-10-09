@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { friendlyError, OFFLINE_MESSAGE } from "@shared/errors.js";
 import { StyleSheet, Text, View } from "react-native";
 import { MailCheck } from "lucide-react-native";
 import Screen from "@/components/Screen";
@@ -22,9 +23,14 @@ export default function ForgotPasswordScreen() {
     setError("");
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: RESET_URL });
     setBusy(false);
-    // Never reveal whether an email is registered; only report rate limits.
+    // Never reveal whether an email is registered; only report rate limits
+    // and a missing connection (otherwise we'd say "sent" when nothing was).
     if (resetError && resetError.status === 429) {
       setError("Too many reset emails requested. Please wait a few minutes.");
+      return;
+    }
+    if (resetError && friendlyError(resetError) === OFFLINE_MESSAGE) {
+      setError(OFFLINE_MESSAGE);
       return;
     }
     setSent(true);

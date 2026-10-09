@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import AuthShell from "@/components/AuthShell";
@@ -31,7 +32,7 @@ export default function ForgotPasswordPage() {
       setError(
         resetError.status === 429
           ? "Too many reset emails requested. Please wait a few minutes and try again."
-          : resetError.message
+          : friendlyError(resetError)
       );
       return;
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabaseClient";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
@@ -34,7 +35,7 @@ export default function NewPasswordForm({ onDone, submitLabel = "Save new passwo
       setFormError(
         /different from the old/i.test(error.message)
           ? "Choose a password you haven't used on this account before."
-          : error.message
+          : friendlyError(error)
       );
       return;
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase, setRememberMe } from "@/lib/supabaseClient";
@@ -39,7 +40,7 @@ function LoginForm() {
     setRememberMe(remember);
     const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
     if (loginError) {
-      setError(loginError.message);
+      setError(friendlyError(loginError));
       setLoading(false);
       return;
     }

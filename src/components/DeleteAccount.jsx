@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { useRouter } from "next/navigation";
 import { deleteMyAccount, hasPassword, verifyPassword } from "@/lib/account";
 import Field from "@/components/ui/Field";
@@ -36,7 +37,7 @@ export default function DeleteAccount({ user }) {
       router.push("/?account=deleted");
       router.refresh();
     } catch (err) {
-      setError(err.message || "Something went wrong. Your account was not deleted.");
+      setError(err?.message ? friendlyError(err) : "Something went wrong. Your account was not deleted.");
       setBusy(false);
     }
   }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { friendlyError } from "@shared/errors.js";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -40,7 +41,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate }: 
     try {
       await task();
     } catch (e) {
-      setError((e as Error).message);
+      setError(friendlyError(e));
     } finally {
       setBusy(false);
     }
