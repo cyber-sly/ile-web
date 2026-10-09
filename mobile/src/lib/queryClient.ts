@@ -11,6 +11,8 @@ import type { PersistedClient } from "@tanstack/react-query-persist-client";
 //   ["saved-listings", ids]    the Saved tab
 //   ["lister", userId]         lister name, photo, rating, reply time
 //   ["viewings", userId]       my viewings (kept offline)
+//   ["inbox", userId]          my conversations (kept offline)
+//   ["chat", id]               one conversation (the 10 latest kept offline)
 
 export const PERSIST_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -18,17 +20,18 @@ export const PERSIST_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 // the current search's first page, and my viewings. Nothing else, so the cache stays
 // small (Android limits AsyncStorage size). Kept current by saved.ts,
 // recent.ts and filters.ts.
-type Scope = { listingIds: Set<string>; searchKey: string };
+type Scope = { listingIds: Set<string>; searchKey: string; chatIds: Set<string> };
 let savedIds: string[] = [];
 let recentIds: string[] = [];
-let scope: Scope = { listingIds: new Set(), searchKey: "" };
+let scope: Scope = { listingIds: new Set(), searchKey: "", chatIds: new Set() };
 
-export function setPersistScope(changes: { savedIds?: string[]; recentIds?: string[]; filters?: object }) {
+export function setPersistScope(changes: { savedIds?: string[]; recentIds?: string[]; filters?: object; chatIds?: string[] }) {
   if (changes.savedIds) savedIds = changes.savedIds;
   if (changes.recentIds) recentIds = changes.recentIds;
   scope = {
     listingIds: new Set([...savedIds, ...recentIds]),
     searchKey: changes.filters ? JSON.stringify(changes.filters) : scope.searchKey,
+    chatIds: changes.chatIds ? new Set(changes.chatIds) : scope.chatIds,
   };
 }
 
@@ -37,7 +40,8 @@ export function shouldPersist(query: { queryKey: readonly unknown[]; state: { st
   const [kind, arg] = query.queryKey;
   if (kind === "listing") return current.listingIds.has(String(arg));
   if (kind === "search") return JSON.stringify(arg) === current.searchKey;
-  if (kind === "viewings") return true;
+  if (kind === "viewings" || kind === "inbox") return true;
+  if (kind === "chat") return current.chatIds.has(String(arg));
   return false;
 }
 

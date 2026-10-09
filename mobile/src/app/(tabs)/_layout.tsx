@@ -1,12 +1,14 @@
 import { Tabs } from "expo-router";
 import { Search, Heart, MessageCircle, CalendarDays, LayoutDashboard, UserRound } from "lucide-react-native";
 import { isLister, useSession } from "@/lib/useSession";
+import { useUnreadCount } from "@/lib/unread";
 import { colors, fonts } from "@/theme";
 
 // Same five tabs as the mobile website.
 export default function TabLayout() {
   const { user } = useSession();
   const lister = isLister(user);
+  const unread = useUnreadCount(user?.id ?? null);
 
   return (
     <Tabs
@@ -21,7 +23,15 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="index" options={{ title: "Search", tabBarIcon: ({ color }) => <Search color={color} size={22} /> }} />
       <Tabs.Screen name="saved" options={{ title: "Saved", tabBarIcon: ({ color }) => <Heart color={color} size={22} /> }} />
-      <Tabs.Screen name="inbox" options={{ title: "Inbox", tabBarIcon: ({ color }) => <MessageCircle color={color} size={22} /> }} />
+      <Tabs.Screen
+        name="inbox"
+        options={{
+          title: "Inbox",
+          tabBarIcon: ({ color }) => <MessageCircle color={color} size={22} />,
+          tabBarBadge: unread > 0 ? (unread > 99 ? "99+" : unread) : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.clay, fontFamily: fonts.sansBold, fontSize: 11 },
+        }}
+      />
       <Tabs.Screen
         name="viewings"
         options={{

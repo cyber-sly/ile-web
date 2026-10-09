@@ -55,7 +55,7 @@ export default function RootLayout() {
               name="book/[id]"
               options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.85, 1], sheetGrabberVisible: true }}
             />
-            <Stack.Screen name="chat/[id]" options={{ title: "" }} />
+            <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)/login" options={{ title: "Log in", presentation: "modal" }} />
             <Stack.Screen name="(auth)/signup" options={{ title: "Create account", presentation: "modal" }} />
             <Stack.Screen name="(auth)/forgot-password" options={{ title: "Forgot password", presentation: "modal" }} />

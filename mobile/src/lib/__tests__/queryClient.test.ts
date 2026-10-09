@@ -5,7 +5,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { cachedListings, seedListings, shouldPersist, trimSearchPages } from "../queryClient";
 
 const query = (queryKey: unknown[], status = "success") => ({ queryKey, state: { status } });
-const scope = { listingIds: new Set(["saved-1", "recent-1"]), searchKey: JSON.stringify({ tab: "rent" }) };
+const scope = { listingIds: new Set(["saved-1", "recent-1"]), searchKey: JSON.stringify({ tab: "rent" }), chatIds: new Set(["c1"]) };
 
 describe("shouldPersist", () => {
   test("keeps listings that are saved or recently viewed", () => {
@@ -24,6 +24,12 @@ describe("shouldPersist", () => {
 
   test("keeps the viewings list", () => {
     expect(shouldPersist(query(["viewings", "u1"]), scope)).toBe(true);
+  });
+
+  test("keeps the inbox and recent chats only", () => {
+    expect(shouldPersist(query(["inbox", "u1"]), scope)).toBe(true);
+    expect(shouldPersist(query(["chat", "c1"]), scope)).toBe(true);
+    expect(shouldPersist(query(["chat", "old"]), scope)).toBe(false);
   });
 
   test("skips failed queries and other keys", () => {
