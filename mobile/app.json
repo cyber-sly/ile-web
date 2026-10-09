@@ -43,6 +43,14 @@
         {
           "locationWhenInUsePermission": "Ile uses your location to show homes near you."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Ile uses your photos so you can add them to your listing.",
+          "cameraPermission": "Ile uses your camera so you can take photos of your property.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {
