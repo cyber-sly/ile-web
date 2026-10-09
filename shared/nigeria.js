@@ -68,14 +68,17 @@ function findState(name) {
   return STATES.find((s) => normalise(s) === n) || null;
 }
 
-function findLga(state, name) {
+// Exact name first; with `loose`, also a single LGA whose name starts the
+// same way ("Abuja Municipal Area Council" -> "Abuja Municipal (AMAC)").
+// Several candidates means we don't guess.
+function findLga(state, name, { loose = false } = {}) {
   const n = normalise(name);
   if (!n) return "";
   const names = (lga) => lga.split("|").map(normalise);
   const exact = NIGERIA[state].find((lga) => names(lga).includes(n));
-  if (exact) return exact;
-  // "Abuja" -> "Abuja Municipal (AMAC)"
-  return NIGERIA[state].find((lga) => n.length >= 4 && names(lga).some((x) => x.startsWith(n))) || "";
+  if (exact || !loose || n.length < 4) return exact || "";
+  const close = NIGERIA[state].filter((lga) => names(lga).some((x) => x.startsWith(n) || n.startsWith(x)));
+  return close.length === 1 ? close[0] : "";
 }
 
 // Phone reverse-geocode result -> { state, lga } on Ile's list, or null when
@@ -83,5 +86,6 @@ function findLga(state, name) {
 export function matchPlace({ region, subregion, city } = {}) {
   const state = findState(region) || findState(city);
   if (!state) return null;
-  return { state, lga: findLga(state, subregion) || findLga(state, city) };
+  // The city is often just the state's name, so it only counts as an exact LGA.
+  return { state, lga: findLga(state, subregion, { loose: true }) || findLga(state, city) };
 }

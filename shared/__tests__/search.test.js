@@ -56,3 +56,10 @@ test("applyFilterChange keeps rent as the default tab", () => {
   const start = readFilters(new URLSearchParams("tab=sale"));
   assert.equal(applyFilterChange(start, { tab: "rent" }).tab, "rent");
 });
+
+test("applyFilterChange keeps an LGA sent together with a new state", () => {
+  const start = readFilters(new URLSearchParams(""));
+  const f = applyFilterChange(start, { state: "Lagos", lga: "Eti-Osa" });
+  assert.equal(f.state, "Lagos");
+  assert.equal(f.lga, "Eti-Osa");
+});

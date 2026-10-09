@@ -35,7 +35,8 @@ export function nextParams(current, changes) {
   if ("tab" in changes && changes.tab !== current.tab) {
     Object.assign(merged, { ptype: "", purpose: "", beds: "", title: "" });
   }
-  if ("state" in changes && changes.state !== current.state) merged.lga = "";
+  // A new state clears the LGA, unless one for that state comes with it (Near me).
+  if ("state" in changes && changes.state !== current.state && !("lga" in changes)) merged.lga = "";
   const params = new URLSearchParams();
   for (const k of KEYS) if (merged[k]) params.set(k, merged[k]);
   if (merged.tab === "rent") params.delete("tab");

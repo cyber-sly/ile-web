@@ -36,3 +36,15 @@ test("matchPlace returns null outside Nigeria", () => {
 test("matchPlace ignores 'Local Government Area' wording and case", () => {
   assert.deepEqual(matchPlace({ region: "lagos", subregion: "Ikeja Local Government Area" }), { state: "Lagos", lga: "Ikeja" });
 });
+
+test("matchPlace leaves the LGA empty when only the city is known", () => {
+  assert.deepEqual(matchPlace({ region: "Lagos", subregion: "Lekki", city: "Lagos" }), { state: "Lagos", lga: "" });
+});
+
+test("matchPlace does not guess between LGAs that share a prefix", () => {
+  assert.deepEqual(matchPlace({ region: "Lagos", subregion: "Lagos" }), { state: "Lagos", lga: "" });
+});
+
+test("matchPlace still finds a unique prefix such as Abuja Municipal", () => {
+  assert.equal(matchPlace({ region: "FCT", subregion: "Abuja Municipal Area Council" }).lga, "Abuja Municipal (AMAC)");
+});

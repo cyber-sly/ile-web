@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { applyFilterChange, readFilters } from "@shared/search.js";
+import { setPersistScope } from "./queryClient";
 
 // Search filters: the same shape the website reads from its URL
 // (tab, q, state, lga, ptype, purpose, min, max, beds, title, sort).
@@ -18,10 +19,12 @@ export function activeFilterCount(filters: Filters): number {
 // One shared store, kept on the phone so the app reopens on the last search.
 const KEY = "ile:last-search";
 let current: Filters = DEFAULT_FILTERS;
+setPersistScope({ filters: current });
 const listeners = new Set<() => void>();
 
 function set(next: Filters) {
   current = next;
+  setPersistScope({ filters: next });
   listeners.forEach((l) => l());
   AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
 }

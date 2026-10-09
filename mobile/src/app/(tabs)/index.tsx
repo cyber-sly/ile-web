@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -8,6 +7,7 @@ import { buildQuery, PAGE_SIZE, SEARCH_TABS } from "@shared/search.js";
 import { pluralize } from "@shared/format.js";
 import { supabase } from "@/lib/supabase";
 import { activeFilterCount, DEFAULT_FILTERS, useFilters, type Filters } from "@/lib/filters";
+import { useSearchText } from "@/lib/useSearchText";
 import Chip from "@/components/Chip";
 import Button from "@/components/Button";
 import PropertyCard, { type ListingRow } from "@/components/PropertyCard";
@@ -25,20 +25,13 @@ async function fetchPage(filters: Filters, page: number): Promise<Page> {
 export default function SearchScreen() {
   const [filters, change] = useFilters();
   const online = useOnline();
-  const [text, setText] = useState(filters.q);
-
-  // Typing waits a moment before searching.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (text !== filters.q) change({ q: text });
-    }, 400);
-    return () => clearTimeout(t);
-  }, [text, filters.q, change]);
+  const [text, setText] = useSearchText(filters.q, change);
 
   const results = useInfiniteQuery({
     queryKey: ["search", filters],
     queryFn: ({ pageParam }) => fetchPage(filters, pageParam),
     initialPageParam: 0,
+    gcTime: 30 * 60 * 1000, // only the current search is kept across restarts
     getNextPageParam: (last: Page, pages: Page[]) => (last.rows.length === PAGE_SIZE ? pages.length : undefined),
   });
 
