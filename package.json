@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint src shared",
+    "test:shared": "node --test \"shared/__tests__/*.test.js\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",

@@ -1,22 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 
-// Today's date in Nigeria, as YYYY-MM-DD, to match how viewing dates are stored.
-function todayInLagos() {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" });
-}
-
-// Mirrors leave_review(): the viewing was marked done, or it was confirmed
-// and its date has passed.
-export function canReview(inspection) {
-  const today = todayInLagos();
-  if (inspection.status === "done") return inspection.preferred_date <= today;
-  return inspection.status === "confirmed" && inspection.preferred_date < today;
-}
-
-// Listers can mark a viewing done on or after its date.
-export function viewingDateReached(inspection) {
-  return inspection.preferred_date <= todayInLagos();
-}
+export { canReview, viewingDateReached } from "@shared/reviews.js";
 
 // { userId: { average, total, accurate_pct } } for listers or tenants.
 export async function fetchRatings(userIds, role) {
