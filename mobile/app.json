@@ -42,6 +42,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "504988cb-db4a-44e5-98f9-441849d09774"
+      }
+    },
+    "owner": "ghost_tech"
   }
 }
