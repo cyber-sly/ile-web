@@ -15,6 +15,7 @@ import ListerLine from "@/components/ListerLine";
 import SaveButton from "@/components/SaveButton";
 import PropertyCard from "@/components/PropertyCard";
 import Button from "@/components/Button";
+import ListingActions from "@/components/ListingActions";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius } from "@/theme";
 
@@ -111,6 +112,7 @@ export default function ListingScreen() {
   const similar = similarQuery.data || [];
 
   return (
+    <View style={styles.page}>
     <ScrollView style={styles.page} contentContainerStyle={styles.pageContent}>
       {header}
       <PhotoCarousel photos={listingPhotos(listing)} title={listing.title} />
@@ -206,6 +208,8 @@ export default function ListingScreen() {
         )}
       </View>
     </ScrollView>
+    <ListingActions listing={listing} />
+    </View>
   );
 }
 

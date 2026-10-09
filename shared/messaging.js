@@ -12,6 +12,7 @@ export function cleanMessage(text) {
 
 // Get or create the conversation for a listing and return its id.
 // Listers pass the tenant they want to message.
+/** @param {any} client @param {string} listingId @param {string | null} [tenantId] */
 export async function startConversation(client, listingId, tenantId = null) {
   const { data, error } = await client.rpc("start_conversation", { p_listing: listingId, p_tenant: tenantId });
   if (error) throw new Error(error.message);
