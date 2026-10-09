@@ -48,3 +48,40 @@ export const STATES = Object.keys(NIGERIA);
 export function stateLabel(state) {
   return state === "FCT" ? "FCT (Abuja)" : state;
 }
+
+// "Lagos State", "Ikeja Local Government Area", "Eti-Osa" -> comparable words.
+function normalise(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/\(.*?\)/g, " ")
+    .replace(/\b(local government area|local government|lga|state)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+const FCT_NAMES = ["federal capital territory", "abuja", "fct"];
+
+function findState(name) {
+  const n = normalise(name);
+  if (!n) return null;
+  if (FCT_NAMES.includes(n)) return "FCT";
+  return STATES.find((s) => normalise(s) === n) || null;
+}
+
+function findLga(state, name) {
+  const n = normalise(name);
+  if (!n) return "";
+  const names = (lga) => lga.split("|").map(normalise);
+  const exact = NIGERIA[state].find((lga) => names(lga).includes(n));
+  if (exact) return exact;
+  // "Abuja" -> "Abuja Municipal (AMAC)"
+  return NIGERIA[state].find((lga) => n.length >= 4 && names(lga).some((x) => x.startsWith(n))) || "";
+}
+
+// Phone reverse-geocode result -> { state, lga } on Ile's list, or null when
+// the place isn't a Nigerian state. The LGA is "" when it can't be matched.
+export function matchPlace({ region, subregion, city } = {}) {
+  const state = findState(region) || findState(city);
+  if (!state) return null;
+  return { state, lga: findLga(state, subregion) || findLga(state, city) };
+}

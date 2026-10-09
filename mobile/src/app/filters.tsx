@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
+import { LocateFixed } from "lucide-react-native";
 import { NIGERIA, STATES, stateLabel } from "@shared/nigeria.js";
 import { PROPERTY_TYPES, TITLE_DOCUMENTS } from "@shared/property.js";
 import { SORTS } from "@shared/search.js";
 import { DEFAULT_FILTERS, useFilters } from "@/lib/filters";
+import { findNearMe, NEAR_ME_ERRORS } from "@/lib/nearMe";
 import Chip from "@/components/Chip";
 import Button from "@/components/Button";
 import SelectField from "@/components/SelectField";
@@ -33,11 +35,22 @@ export default function FiltersSheet() {
   const [filters, change] = useFilters();
   const [min, setMin] = useState(filters.min);
   const [max, setMax] = useState(filters.max);
+  const [locating, setLocating] = useState(false);
+  const [nearMeError, setNearMeError] = useState("");
 
   const category = filters.tab === "rent" || filters.tab === "sale" ? "homes" : filters.tab;
   const types = (PROPERTY_TYPES as Choice[]).filter((t) => t.category === category);
   const states = STATES.map((s: string) => ({ value: s, label: stateLabel(s) }));
   const lgas = filters.state ? (NIGERIA as Record<string, string[]>)[filters.state].map((l) => ({ value: l, label: l.replace("|", " / ") })) : [];
+
+  async function nearMe() {
+    setLocating(true);
+    setNearMeError("");
+    const result = await findNearMe();
+    setLocating(false);
+    if ("error" in result) setNearMeError(NEAR_ME_ERRORS[result.error]);
+    else change({ state: result.state, lga: result.lga });
+  }
 
   function applyPrices() {
     if (min !== filters.min || max !== filters.max) change({ min, max });
@@ -66,6 +79,16 @@ export default function FiltersSheet() {
             ))}
           </Section>
         )}
+
+        <View style={styles.section}>
+          <Button label={locating ? "Finding you…" : "Near me"} variant="secondary" loading={locating} onPress={nearMe} />
+          {nearMeError ? (
+            <View style={styles.nearMeError}>
+              <LocateFixed color={colors.clay} size={16} />
+              <Text style={styles.errorText}>{nearMeError}</Text>
+            </View>
+          ) : null}
+        </View>
 
         <SelectField label="State" value={filters.state} options={states} onChange={(v) => change({ state: v })} placeholder="Any state" />
         <SelectField
@@ -173,4 +196,6 @@ const styles = StyleSheet.create({
   },
   footer: { flexDirection: "row", gap: 12, padding: 16, borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.surface },
   flex: { flex: 1 },
+  nearMeError: { flexDirection: "row", alignItems: "center", gap: 6 },
+  errorText: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 13, color: colors.clay },
 });

@@ -37,7 +37,13 @@
         }
       ],
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Ile uses your location to show homes near you."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
