@@ -1,7 +1,7 @@
 # Ile mobile app: design
 
 **Date:** 2026-10-09
-**Status:** Approved in conversation, awaiting written-spec review
+**Status:** Approved (written spec approved 2026-10-09)
 
 ## Goal
 
@@ -75,6 +75,11 @@ Stack screens:
   Photos (camera or gallery, compress, reorder) → Review & publish.
 - **Viewing times** (weekly availability; uses `set_listing_availability`).
 - **Auth:** log in, sign up (role choice), forgot password, Google, Apple (iOS).
+- **Account:** same structure as the redesigned web Account page (profile
+  header with completeness ring, at-a-glance tiles, grouped settings rows),
+  **Edit profile** (photo from camera or gallery, bio, languages, home state,
+  lister details, occupation/move-in), password, log out of all devices,
+  notification preferences, **delete account**.
 - **Search filters** in a bottom sheet; **"Near me"** reverse-geocodes the
   phone's location to a state/LGA filter (listings have no coordinates).
 
@@ -137,12 +142,24 @@ installed) wait for the custom domain.
 
 ## Release blockers (decisions needed before store submission)
 
-1. **In-app account deletion** is required by Apple (guideline 5.1.1(v)) and
-   by Google Play. It's currently deferred by the founder. Proposed rules are
-   in project memory and the conversation: delete the user's listings and
-   media; keep chats for the other party as "Deleted user"; keep reviews they
-   wrote, anonymised; keep reports, anonymised.
+1. ~~In-app account deletion~~ **Done (2026-10-09)** on the website via
+   `delete_my_account()` and `supabase/account_deletion.sql`. The app reuses
+   the same flow (remove the user's storage files in `listing-images`,
+   `listing-videos` and `avatars`, then call the RPC) and links the public
+   `/delete-account` page in the store listings.
 2. **Sign in with Apple** on iOS (or drop Google sign-in on iOS).
+
+## Since this spec was first written
+
+- **Richer profiles** exist (`supabase/profiles_extended.sql`): photo
+  (avatars bucket), bio, languages, home state (private), lister type,
+  business name, office address, areas covered, listing since, registration
+  body (public) and number (private), occupation and move-in timing (shown
+  only to listers booked with), and `lister_response_times()`. The app shows
+  avatars wherever the web does (listing panel, profile, chat, inbox,
+  dashboard requests).
+- Pure profile helpers live in `src/lib/profileDisplay.js` and move to
+  `shared/` in step 1.
 
 ## Accounts and costs
 
@@ -168,5 +185,6 @@ the app (waiting on domain); maps with exact coordinates.
 5. Booking (slots and requests), viewings, chat.
 6. Lister: dashboard, listing wizard with camera, viewing times.
 7. Push notifications (tables, triggers, Edge Function, cron, preferences).
-8. Reviews, reports, profile, account settings, Google and Apple sign-in.
+8. Reviews, reports, lister profile, Account (edit profile with avatar,
+   password, devices, delete account), Google and Apple sign-in.
 9. Testing, store assets, beta, release (after the release blockers are resolved).
