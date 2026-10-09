@@ -2,6 +2,7 @@
 
 import { supabase } from "@/lib/supabaseClient";
 import { checkFiles } from "@/lib/uploadMedia";
+import { fetchPeople as fetchPeopleWith, fetchResponseTimes as fetchResponseTimesWith } from "@shared/people.js";
 
 // Display helpers and form choices live in profileDisplay.js (usable on the
 // server); re-exported here for convenience.
@@ -56,11 +57,8 @@ export async function uploadAvatar(userId, file, previousUrl) {
 }
 
 // Public profile basics for many users: { id: { name, avatar } }.
-export async function fetchPeople(ids) {
-  const unique = [...new Set(ids.filter(Boolean))];
-  if (unique.length === 0) return {};
-  const { data } = await supabase.from("profiles").select("id, full_name, avatar_url").in("id", unique);
-  return Object.fromEntries((data || []).map((p) => [p.id, { name: p.full_name?.trim() || "", avatar: p.avatar_url }]));
+export function fetchPeople(ids) {
+  return fetchPeopleWith(supabase, ids);
 }
 
 // { id: { occupation, move_in_timeline } } for home-seekers who booked with me.
@@ -72,9 +70,6 @@ export async function fetchTenantDetails(ids) {
 }
 
 // { id: minutes } median first-reply time (only listers with enough chats).
-export async function fetchResponseTimes(ids) {
-  const unique = [...new Set(ids.filter(Boolean))];
-  if (unique.length === 0) return {};
-  const { data } = await supabase.rpc("lister_response_times", { p_users: unique });
-  return Object.fromEntries((data || []).map((r) => [r.user_id, r.median_minutes]));
+export function fetchResponseTimes(ids) {
+  return fetchResponseTimesWith(supabase, ids);
 }

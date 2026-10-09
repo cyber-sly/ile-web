@@ -84,3 +84,9 @@ export function buildQuery(client, f, page = 0) {
 
   return query.range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 }
+
+// The app keeps filters as an object; this applies the same clearing rules
+// as the website's URL params.
+export function applyFilterChange(filters, changes) {
+  return readFilters(nextParams(filters, changes));
+}

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFilters, nextParams, buildQuery } from "../search.js";
+import { readFilters, nextParams, buildQuery, applyFilterChange } from "../search.js";
 
 // Records every builder call so the query can be checked without a database.
 function fakeClient() {
@@ -36,4 +36,23 @@ test("builds a safe rent search query", () => {
   assert.ok(or.includes("title.ilike.%yaba"));
   assert.ok(!/yaba,|\(x\)/.test(or), "user text must not inject , or ()");
   assert.deepEqual(client.calls.at(-1), ["range", 0, 23]);
+});
+
+test("applyFilterChange clears home-only filters when the tab changes", () => {
+  const start = readFilters(new URLSearchParams("beds=3&ptype=flat&state=Lagos"));
+  const f = applyFilterChange(start, { tab: "land" });
+  assert.equal(f.tab, "land");
+  assert.equal(f.beds, "");
+  assert.equal(f.ptype, "");
+  assert.equal(f.state, "Lagos");
+});
+
+test("applyFilterChange clears the LGA when the state changes", () => {
+  const start = readFilters(new URLSearchParams("state=Lagos&lga=Eti-Osa"));
+  assert.equal(applyFilterChange(start, { state: "Oyo" }).lga, "");
+});
+
+test("applyFilterChange keeps rent as the default tab", () => {
+  const start = readFilters(new URLSearchParams("tab=sale"));
+  assert.equal(applyFilterChange(start, { tab: "rent" }).tab, "rent");
 });
