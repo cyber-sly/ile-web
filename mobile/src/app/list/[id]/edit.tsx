@@ -1,11 +1,28 @@
-import { Text } from "react-native";
+import { ActivityIndicator } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useSession } from "@/lib/useSession";
+import { fetchListing } from "@/lib/listing";
+import ListingWizard from "@/components/wizard/ListingWizard";
 import Screen from "@/components/Screen";
+import Button from "@/components/Button";
+import { colors } from "@/theme";
 
-// Replaced by the listing wizard in Task 4.
+// Edit a listing with the same wizard. Only the lister who posted it can.
 export default function EditListingScreen() {
-  return (
-    <Screen title="Edit listing">
-      <Text>Coming next.</Text>
-    </Screen>
-  );
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useSession();
+  const listing = useQuery({ queryKey: ["listing", id], queryFn: () => fetchListing(supabase, id), staleTime: 0 });
+
+  if (listing.isPending) return <ActivityIndicator color={colors.palm} style={{ marginTop: 40 }} />;
+
+  if (!listing.data || !user || listing.data.landlord_id !== user.id) {
+    return (
+      <Screen title="You can only edit your own listings" subtitle="Log in with the account that posted this listing.">
+        <Button label="Back" variant="secondary" onPress={() => router.back()} />
+      </Screen>
+    );
+  }
+  return <ListingWizard listing={listing.data} />;
 }

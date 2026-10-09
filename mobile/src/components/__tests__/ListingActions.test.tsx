@@ -33,9 +33,12 @@ describe("ListingActions", () => {
     expect(r.root.findAllByProps({ accessibilityLabel: "Message the lister" }).length).toBeGreaterThan(0);
   });
 
-  test("hides the bar on the lister's own listing", () => {
+  test("shows Edit and Viewing times to the owner instead of booking", () => {
     mockUser = { id: "lister" };
-    expect(render().toJSON()).toBeNull();
+    const r = render();
+    expect(r.root.findAllByProps({ accessibilityLabel: "Edit listing" }).length).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ accessibilityLabel: "Viewing times" }).length).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ accessibilityLabel: "Book a viewing" })).toHaveLength(0);
   });
 
   test("sends logged-out people to log in", () => {
