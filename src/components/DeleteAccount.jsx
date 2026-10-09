@@ -7,6 +7,7 @@ import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { Lock, Trash2 } from "lucide-react";
+import SettingsRow from "@/components/SettingsRow";
 
 // "Delete my account" on the Account page. Explains exactly what goes and
 // what stays, then asks for the password (or typing DELETE for Google-only
@@ -41,19 +42,17 @@ export default function DeleteAccount({ user }) {
   }
 
   return (
-    <section className="mt-8 rounded-[var(--radius-card)] border border-clay/40 bg-surface p-5">
-      <h2 className="flex items-center gap-2 font-semibold text-clay">
-        <Trash2 size={18} aria-hidden="true" /> Delete account
-      </h2>
-      {!open ? (
-        <>
-          <p className="mt-1 text-sm text-ink-muted">Permanently delete your Ile account and your listings.</p>
-          <button type="button" onClick={() => setOpen(true)} className={button({ variant: "danger-ghost", full: true, className: "mt-3" })}>
-            Delete my account
-          </button>
-        </>
-      ) : (
-        <form onSubmit={submit} className="mt-3 flex flex-col gap-4">
+    <section className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
+      <SettingsRow
+        icon={Trash2}
+        danger
+        label="Delete account"
+        description="Permanently delete your account and listings"
+        expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      />
+      {!open ? null : (
+        <form onSubmit={submit} className="flex flex-col gap-4 border-t border-line px-4 py-4">
           <div className="rounded-[var(--radius-control)] bg-clay-soft p-4 text-sm text-ink">
             <p className="font-semibold">This can&apos;t be undone.</p>
             <p className="mt-2 font-semibold">Deleted:</p>
