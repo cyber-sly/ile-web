@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { reviewState } from "@/lib/reviews";
+import ReviewSheet from "@/components/ReviewSheet";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -24,6 +26,8 @@ type Props = {
   online: boolean;
   onUpdate: (changes: Record<string, string | null>) => Promise<void>;
   onCounter: () => void;
+  reviewed?: Set<string>;
+  onReviewed?: () => void;
 };
 
 function ask(title: string, action: string, run: () => void) {
@@ -34,10 +38,12 @@ function ask(title: string, action: string, run: () => void) {
 }
 
 // One viewing request on the lister's Dashboard.
-export default function RequestCard({ request: r, person, details, rating, online, onUpdate, onCounter }: Props) {
+export default function RequestCard({ request: r, person, details, rating, online, onUpdate, onCounter, reviewed = new Set(), onReviewed }: Props) {
   const actions = requestActions(r);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [reviewing, setReviewing] = useState(false);
+  const review = r.tenant_id ? reviewState(r as { id: string; status: string; preferred_date: string }, reviewed) : "not-yet";
   const name = r.tenant_id ? person?.name || "Home-seeker" : "Deleted user";
   const about = [occupationLabel(details?.occupation), moveInLabel(details?.move_in_timeline) && `Moving ${moveInLabel(details?.move_in_timeline).toLowerCase()}`]
     .filter(Boolean)
@@ -112,6 +118,18 @@ export default function RequestCard({ request: r, person, details, rating, onlin
       )}
       {r.landlord_note && r.status !== "pending" ? <Text style={styles.muted}>Your note: “{r.landlord_note}”</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {review === "can-review" && (
+        <Action label={`Rate ${(person?.name || "them").trim().split(/\s+/)[0]}`} disabled={!online} onPress={() => setReviewing(true)} />
+      )}
+      {review === "reviewed" && <Text style={styles.listing}>Rated. Thank you.</Text>}
+      <ReviewSheet
+        visible={reviewing}
+        inspectionId={String(r.id)}
+        reviewing="tenant"
+        name={person?.name}
+        onClose={() => setReviewing(false)}
+        onDone={() => onReviewed?.()}
+      />
 
       <View style={styles.actions}>
         {actions.confirm && <Action label="Confirm" primary disabled={disabled} onPress={() => run({ status: "confirmed" })} />}

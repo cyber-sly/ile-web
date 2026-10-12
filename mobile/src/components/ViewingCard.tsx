@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { reviewState } from "@/lib/reviews";
+import ReviewSheet from "@/components/ReviewSheet";
 import { friendlyError } from "@shared/errors.js";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
@@ -19,6 +21,8 @@ type Props = {
   online: boolean;
   onAccept: (v: ViewingRow) => Promise<void>;
   onUpdate: (v: ViewingRow, changes: Record<string, string>) => Promise<void>;
+  reviewed?: Set<string>;
+  onReviewed?: () => void;
 };
 
 function confirm(title: string, message: string, action: string, run: () => void) {
@@ -29,11 +33,13 @@ function confirm(title: string, message: string, action: string, run: () => void
 }
 
 // One viewing on the Viewings tab, with the actions that apply to it.
-export default function ViewingCard({ viewing: v, online, onAccept, onUpdate }: Props) {
+export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, reviewed = new Set(), onReviewed }: Props) {
   const l = v.listings;
   const actions = viewingActions(v);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [reviewing, setReviewing] = useState(false);
+  const review = reviewState(v as { id: string; status: string; preferred_date: string }, reviewed);
 
   async function run(task: () => Promise<void>) {
     setBusy(true);
@@ -92,6 +98,19 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate }: 
       )}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {review === "can-review" && l && (
+        <View style={styles.reviewRow}>
+          <Button label="Review the lister" variant="secondary" disabled={!online} onPress={() => setReviewing(true)} />
+        </View>
+      )}
+      {review === "reviewed" && <Text style={styles.reviewed}>Reviewed. Thank you.</Text>}
+      <ReviewSheet
+        visible={reviewing}
+        inspectionId={String(v.id)}
+        reviewing="lister"
+        onClose={() => setReviewing(false)}
+        onDone={() => onReviewed?.()}
+      />
 
       {(actions.accept || actions.cancel || (actions.message && l)) && (
         <View style={styles.actions}>
@@ -170,4 +189,6 @@ const styles = StyleSheet.create({
   cancelButton: { marginLeft: "auto", paddingVertical: 8, paddingHorizontal: 4 },
   cancel: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.clay },
   dim: { opacity: 0.5 },
+  reviewRow: { paddingHorizontal: 14, paddingBottom: 12 },
+  reviewed: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.palm, paddingHorizontal: 14, paddingBottom: 12 },
 });

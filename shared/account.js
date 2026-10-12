@@ -140,6 +140,7 @@ export function validateProfileForm(v) {
 
 // --- Reviews and reports -------------------------------------------------------
 
+/** @param {any} client @param {{ inspectionId: string, rating: number, comment?: string, accurate?: boolean | null }} review */
 export async function leaveReview(client, { inspectionId, rating, comment = "", accurate = null }) {
   if (!rating) throw new Error("Choose a star rating.");
   const { error } = await client.rpc("leave_review", {

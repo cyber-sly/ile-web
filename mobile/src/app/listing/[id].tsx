@@ -1,10 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import ReportSheet from "@/components/ReportSheet";
+import { useSession } from "@/lib/useSession";
 import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { useQuery } from "@tanstack/react-query";
-import { CircleAlert, MapPin, PlayCircle, Share2, ShieldCheck, WifiOff } from "lucide-react-native";
+import { CircleAlert, Flag, MapPin, PlayCircle, Share2, ShieldCheck, WifiOff } from "lucide-react-native";
 import { detailFacts, fullPlace, priceParts } from "@shared/property.js";
 import { supabase } from "@/lib/supabase";
 import { fetchListing, fetchSimilar, listingPhotos, listingState, listingUrl } from "@/lib/listing";
@@ -24,6 +26,8 @@ type Fact = { key: string; label: string; value: string | number };
 export default function ListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const online = useOnline();
+  const { user } = useSession();
+  const [reporting, setReporting] = useState(false);
   const listingQuery = useQuery({ queryKey: ["listing", id], queryFn: () => fetchListing(supabase, id) });
   const listing = listingQuery.data ?? null;
   const similarQuery = useQuery({
@@ -206,7 +210,16 @@ export default function ListingScreen() {
             </View>
           </>
         )}
+        {user && user.id !== listing.landlord_id && (
+          <Pressable accessibilityRole="button" onPress={() => setReporting(true)} style={styles.report}>
+            <Flag color={colors.inkMuted} size={15} />
+            <Text style={styles.reportText}>Report this listing</Text>
+          </Pressable>
+        )}
       </View>
+      {user && (
+        <ReportSheet visible={reporting} listingId={String(listing.id)} userId={user.id} onClose={() => setReporting(false)} />
+      )}
     </ScrollView>
     <ListingActions listing={listing} />
     </View>
@@ -262,4 +275,6 @@ const styles = StyleSheet.create({
   },
   videoText: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.palm },
   similar: { gap: 14 },
+  report: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "center", paddingVertical: 12, marginTop: 8 },
+  reportText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.inkMuted, textDecorationLine: "underline" },
 });

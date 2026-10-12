@@ -3,6 +3,7 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 
 jest.mock("expo-router", () => ({ router: { push: jest.fn() } }));
 jest.mock("@/lib/messagingApp", () => ({ openChat: jest.fn() }));
+jest.mock("@/lib/supabase", () => ({ supabase: {} }));
 
 import RequestCard from "../dashboard/RequestCard";
 

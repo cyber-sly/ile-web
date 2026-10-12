@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fetchReviewedIds } from "@/lib/reviews";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -50,6 +51,12 @@ export default function Dashboard() {
   const key = ["dashboard", userId];
   const dashboard = useQuery({ queryKey: key, queryFn: () => fetchDashboard(userId), enabled: Boolean(userId) });
   const [countering, setCountering] = useState<RequestRow | null>(null);
+  const requestIds = (dashboard.data?.requests || []).map((r) => String(r.id));
+  const reviewed = useQuery({
+    queryKey: ["reviewed", userId, requestIds.join(",")],
+    queryFn: () => fetchReviewedIds(supabase, requestIds),
+    enabled: Boolean(userId) && requestIds.length > 0,
+  });
 
   function patch(update: (d: DashboardData) => DashboardData) {
     queryClient.setQueryData<DashboardData>(key, (d) => (d ? update(d) : d));
@@ -91,6 +98,8 @@ export default function Dashboard() {
       online={online}
       onUpdate={(changes) => updateRequest(r, changes)}
       onCounter={() => setCountering(r)}
+      reviewed={reviewed.data}
+      onReviewed={() => reviewed.refetch()}
     />
   );
 

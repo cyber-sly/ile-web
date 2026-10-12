@@ -1,4 +1,5 @@
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { fetchReviewedIds } from "@/lib/reviews";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,6 +28,13 @@ export default function MyViewings() {
     queryKey: ["viewings", userId],
     queryFn: () => fetchMyViewings(supabase, userId) as Promise<ViewingRow[]>,
     enabled: Boolean(userId),
+  });
+
+  const ids = (viewings.data || []).map((v) => String(v.id));
+  const reviewed = useQuery({
+    queryKey: ["reviewed", userId, ids.join(",")],
+    queryFn: () => fetchReviewedIds(supabase, ids),
+    enabled: Boolean(userId) && ids.length > 0,
   });
 
   async function update(v: ViewingRow, changes: Record<string, string>) {
@@ -79,7 +87,14 @@ export default function MyViewings() {
         data={list}
         keyExtractor={(v) => String(v.id)}
         renderItem={({ item }) => (
-          <ViewingCard viewing={item} online={online} onAccept={(v) => update(v, acceptChanges(v))} onUpdate={update} />
+          <ViewingCard
+            viewing={item}
+            online={online}
+            onAccept={(v) => update(v, acceptChanges(v))}
+            onUpdate={update}
+            reviewed={reviewed.data}
+            onReviewed={() => reviewed.refetch()}
+          />
         )}
         ListHeaderComponent={
           <View style={styles.header}>
