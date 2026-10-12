@@ -46,3 +46,12 @@ test("schedules are idempotent", () => {
   assert.equal(schedules.length, 3);
   assert.equal((s.match(/cron\.unschedule\(/g) || []).length, 3);
 });
+
+test("claiming pending notifications is atomic and only for the server", () => {
+  const s = sql();
+  const body = s.split(/create or replace function public\.ile_claim_notifications/i)[1].split("$$;")[0];
+  assert.match(body, /for update skip locked/);
+  assert.match(body, /sent_at is null/);
+  assert.match(s, /revoke execute on function public\.ile_claim_notifications\(integer\) from public, anon, authenticated/);
+  assert.match(s, /grant execute on function public\.ile_claim_notifications\(integer\) to service_role/);
+});

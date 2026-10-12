@@ -361,6 +361,35 @@ create trigger notify_review after insert on public.reviews
 for each row execute function public.ile_notify_review();
 
 ---------------------------------------------------------------------------
+-- Used by send-push: take up to p_limit unsent notifications, marking them
+-- sent in the same step, so two deliveries running at once never send the
+-- same notification twice. send-push hands them back if Expo is unreachable.
+---------------------------------------------------------------------------
+
+create or replace function public.ile_claim_notifications(p_limit integer)
+returns setof public.notifications
+language plpgsql
+security definer
+set search_path = public
+as $
+begin
+  return query
+  update public.notifications n set sent_at = now()
+  where n.id in (
+    select id from public.notifications
+    where sent_at is null and created_at > now() - interval '1 day'
+    order by created_at
+    limit p_limit
+    for update skip locked
+  )
+  returning n.*;
+end;
+$;
+
+revoke execute on function public.ile_claim_notifications(integer) from public, anon, authenticated;
+grant execute on function public.ile_claim_notifications(integer) to service_role;
+
+---------------------------------------------------------------------------
 -- Daily reminders (times in UTC; Lagos is UTC+1)
 ---------------------------------------------------------------------------
 
