@@ -5,18 +5,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MapPin, Plus, Search } from "lucide-react-native";
 import { SEARCH_TABS } from "@shared/search.js";
 import { Button, Em, Logo, Shade } from "@/components/kit";
+import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius, shadows } from "@/theme";
 
 // The website's top bar and hero (Navbar + HomeHero + SearchBox): photo,
 // headline, and the search box floating over the bottom edge of the photo.
 export default function Hero({ onSearch, onList }: { onSearch: (tab: string, q: string) => void; onList: () => void }) {
   const insets = useSafeAreaInsets();
+  const online = useOnline(); // the offline banner already covers the status bar
   const [tab, setTab] = useState("rent");
   const [q, setQ] = useState("");
 
   return (
     <View>
-      <View style={[styles.bar, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.bar, { paddingTop: (online ? insets.top : 0) + 10 }]}>
         <Logo />
         <Button label="List property" variant="secondary" size="sm" full={false} pill icon={Plus} onPress={onList} />
       </View>

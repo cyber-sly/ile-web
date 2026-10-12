@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { friendlyError, OFFLINE_MESSAGE } from "@shared/errors.js";
 import { StyleSheet, Text, View } from "react-native";
-import { Link } from "expo-router";
 import { Mail, MailCheck } from "lucide-react-native";
-import AuthScreen, { FormError, LOGIN_PHOTO } from "@/components/AuthScreen";
+import AuthScreen, { FooterLink, FormError, LOGIN_PHOTO } from "@/components/AuthScreen";
 import { Button, Field } from "@/components/kit";
 import { supabase } from "@/lib/supabase";
 import { colors, fonts, radius } from "@/theme";
@@ -36,14 +35,7 @@ export default function ForgotPasswordScreen() {
     setSent(true);
   }
 
-  const footer = (
-    <Text style={styles.footer}>
-      Remembered it?{" "}
-      <Link href="/login" style={styles.link}>
-        Log in
-      </Link>
-    </Text>
-  );
+  const footer = <FooterLink prompt="Remembered it?" label="Log in" href="/login" />;
 
   if (sent) {
     return (
@@ -89,6 +81,4 @@ const styles = StyleSheet.create({
   body: { fontFamily: fonts.sans, fontSize: 16, color: colors.ink, lineHeight: 22 },
   strong: { fontFamily: fonts.sansSemi },
   muted: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
-  link: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.palm },
-  footer: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted, textAlign: "center" },
 });

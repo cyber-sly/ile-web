@@ -28,7 +28,7 @@ export function Skeleton({ width = "100%", height, rounded = radius.control }: {
 // A listing card's shape.
 export function CardSkeleton({ width }: { width?: number }) {
   return (
-    <View style={[styles.card, width ? { width } : null]} accessibilityLabel="Loading">
+    <View style={[styles.card, width ? { width } : null]} accessible accessibilityLabel="Loading">
       <Skeleton height={width ? (width * 3) / 4 : 220} rounded={0} />
       <View style={styles.body}>
         <Skeleton height={18} width="45%" />
@@ -42,7 +42,7 @@ export function CardSkeleton({ width }: { width?: number }) {
 // A list row's shape (inbox, viewings, requests).
 export function RowSkeleton() {
   return (
-    <View style={styles.row} accessibilityLabel="Loading">
+    <View style={styles.row} accessible accessibilityLabel="Loading">
       <Skeleton height={44} width={44} rounded={22} />
       <View style={styles.rowText}>
         <Skeleton height={14} width="55%" />

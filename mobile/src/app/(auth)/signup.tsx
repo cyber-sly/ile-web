@@ -2,14 +2,15 @@ import { useState } from "react";
 import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { Building2, Lock, Mail, MailCheck, Search, UserRound } from "lucide-react-native";
 import SocialButtons from "@/components/SocialButtons";
-import AuthScreen, { FormError, SIGNUP_PHOTO } from "@/components/AuthScreen";
+import AuthScreen, { FooterLink, FormError, SIGNUP_PHOTO } from "@/components/AuthScreen";
 import { Button, Em, Field } from "@/components/kit";
 import { supabase } from "@/lib/supabase";
 import { setRememberMe } from "@/lib/secureStore";
+import { afterSignupRoute } from "@/lib/ui/home";
 import { colors, fonts, radius } from "@/theme";
 
 const SITE = process.env.EXPO_PUBLIC_SITE_URL;
@@ -20,7 +21,8 @@ const ROLES = [
 ] as const;
 
 export default function SignupScreen() {
-  const params = useLocalSearchParams<{ role?: string }>();
+  const params = useLocalSearchParams<{ role?: string; next?: string }>();
+  const next = afterSignupRoute(params.next);
   const [role, setRole] = useState<"tenant" | "landlord">(params.role === "landlord" ? "landlord" : "tenant");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -52,6 +54,7 @@ export default function SignupScreen() {
       return;
     }
     router.dismissAll();
+    if (next) router.push(next);
   }
 
   if (checkEmail) {
@@ -100,7 +103,7 @@ export default function SignupScreen() {
           })}
         </View>
       </View>
-      <SocialButtons role={role} placement="top" googleLabel="Sign up with Google" />
+      <SocialButtons role={role} placement="top" googleLabel="Sign up with Google" next={next} />
       <Field label="Full name" icon={UserRound} value={fullName} onChangeText={setFullName} autoComplete="name" textContentType="name" />
       <Field
         label="Email"
@@ -126,21 +129,16 @@ export default function SignupScreen() {
       <Button label={busy ? "Creating account…" : "Create account"} loading={busy} onPress={signUp} disabled={!fullName || !email || !password} />
       <Text style={styles.terms}>
         By creating an account you agree to our{" "}
-        <Text style={styles.termsLink} onPress={() => WebBrowser.openBrowserAsync(`${SITE}/terms`)}>
+        <Text style={styles.termsLink} accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(`${SITE}/terms`)}>
           Terms of Service
         </Text>{" "}
         and{" "}
-        <Text style={styles.termsLink} onPress={() => WebBrowser.openBrowserAsync(`${SITE}/privacy`)}>
+        <Text style={styles.termsLink} accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(`${SITE}/privacy`)}>
           Privacy Policy
         </Text>
         .
       </Text>
-      <Text style={styles.footer}>
-        Already have an account?{" "}
-        <Link href="/login" style={styles.link}>
-          Log in
-        </Link>
-      </Text>
+      <FooterLink prompt="Already have an account?" label="Log in" href="/login" />
     </AuthScreen>
   );
 }
@@ -165,6 +163,4 @@ const styles = StyleSheet.create({
   strong: { fontFamily: fonts.sansSemi },
   terms: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 17, color: colors.inkMuted, textAlign: "center", marginTop: -6 },
   termsLink: { fontFamily: fonts.sansSemi, color: colors.palm },
-  link: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.palm },
-  footer: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted, textAlign: "center" },
 });

@@ -25,7 +25,7 @@ export default function HomeScreen() {
   function listProperty() {
     // Anyone can list; logged out, sign up first (as on the website).
     if (user) router.push("/list/new");
-    else router.push({ pathname: "/signup", params: { role: "landlord" } });
+    else router.push({ pathname: "/signup", params: { role: "landlord", next: "/list/new" } });
   }
 
   return (

@@ -163,7 +163,8 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
             </View>
             <Field label="Business or agency name" optional value={v.business_name} onChangeText={(business_name) => set({ business_name })} maxLength={100} />
             <Field
-              label="Office address (optional)"
+              label="Office address"
+              optional
               value={v.office_address}
               onChangeText={(office_address) => set({ office_address })}
               maxLength={200}

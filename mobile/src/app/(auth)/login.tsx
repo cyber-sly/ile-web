@@ -4,7 +4,7 @@ import { StyleSheet, Switch, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import { Lock, Mail } from "lucide-react-native";
 import SocialButtons from "@/components/SocialButtons";
-import AuthScreen, { FormError, LOGIN_PHOTO } from "@/components/AuthScreen";
+import AuthScreen, { FooterLink, FormError, LOGIN_PHOTO } from "@/components/AuthScreen";
 import { Button, Em, Field } from "@/components/kit";
 import { supabase } from "@/lib/supabase";
 import { setRememberMe } from "@/lib/secureStore";
@@ -78,12 +78,7 @@ export default function LoginScreen() {
       {!remember && <Text style={styles.hint}>You&apos;ll be logged out when you close the app. Best for shared phones.</Text>}
       {error ? <FormError>{error}</FormError> : null}
       <Button label={busy ? "Logging in…" : "Log in"} loading={busy} onPress={logIn} disabled={!email || !password} />
-      <Text style={styles.footer}>
-        New to Ile?{" "}
-        <Link href="/signup" style={styles.link}>
-          Create a free account
-        </Link>
-      </Text>
+      <FooterLink prompt="New to Ile?" label="Create a free account" href="/signup" />
     </AuthScreen>
   );
 }
@@ -94,5 +89,4 @@ const styles = StyleSheet.create({
   small: { fontFamily: fonts.sans, fontSize: 14, color: colors.ink },
   hint: { fontFamily: fonts.sans, fontSize: 12, color: colors.inkMuted, marginTop: -8 },
   link: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.palm },
-  footer: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted, textAlign: "center", marginTop: 6 },
 });

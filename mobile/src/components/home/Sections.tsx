@@ -139,6 +139,7 @@ export function HowItWorks() {
                 <Icon size={20} color={colors.white} />
               </View>
               <View style={styles.stepText}>
+                <Text style={styles.stepNo}>Step {i + 1}</Text>
                 <Text style={styles.stepTitle}>{s.title}</Text>
                 <Text style={styles.muted}>{s.body}</Text>
               </View>
@@ -194,6 +195,7 @@ const styles = StyleSheet.create({
   step: { flexDirection: "row", gap: 14 },
   stepIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: colors.palm },
   stepText: { flex: 1, gap: 2 },
+  stepNo: { fontFamily: fonts.sansBold, fontSize: 12, letterSpacing: 0.8, textTransform: "uppercase", color: colors.inkMuted },
   stepTitle: { fontFamily: fonts.sansSemi, fontSize: 17, color: colors.ink },
   owners: { padding: 24, borderRadius: radius.hero, backgroundColor: colors.palmDark, gap: 10 },
   eyebrow: { fontFamily: fonts.sansBold, fontSize: 12, letterSpacing: 1, textTransform: "uppercase", color: colors.gold },

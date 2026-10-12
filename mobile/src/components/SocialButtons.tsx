@@ -15,11 +15,13 @@ export default function SocialButtons({
   remember = true,
   placement = "bottom",
   googleLabel = "Continue with Google",
+  next,
 }: {
   role?: Role;
   remember?: boolean;
   placement?: "top" | "bottom";
   googleLabel?: string;
+  next?: "/list/new" | null;
 }) {
   const providers = useSocialProviders();
   const [busy, setBusy] = useState(false);
@@ -34,7 +36,10 @@ export default function SocialButtons({
     try {
       const result = await signIn(role, remember);
       if ("error" in result) setError(friendlyError(result.error));
-      else if ("ok" in result && router.canDismiss()) router.dismissAll();
+      else if ("ok" in result) {
+        if (router.canDismiss()) router.dismissAll();
+        if (next) router.push(next);
+      }
     } catch (e) {
       setError(friendlyError(e));
     } finally {

@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { PhotoHeader } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
@@ -31,6 +32,7 @@ export default function AuthScreen({
 }) {
   return (
     <KeyboardAvoidingView style={styles.page} behavior={keyboardBehavior(Platform.OS)}>
+      <StatusBar style="light" />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
         <PhotoHeader image={image} quote={quote} onClose={close} height={quote ? 220 : 150} />
         <View style={styles.content}>
@@ -42,6 +44,18 @@ export default function AuthScreen({
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+// "New to Ile? Create a free account": prompt plus a full-size, labelled link.
+export function FooterLink({ prompt, label, href }: { prompt: string; label: string; href: "/login" | "/signup" }) {
+  return (
+    <View style={styles.footer}>
+      <Text style={styles.footerText}>{prompt}</Text>
+      <Pressable accessibilityRole="link" accessibilityLabel={label} hitSlop={12} onPress={() => router.push(href)} style={styles.footerLink}>
+        <Text style={styles.footerLinkText}>{label}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -61,6 +75,10 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.serif, fontSize: 36, lineHeight: 40, letterSpacing: -0.5, color: colors.ink },
   subtitle: { fontFamily: fonts.sans, fontSize: 16, lineHeight: 22, color: colors.inkMuted, marginTop: 6 },
   body: { marginTop: 24, gap: 18 },
+  footer: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", columnGap: 4 },
+  footerText: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted },
+  footerLink: { minHeight: 44, justifyContent: "center" },
+  footerLinkText: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.palm },
   alert: { padding: 12, borderRadius: radius.control, borderWidth: 1, borderColor: "#EBC3B6", backgroundColor: colors.claySoft },
   alertText: { fontFamily: fonts.sansMedium, fontSize: 14, lineHeight: 20, color: colors.clay },
 });

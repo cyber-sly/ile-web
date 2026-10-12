@@ -1,10 +1,21 @@
 import { describe, expect, test } from "@jest/globals";
-import { accountTabTitle, freshSectionState, HOME_CATEGORIES } from "../home";
+import { accountTabTitle, afterSignupRoute, freshSectionState, HOME_CATEGORIES } from "../home";
 
 describe("Home", () => {
   test("accountTabTitle says Log in when logged out", () => {
     expect(accountTabTitle(null)).toBe("Log in");
     expect(accountTabTitle({ id: "u1" })).toBe("Account");
+  });
+
+  test("accountTabTitle says Account while the session is still loading (no Log in flash)", () => {
+    expect(accountTabTitle(null, true)).toBe("Account");
+  });
+
+  test("afterSignupRoute continues to the listing form only for the allowed next page", () => {
+    expect(afterSignupRoute("/list/new")).toBe("/list/new");
+    expect(afterSignupRoute(undefined)).toBeNull();
+    expect(afterSignupRoute("https://evil.example")).toBeNull();
+    expect(afterSignupRoute("/account/delete")).toBeNull();
   });
 
   test("freshSectionState shows placeholders, offline, empty or the list", () => {

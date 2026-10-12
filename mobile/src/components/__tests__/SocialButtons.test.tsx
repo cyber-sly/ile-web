@@ -3,7 +3,8 @@ import { Text } from "react-native";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 
 const mockGoogle = jest.fn();
-jest.mock("expo-router", () => ({ router: { dismissAll: jest.fn(), canDismiss: () => true } }));
+const mockPush = jest.fn();
+jest.mock("expo-router", () => ({ router: { dismissAll: jest.fn(), canDismiss: () => true, push: (...a: unknown[]) => mockPush(...a) } }));
 jest.mock("expo-apple-authentication", () => ({ AppleAuthenticationButton: () => null, AppleAuthenticationButtonType: {}, AppleAuthenticationButtonStyle: {} }));
 jest.mock("@/lib/oauth", () => ({
   useSocialProviders: () => ({ google: true, apple: false }),
@@ -59,4 +60,16 @@ test("the sign-up page says Sign up with Google", () => {
     r = create(<SocialButtons placement="top" googleLabel="Sign up with Google" />);
   });
   expect(texts(r!)).toContain("Sign up with Google");
+});
+
+test("Google sign-up from 'List your property' goes on to the listing form", async () => {
+  mockGoogle.mockImplementation(async () => ({ ok: true }));
+  let r: ReactTestRenderer;
+  act(() => {
+    r = create(<SocialButtons role="landlord" next="/list/new" />);
+  });
+  await act(async () => {
+    await r!.root.findByProps({ accessibilityLabel: "Continue with Google" }).props.onPress();
+  });
+  expect(mockPush).toHaveBeenCalledWith("/list/new");
 });

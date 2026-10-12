@@ -6,16 +6,19 @@ import { X } from "lucide-react-native";
 import { colors, fonts } from "@/theme";
 import Logo from "./Logo";
 import Shade from "./Shade";
+import { useOnline } from "../OfflineBanner";
 
 // The website's sign-in photo panel (AuthShell) as a header on phones: photo,
 // dark gradient, Ile logo, close button and a serif quote.
 export default function PhotoHeader({ image, quote, onClose, height = 220 }: { image: string; quote?: ReactNode; onClose?: () => void; height?: number }) {
+  const online = useOnline(); // the offline banner already covers the status bar
   const insets = useSafeAreaInsets();
+  const top = online ? insets.top : 0;
   return (
-    <View style={{ height: height + insets.top }}>
+    <View style={{ height: height + top }}>
       <Image source={{ uri: image }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" alt="" />
       <Shade colors={["rgba(15,28,21,0.35)", "rgba(15,28,21,0.1)", "rgba(15,28,21,0.85)"]} locations={[0, 0.45, 1]} />
-      <View style={[styles.top, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.top, { paddingTop: top + 8 }]}>
         {onClose ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose} style={styles.close}>
             <X size={18} color={colors.ink} />

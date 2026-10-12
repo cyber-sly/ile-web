@@ -1,7 +1,16 @@
 // Home tab rules and content (copied from the website's home page, src/app/page.js).
 
-export function accountTabTitle(user: unknown): "Account" | "Log in" {
-  return user ? "Account" : "Log in";
+// Last tab title. While the session is still loading it says "Account", so
+// logged-in people don't see "Log in" flash at launch.
+export function accountTabTitle(user: unknown, loading = false): "Account" | "Log in" {
+  return user || loading ? "Account" : "Log in";
+}
+
+// Where to go right after signing up. Only pages we send people to on purpose
+// are allowed (from Home's "List your property"); anything else is ignored.
+const AFTER_SIGNUP = ["/list/new"] as const;
+export function afterSignupRoute(next: string | undefined): (typeof AFTER_SIGNUP)[number] | null {
+  return AFTER_SIGNUP.find((p) => p === next) ?? null;
 }
 
 // What the "Fresh on Ile" section shows.

@@ -7,7 +7,7 @@ import { colors, fonts } from "@/theme";
 
 // Home first, like the website; the last tab says "Log in" when logged out.
 export default function TabLayout() {
-  const { user } = useSession();
+  const { user, loading } = useSession();
   const lister = isLister(user);
   const unread = useUnreadCount(user?.id ?? null);
 
@@ -40,7 +40,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (lister ? <LayoutDashboard color={color} size={22} /> : <CalendarDays color={color} size={22} />),
         }}
       />
-      <Tabs.Screen name="account" options={{ title: accountTabTitle(user), tabBarIcon: ({ color }) => <UserRound color={color} size={22} /> }} />
+      <Tabs.Screen name="account" options={{ title: accountTabTitle(user, loading), tabBarIcon: ({ color }) => <UserRound color={color} size={22} /> }} />
     </Tabs>
   );
 }

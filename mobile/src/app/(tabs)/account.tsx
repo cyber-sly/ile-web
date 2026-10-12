@@ -67,7 +67,7 @@ export default function AccountScreen() {
 
   if (!user) {
     return (
-      <Screen title="Account">
+      <Screen>
         <EmptyState
           icon={UserRound}
           title="You're not logged in"
