@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { friendlyError, OFFLINE_MESSAGE } from "@shared/errors.js";
 import { StyleSheet, Text, View } from "react-native";
-import { MailCheck } from "lucide-react-native";
-import Screen from "@/components/Screen";
-import Field from "@/components/Field";
-import Button from "@/components/Button";
+import { Link } from "expo-router";
+import { Mail, MailCheck } from "lucide-react-native";
+import AuthScreen, { FormError, LOGIN_PHOTO } from "@/components/AuthScreen";
+import { Button, Field } from "@/components/kit";
 import { supabase } from "@/lib/supabase";
 import { colors, fonts, radius } from "@/theme";
 
@@ -36,31 +36,59 @@ export default function ForgotPasswordScreen() {
     setSent(true);
   }
 
+  const footer = (
+    <Text style={styles.footer}>
+      Remembered it?{" "}
+      <Link href="/login" style={styles.link}>
+        Log in
+      </Link>
+    </Text>
+  );
+
   if (sent) {
     return (
-      <Screen title="Check your email">
+      <AuthScreen image={LOGIN_PHOTO} title="Check your email">
         <View style={styles.notice}>
           <MailCheck color={colors.palm} size={30} />
           <Text style={styles.body}>
-            If an account exists for {email.trim()}, we have sent a link to reset your password. It may take a minute, so check
-            spam too.
+            If an account exists for <Text style={styles.strong}>{email.trim()}</Text>, we&apos;ve sent a link to reset your password. It may take
+            a minute to arrive, so check your spam folder too.
           </Text>
+          <Text style={styles.muted}>The link works once and expires after an hour.</Text>
+          <Button label="Use a different email" variant="neutral" onPress={() => setSent(false)} />
         </View>
-      </Screen>
+        {footer}
+      </AuthScreen>
     );
   }
 
   return (
-    <Screen title="Forgot your password?" subtitle="Enter the email you signed up with and we will send you a link to set a new one.">
-      <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button label="Send reset link" loading={busy} onPress={send} disabled={!email} />
-    </Screen>
+    <AuthScreen
+      image={LOGIN_PHOTO}
+      title="Forgot your password?"
+      subtitle="Enter the email you signed up with and we'll send you a link to set a new one."
+    >
+      <Field
+        label="Email"
+        icon={Mail}
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        autoComplete="email"
+        keyboardType="email-address"
+      />
+      {error ? <FormError>{error}</FormError> : null}
+      <Button label={busy ? "Sending…" : "Send reset link"} loading={busy} onPress={send} disabled={!email} />
+      {footer}
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  notice: { gap: 12, padding: 18, borderRadius: radius.card, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
+  notice: { gap: 12, padding: 20, borderRadius: radius.card, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
   body: { fontFamily: fonts.sans, fontSize: 16, color: colors.ink, lineHeight: 22 },
-  error: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.clay },
+  strong: { fontFamily: fonts.sansSemi },
+  muted: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
+  link: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.palm },
+  footer: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted, textAlign: "center" },
 });

@@ -6,7 +6,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { useQuery } from "@tanstack/react-query";
-import { CircleAlert, Flag, MapPin, PlayCircle, Share2, ShieldCheck, WifiOff } from "lucide-react-native";
+import { Check, CircleAlert, Flag, MapPin, PlayCircle, Share2, ShieldCheck, WifiOff } from "lucide-react-native";
 import { detailFacts, fullPlace, priceParts } from "@shared/property.js";
 import { supabase } from "@/lib/supabase";
 import { fetchListing, fetchSimilar, listingPhotos, listingState, listingUrl } from "@/lib/listing";
@@ -16,7 +16,8 @@ import MoveInCost from "@/components/MoveInCost";
 import ListerLine from "@/components/ListerLine";
 import SaveButton from "@/components/SaveButton";
 import PropertyCard from "@/components/PropertyCard";
-import Button from "@/components/Button";
+import { BoostedBadge, Button, ListingTypeBadge, ServicedBadge, VerifiedBadge } from "@/components/kit";
+import { FACT_ICONS } from "@/lib/ui/factIcons";
 import ListingActions from "@/components/ListingActions";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius } from "@/theme";
@@ -101,7 +102,7 @@ export default function ListingScreen() {
         {header}
         <Text style={styles.centerTitle}>This listing isn&apos;t available</Text>
         <Text style={styles.centerText}>It may have been removed by the lister.</Text>
-        <Button label="Back to search" onPress={() => router.navigate("/")} />
+        <Button label="Back to search" onPress={() => router.navigate("/search")} />
       </View>
     );
   }
@@ -128,23 +129,38 @@ export default function ListingScreen() {
           </View>
         )}
 
+        <View style={styles.badges}>
+          <ListingTypeBadge type={listing.listing_type} />
+          {listing.serviced ? <ServicedBadge /> : null}
+          {listing.is_verified ? <VerifiedBadge /> : null}
+          {listing.is_boosted ? <BoostedBadge /> : null}
+        </View>
+        <Text style={styles.title} accessibilityRole="header">
+          {listing.title}
+        </Text>
+        <View style={styles.placeRow}>
+          <MapPin color={colors.inkMuted} size={17} />
+          <Text style={styles.place}>{fullPlace(listing)}</Text>
+        </View>
         <Text style={styles.price}>
           {amount}
           {suffix ? <Text style={styles.suffix}> {suffix}</Text> : null}
         </Text>
-        <Text style={styles.title}>{listing.title}</Text>
-        <View style={styles.placeRow}>
-          <MapPin color={colors.inkMuted} size={16} />
-          <Text style={styles.place}>{fullPlace(listing)}</Text>
-        </View>
 
         <View style={styles.facts}>
-          {facts.map((f) => (
-            <View key={f.key} style={styles.fact}>
-              <Text style={styles.factLabel}>{f.label}</Text>
-              <Text style={styles.factValue}>{String(f.value)}</Text>
-            </View>
-          ))}
+          {facts.map((f, i) => {
+            const Icon = FACT_ICONS[f.key];
+            const wide = i === facts.length - 1 && facts.length % 2 === 1;
+            return (
+              <View key={f.key} style={[styles.fact, wide && styles.factWide]}>
+                <View style={styles.factLabelRow}>
+                  {Icon ? <Icon color={colors.inkMuted} size={14} /> : null}
+                  <Text style={styles.factLabel}>{f.label}</Text>
+                </View>
+                <Text style={styles.factValue}>{String(f.value)}</Text>
+              </View>
+            );
+          })}
         </View>
 
         <View style={styles.card}>
@@ -164,7 +180,7 @@ export default function ListingScreen() {
             </Text>
           ))
         ) : (
-          <Text style={styles.muted}>The lister hasn&apos;t added a description yet.</Text>
+          <Text style={styles.muted}>The lister hasn&apos;t added a description yet. Book a viewing to see it in person.</Text>
         )}
 
         {features.length > 0 && (
@@ -172,9 +188,12 @@ export default function ListingScreen() {
             <Text style={styles.sectionTitle}>What&apos;s included</Text>
             <View style={styles.features}>
               {features.map((f) => (
-                <Text key={f} style={styles.feature}>
-                  ✓ {f}
-                </Text>
+                <View key={f} style={styles.featureRow}>
+                  <View style={styles.tick}>
+                    <Check color={colors.palm} size={15} strokeWidth={3} />
+                  </View>
+                  <Text style={styles.feature}>{f}</Text>
+                </View>
               ))}
             </View>
           </>
@@ -182,7 +201,7 @@ export default function ListingScreen() {
 
         {videos.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Videos</Text>
+            <Text style={styles.sectionTitle}>Video tour</Text>
             {videos.map((url, i) => (
               <Pressable
                 key={url}
@@ -246,23 +265,39 @@ const styles = StyleSheet.create({
   },
   unavailable: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12, borderRadius: radius.control, backgroundColor: colors.goldSoft },
   unavailableText: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.goldInk },
-  price: { fontFamily: fonts.sansBold, fontSize: 26, color: colors.ink },
+  badges: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  price: { fontFamily: fonts.sansBold, fontSize: 24, color: colors.ink },
   suffix: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.inkMuted },
-  title: { fontFamily: fonts.serif, fontSize: 26, lineHeight: 32, color: colors.ink },
+  title: { fontFamily: fonts.serif, fontSize: 30, lineHeight: 36, color: colors.ink, marginTop: -2 },
   placeRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   place: { flex: 1, fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted },
-  facts: { flexDirection: "row", flexWrap: "wrap", borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, overflow: "hidden" },
-  fact: { width: "50%", padding: 14, backgroundColor: colors.surface, borderColor: colors.line, borderBottomWidth: 1, borderRightWidth: 1 },
+  // 1 px line between cells: the line colour shows through the gaps.
+  facts: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 1,
+    marginTop: 8,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.line,
+    overflow: "hidden",
+  },
+  fact: { flexGrow: 1, flexBasis: "45%", padding: 16, backgroundColor: colors.surface },
+  factWide: { flexBasis: "100%" },
+  factLabelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   factLabel: { fontFamily: fonts.sansSemi, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase", color: colors.inkMuted },
-  factValue: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.ink, marginTop: 4 },
+  factValue: { fontFamily: fonts.sansBold, fontSize: 15, lineHeight: 20, color: colors.ink, marginTop: 6 },
   card: { padding: 16, borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   notice: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   noticeText: { flex: 1, fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
   sectionTitle: { fontFamily: fonts.serif, fontSize: 22, color: colors.ink, marginTop: 12 },
-  paragraph: { fontFamily: fonts.sans, fontSize: 16, lineHeight: 24, color: colors.ink },
+  paragraph: { fontFamily: fonts.sans, fontSize: 17, lineHeight: 27, color: "rgba(30,27,22,0.85)" },
   muted: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted },
-  features: { gap: 8 },
-  feature: { fontFamily: fonts.sans, fontSize: 15, color: colors.ink },
+  features: { gap: 12 },
+  featureRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  tick: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: colors.palmSoft },
+  feature: { flex: 1, fontFamily: fonts.sans, fontSize: 15, color: colors.ink },
   video: {
     flexDirection: "row",
     alignItems: "center",

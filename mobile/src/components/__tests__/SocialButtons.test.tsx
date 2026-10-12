@@ -42,3 +42,13 @@ test("passes the role and 'Keep me logged in' to Google sign-in", async () => {
   });
   expect(mockGoogle).toHaveBeenCalledWith("landlord", false);
 });
+
+test("SocialButtons on top shows the buttons before the divider", () => {
+  let r: ReactTestRenderer;
+  act(() => {
+    r = create(<SocialButtons placement="top" />);
+  });
+  const order = texts(r!);
+  expect(order.indexOf("Continue with Google")).toBeGreaterThanOrEqual(0);
+  expect(order.indexOf("Continue with Google")).toBeLessThan(order.indexOf("or"));
+});

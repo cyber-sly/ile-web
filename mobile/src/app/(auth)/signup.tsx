@@ -1,25 +1,27 @@
 import { useState } from "react";
-import SocialButtons from "@/components/SocialButtons";
 import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Link, router } from "expo-router";
-import { Search, Building2, MailCheck } from "lucide-react-native";
-import Screen from "@/components/Screen";
-import Field from "@/components/Field";
-import Button from "@/components/Button";
+import { Link, router, useLocalSearchParams } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import { Building2, Lock, Mail, MailCheck, Search, UserRound } from "lucide-react-native";
+import SocialButtons from "@/components/SocialButtons";
+import AuthScreen, { FormError, SIGNUP_PHOTO } from "@/components/AuthScreen";
+import { Button, Em, Field } from "@/components/kit";
 import { supabase } from "@/lib/supabase";
 import { setRememberMe } from "@/lib/secureStore";
 import { colors, fonts, radius } from "@/theme";
+
+const SITE = process.env.EXPO_PUBLIC_SITE_URL;
 
 const ROLES = [
   { value: "tenant", Icon: Search, title: "Find a place", body: "Rent or buy a home" },
   { value: "landlord", Icon: Building2, title: "List property", body: "Owner, agent or caretaker" },
 ] as const;
 
-
 export default function SignupScreen() {
-  const [role, setRole] = useState<"tenant" | "landlord">("tenant");
+  const params = useLocalSearchParams<{ role?: string }>();
+  const [role, setRole] = useState<"tenant" | "landlord">(params.role === "landlord" ? "landlord" : "tenant");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,42 +56,55 @@ export default function SignupScreen() {
 
   if (checkEmail) {
     return (
-      <Screen title="Check your email">
+      <AuthScreen image={SIGNUP_PHOTO} title="Check your email">
         <View style={styles.notice}>
           <MailCheck color={colors.palm} size={30} />
           <Text style={styles.body}>
-            We sent a confirmation link to {email.trim()}. Open it to activate your account, then log in.
+            We sent a confirmation link to <Text style={styles.strong}>{email.trim()}</Text>. Open it to activate your account, then log in.
           </Text>
+          <Button label="Go to log in" onPress={() => router.replace("/login")} />
         </View>
-        <Button label="Go to log in" onPress={() => router.replace("/login")} />
-      </Screen>
+      </AuthScreen>
     );
   }
 
   return (
-    <Screen title="Create your account" subtitle="Free for everyone. No search or inspection fees.">
-      <Text style={styles.legend}>I want to</Text>
-      <View style={styles.roles}>
-        {ROLES.map(({ value, Icon, title, body }) => {
-          const on = role === value;
-          return (
-            <Pressable
-              key={value}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: on }}
-              onPress={() => setRole(value)}
-              style={[styles.role, on && styles.roleOn]}
-            >
-              <Icon color={on ? colors.palm : colors.inkMuted} size={22} />
-              <Text style={styles.roleTitle}>{title}</Text>
-              <Text style={styles.roleBody}>{body}</Text>
-            </Pressable>
-          );
-        })}
+    <AuthScreen
+      image={SIGNUP_PHOTO}
+      quote={
+        <>
+          A home, a shop, a plot. <Em>Without the wahala.</Em>
+        </>
+      }
+      title="Create your account"
+      subtitle="Free for everyone. No search or inspection fees."
+    >
+      <View>
+        <Text style={styles.legend}>I want to</Text>
+        <View style={styles.roles} accessibilityRole="radiogroup">
+          {ROLES.map(({ value, Icon, title, body }) => {
+            const on = role === value;
+            return (
+              <Pressable
+                key={value}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                onPress={() => setRole(value)}
+                style={[styles.role, on && styles.roleOn]}
+              >
+                <Icon color={on ? colors.palm : colors.inkMuted} size={22} />
+                <Text style={styles.roleTitle}>{title}</Text>
+                <Text style={styles.roleBody}>{body}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
-      <Field label="Full name" value={fullName} onChangeText={setFullName} autoComplete="name" textContentType="name" />
+      <SocialButtons role={role} placement="top" />
+      <Field label="Full name" icon={UserRound} value={fullName} onChangeText={setFullName} autoComplete="name" textContentType="name" />
       <Field
         label="Email"
+        icon={Mail}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -99,6 +114,7 @@ export default function SignupScreen() {
       />
       <Field
         label="Password"
+        icon={Lock}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -106,24 +122,36 @@ export default function SignupScreen() {
         textContentType="newPassword"
         hint={`At least ${MIN_PASSWORD} characters.`}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button label="Create account" loading={busy} onPress={signUp} disabled={!fullName || !email || !password} />
-      <SocialButtons role={role} />
-      <Text style={styles.terms}>By creating an account you agree to our Terms of Service and Privacy Policy.</Text>
-      <Link href="/login" style={styles.link}>
-        Already have an account? Log in
-      </Link>
-    </Screen>
+      {error ? <FormError>{error}</FormError> : null}
+      <Button label={busy ? "Creating account…" : "Create account"} loading={busy} onPress={signUp} disabled={!fullName || !email || !password} />
+      <Text style={styles.terms}>
+        By creating an account you agree to our{" "}
+        <Text style={styles.termsLink} onPress={() => WebBrowser.openBrowserAsync(`${SITE}/terms`)}>
+          Terms of Service
+        </Text>{" "}
+        and{" "}
+        <Text style={styles.termsLink} onPress={() => WebBrowser.openBrowserAsync(`${SITE}/privacy`)}>
+          Privacy Policy
+        </Text>
+        .
+      </Text>
+      <Text style={styles.footer}>
+        Already have an account?{" "}
+        <Link href="/login" style={styles.link}>
+          Log in
+        </Link>
+      </Text>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  legend: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.ink, marginBottom: -8 },
+  legend: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.ink, marginBottom: 8 },
   roles: { flexDirection: "row", gap: 12 },
   role: {
     flex: 1,
     gap: 4,
-    padding: 14,
+    padding: 16,
     borderRadius: radius.card,
     borderWidth: 2,
     borderColor: colors.line,
@@ -132,9 +160,11 @@ const styles = StyleSheet.create({
   roleOn: { borderColor: colors.palm, backgroundColor: colors.palmSoft },
   roleTitle: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.ink, marginTop: 4 },
   roleBody: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkMuted },
-  notice: { gap: 12, padding: 18, borderRadius: radius.card, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
+  notice: { gap: 12, padding: 20, borderRadius: radius.card, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
   body: { fontFamily: fonts.sans, fontSize: 16, color: colors.ink, lineHeight: 22 },
-  error: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.clay },
-  terms: { fontFamily: fonts.sans, fontSize: 12, color: colors.inkMuted, textAlign: "center" },
-  link: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.palm, textAlign: "center" },
+  strong: { fontFamily: fonts.sansSemi },
+  terms: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 17, color: colors.inkMuted, textAlign: "center", marginTop: -6 },
+  termsLink: { fontFamily: fonts.sansSemi, color: colors.palm },
+  link: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.palm },
+  footer: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted, textAlign: "center" },
 });

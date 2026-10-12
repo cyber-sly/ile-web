@@ -8,8 +8,17 @@ import type { Role } from "@/lib/oauthRules";
 import { colors, fonts, radius } from "@/theme";
 
 // "Continue with Google" and (on iPhone) "Sign in with Apple". Shown only for
-// providers switched on in Supabase. Cancelling shows nothing.
-export default function SocialButtons({ role, remember = true }: { role?: Role; remember?: boolean }) {
+// providers switched on in Supabase. Cancelling shows nothing. On top (as on
+// the website), the "or" divider comes after the buttons.
+export default function SocialButtons({
+  role,
+  remember = true,
+  placement = "bottom",
+}: {
+  role?: Role;
+  remember?: boolean;
+  placement?: "top" | "bottom";
+}) {
   const providers = useSocialProviders();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -31,13 +40,17 @@ export default function SocialButtons({ role, remember = true }: { role?: Role; 
     }
   }
 
+  const divider = (
+    <View style={styles.dividerRow}>
+      <View style={styles.line} />
+      <Text style={styles.or}>or</Text>
+      <View style={styles.line} />
+    </View>
+  );
+
   return (
     <View style={styles.wrap}>
-      <View style={styles.dividerRow}>
-        <View style={styles.line} />
-        <Text style={styles.or}>or</Text>
-        <View style={styles.line} />
-      </View>
+      {placement === "bottom" && divider}
       {providers.google && (
         <Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" disabled={busy} onPress={() => run(signInWithGoogle)} style={[styles.google, busy && styles.dim]}>
           <Text style={styles.g}>G</Text>
@@ -55,6 +68,7 @@ export default function SocialButtons({ role, remember = true }: { role?: Role; 
       )}
       {busy ? <ActivityIndicator color={colors.palm} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {placement === "top" && divider}
     </View>
   );
 }

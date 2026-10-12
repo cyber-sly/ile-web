@@ -75,7 +75,7 @@ export default function SavedScreen() {
         <Heart color={colors.inkMuted} size={30} />
         <Text style={styles.emptyTitle}>No saved homes yet</Text>
         <Text style={styles.emptyBody}>Tap the heart on any home to keep it here.</Text>
-        <Button label="Start searching" onPress={() => router.navigate("/")} />
+        <Button label="Start searching" onPress={() => router.navigate("/search")} />
       </View>
     );
   }

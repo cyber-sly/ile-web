@@ -1,11 +1,11 @@
 import { useState } from "react";
-import SocialButtons from "@/components/SocialButtons";
 import { friendlyError } from "@shared/errors.js";
 import { StyleSheet, Switch, Text, View } from "react-native";
 import { Link, router } from "expo-router";
-import Screen from "@/components/Screen";
-import Field from "@/components/Field";
-import Button from "@/components/Button";
+import { Lock, Mail } from "lucide-react-native";
+import SocialButtons from "@/components/SocialButtons";
+import AuthScreen, { FormError, LOGIN_PHOTO } from "@/components/AuthScreen";
+import { Button, Em, Field } from "@/components/kit";
 import { supabase } from "@/lib/supabase";
 import { setRememberMe } from "@/lib/secureStore";
 import { colors, fonts } from "@/theme";
@@ -31,9 +31,20 @@ export default function LoginScreen() {
   }
 
   return (
-    <Screen title="Welcome back" subtitle="Log in to book viewings and manage your listings.">
+    <AuthScreen
+      image={LOGIN_PHOTO}
+      quote={
+        <>
+          Your next place is <Em>already listed.</Em>
+        </>
+      }
+      title="Welcome back"
+      subtitle="Log in to book viewings and manage your listings."
+    >
+      <SocialButtons remember={remember} placement="top" />
       <Field
         label="Email"
+        icon={Mail}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -43,6 +54,7 @@ export default function LoginScreen() {
       />
       <Field
         label="Password"
+        icon={Lock}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -51,30 +63,36 @@ export default function LoginScreen() {
       />
       <View style={styles.row}>
         <View style={styles.remember}>
-          <Switch value={remember} onValueChange={setRemember} trackColor={{ true: colors.palm, false: colors.lineStrong }} />
+          <Switch
+            value={remember}
+            onValueChange={setRemember}
+            trackColor={{ true: colors.palm, false: colors.lineStrong }}
+            accessibilityLabel="Keep me logged in"
+          />
           <Text style={styles.small}>Keep me logged in</Text>
         </View>
         <Link href="/forgot-password" style={styles.link}>
           Forgot password?
         </Link>
       </View>
-      {!remember && <Text style={styles.hint}>You will be logged out when you close the app. Best for shared phones.</Text>}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button label="Log in" loading={busy} onPress={logIn} disabled={!email || !password} />
-      <SocialButtons remember={remember} />
-      <Link href="/signup" style={[styles.link, styles.center]}>
-        New to Ile? Create a free account
-      </Link>
-    </Screen>
+      {!remember && <Text style={styles.hint}>You&apos;ll be logged out when you close the app. Best for shared phones.</Text>}
+      {error ? <FormError>{error}</FormError> : null}
+      <Button label={busy ? "Logging in…" : "Log in"} loading={busy} onPress={logIn} disabled={!email || !password} />
+      <Text style={styles.footer}>
+        New to Ile?{" "}
+        <Link href="/signup" style={styles.link}>
+          Create a free account
+        </Link>
+      </Text>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginTop: -6 },
   remember: { flexDirection: "row", alignItems: "center", gap: 8 },
   small: { fontFamily: fonts.sans, fontSize: 14, color: colors.ink },
-  hint: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkMuted },
+  hint: { fontFamily: fonts.sans, fontSize: 12, color: colors.inkMuted, marginTop: -8 },
   link: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.palm },
-  center: { textAlign: "center", marginTop: 8 },
-  error: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.clay },
+  footer: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted, textAlign: "center", marginTop: 6 },
 });

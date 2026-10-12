@@ -76,7 +76,7 @@ export default function MyViewings() {
         <CalendarX color={colors.inkMuted} size={30} />
         <Text style={styles.emptyTitle}>No viewings booked yet</Text>
         <Text style={styles.emptyBody}>Book a free viewing from any listing.</Text>
-        <Button label="Find a place to view" onPress={() => router.navigate("/")} />
+        <Button label="Find a place to view" onPress={() => router.navigate("/search")} />
       </View>
     );
   }

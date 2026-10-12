@@ -2,11 +2,12 @@ import { StyleSheet, Text, View } from "react-native";
 import { feeWarning, moveInCost } from "@shared/property.js";
 import { formatNaira } from "@shared/format.js";
 import type { ListingRow } from "@/components/PropertyCard";
-import { colors, fonts, radius } from "@/theme";
+import { colors, fonts, radius, shadows } from "@/theme";
 
 type Cost = { rows: { label: string; amount: number }[]; total: number; hasExtras: boolean };
 
-// Rent/price plus every fee the lister declared, added up.
+// Rent/price plus every fee the lister declared, added up. Styled like the
+// website's booking panel.
 export default function MoveInCost({ listing }: { listing: ListingRow }) {
   const { rows, total, hasExtras } = moveInCost(listing) as Cost;
   const warning = feeWarning(listing);
@@ -33,8 +34,8 @@ export default function MoveInCost({ listing }: { listing: ListingRow }) {
 }
 
 const styles = StyleSheet.create({
-  box: { gap: 10, padding: 16, borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
-  heading: { fontFamily: fonts.sansSemi, fontSize: 16, color: colors.ink },
+  box: { gap: 10, padding: 20, borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, ...shadows.float },
+  heading: { fontFamily: fonts.serif, fontSize: 19, color: colors.ink },
   row: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
   label: { flex: 1, fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted },
   amount: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.ink },
