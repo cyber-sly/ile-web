@@ -5,6 +5,7 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import type { PersistedClient } from "@tanstack/react-query-persist-client";
 
 // Query keys used across the app:
+//   ["home-latest"]            newest listings on the Home tab (kept offline)
 //   ["search", filters]        infinite search results
 //   ["listing", id]            one listing (also seeded from the Saved tab)
 //   ["similar", id]            similar listings on the listing screen
@@ -41,7 +42,7 @@ export function shouldPersist(query: { queryKey: readonly unknown[]; state: { st
   const [kind, arg] = query.queryKey;
   if (kind === "listing") return current.listingIds.has(String(arg));
   if (kind === "search") return JSON.stringify(arg) === current.searchKey;
-  if (kind === "viewings" || kind === "inbox" || kind === "dashboard") return true;
+  if (kind === "viewings" || kind === "inbox" || kind === "dashboard" || kind === "home-latest") return true;
   if (kind === "chat") return current.chatIds.has(String(arg));
   return false;
 }

@@ -91,3 +91,16 @@ export function buildQuery(client, f, page = 0) {
 export function applyFilterChange(filters, changes) {
   return readFilters(nextParams(filters, changes));
 }
+
+// The newest fresh listings ("Fresh on Ile" on the home page).
+export async function fetchLatestListings(client, limit = 8) {
+  const { data, error } = await client
+    .from("listings")
+    .select("*")
+    .eq("status", "active")
+    .gte("last_confirmed_at", freshCutoff())
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return data || [];
+}

@@ -1,10 +1,11 @@
 import { Tabs } from "expo-router";
-import { Search, Heart, MessageCircle, CalendarDays, LayoutDashboard, UserRound } from "lucide-react-native";
+import { House, Heart, MessageCircle, CalendarDays, LayoutDashboard, UserRound } from "lucide-react-native";
 import { isLister, useSession } from "@/lib/useSession";
 import { useUnreadCount } from "@/lib/unread";
+import { accountTabTitle } from "@/lib/ui/home";
 import { colors, fonts } from "@/theme";
 
-// Same five tabs as the mobile website.
+// Home first, like the website; the last tab says "Log in" when logged out.
 export default function TabLayout() {
   const { user } = useSession();
   const lister = isLister(user);
@@ -21,7 +22,7 @@ export default function TabLayout() {
         sceneStyle: { backgroundColor: colors.cream },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Search", tabBarIcon: ({ color }) => <Search color={color} size={22} /> }} />
+      <Tabs.Screen name="index" options={{ title: "Home", tabBarIcon: ({ color }) => <House color={color} size={22} /> }} />
       <Tabs.Screen name="saved" options={{ title: "Saved", tabBarIcon: ({ color }) => <Heart color={color} size={22} /> }} />
       <Tabs.Screen
         name="inbox"
@@ -39,7 +40,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (lister ? <LayoutDashboard color={color} size={22} /> : <CalendarDays color={color} size={22} />),
         }}
       />
-      <Tabs.Screen name="account" options={{ title: "Account", tabBarIcon: ({ color }) => <UserRound color={color} size={22} /> }} />
+      <Tabs.Screen name="account" options={{ title: accountTabTitle(user), tabBarIcon: ({ color }) => <UserRound color={color} size={22} /> }} />
     </Tabs>
   );
 }
