@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+import { fetchListerProfile } from "@shared/account.js";
 import Link from "next/link";
 import { cache } from "react";
 import { supabaseServer } from "@/lib/supabaseServer";
-import { freshCutoff, listerLabel } from "@/lib/property";
+import { listerLabel } from "@/lib/property";
 import { formatResponseTime, registrationLabel } from "@/lib/profileDisplay";
 import Avatar from "@/components/Avatar";
 import PropertyCard from "@/components/PropertyCard";
@@ -10,46 +11,11 @@ import { Stars } from "@/components/Stars";
 import EmptyState from "@/components/ui/EmptyState";
 import { BadgeCheck, CalendarDays, Home as HomeIcon, MessageSquareQuote, Star, MapPin, Languages, Clock, Building2, Award } from "lucide-react";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Public profile for a lister: their rating, reviews from people who viewed
 // their properties, and what they currently have listed. Reviewers stay
 // anonymous; home-seekers' names are never shown publicly.
-const loadProfile = cache(async (id) => {
-  if (!UUID.test(id)) return null;
-  const [{ data: profile }, { data: ratingRows }, { data: reviews }, { data: listings }] = await Promise.all([
-    supabaseServer
-      .from("profiles")
-      .select("id, full_name, created_at, avatar_url, bio, languages, lister_type, business_name, office_address, areas_covered, listing_since, registration_body")
-      .eq("id", id)
-      .maybeSingle(),
-    supabaseServer.rpc("user_ratings", { p_users: [id], p_role: "lister" }),
-    supabaseServer
-      .from("reviews")
-      .select("id, rating, comment, listing_accurate, created_at, listings(id, title)")
-      .eq("reviewee_id", id)
-      .eq("reviewee_role", "lister")
-      .order("created_at", { ascending: false })
-      .limit(50),
-    supabaseServer
-      .from("listings")
-      .select("*")
-      .eq("landlord_id", id)
-      .eq("status", "active")
-      .gte("last_confirmed_at", freshCutoff())
-      .order("created_at", { ascending: false })
-      .limit(24),
-  ]);
-  if (!profile) return null;
-  const { data: response } = await supabaseServer.rpc("lister_response_times", { p_users: [id] });
-  return {
-    profile,
-    rating: ratingRows?.[0] || null,
-    reviews: reviews || [],
-    listings: listings || [],
-    responseMinutes: response?.[0]?.median_minutes ?? null,
-  };
-});
+const loadProfile = cache((id) => fetchListerProfile(supabaseServer, id));
 
 const monthYear = (iso) => new Date(iso).toLocaleDateString("en-NG", { month: "long", year: "numeric" });
 

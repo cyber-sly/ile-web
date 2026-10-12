@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -150,8 +151,8 @@ function SignupForm() {
           type="password"
           icon={Lock}
           autoComplete="new-password"
-          minLength={8}
-          hint="At least 8 characters."
+          minLength={MIN_PASSWORD}
+          hint={`At least ${MIN_PASSWORD} characters.`}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

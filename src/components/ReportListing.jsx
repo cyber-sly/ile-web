@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { reportListing } from "@shared/account.js";
+import { friendlyError } from "@shared/errors.js";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { loginHref } from "@/lib/useUser";
@@ -21,21 +23,13 @@ export default function ReportListing({ listing, user }) {
 
   async function submit(e) {
     e.preventDefault();
-    if (!reason) {
-      setError("Choose a reason.");
-      return;
-    }
     setState("sending");
     setError("");
-    const { error: insertError } = await supabase.from("listing_reports").insert({
-      listing_id: listing.id,
-      reporter_id: user.id,
-      reason,
-      details: details.trim() || null,
-    });
-    if (insertError) {
+    try {
+      await reportListing(supabase, { listingId: listing.id, userId: user.id, reason, details });
+    } catch (err) {
       setState("idle");
-      setError(insertError.code === "23505" ? "You've already reported this listing. We're looking into it." : insertError.message);
+      setError(friendlyError(err));
       return;
     }
     setState("sent");

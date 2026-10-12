@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { EMPTY_PROFILE_FORM, formToProfileChanges, profileToForm, validateProfileForm } from "@shared/account.js";
 import Link from "next/link";
 import { useUser, isLandlord } from "@/lib/useUser";
 import {
@@ -16,11 +17,7 @@ import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { ArrowLeft, Camera, X, Plus } from "lucide-react";
 
-const EMPTY = {
-  full_name: "", bio: "", languages: [], home_state: "", lister_type: "", business_name: "",
-  office_address: "", areas_covered: [], listing_since: "", registration_body: "", registration_number: "",
-  occupation: "", move_in_timeline: "",
-};
+const EMPTY = EMPTY_PROFILE_FORM;
 
 function Section({ title, description, children }) {
   return (
@@ -50,7 +47,7 @@ export default function EditProfilePage() {
       .then((p) => {
         setProfile(p || {});
         setAvatar(p?.avatar_url || null);
-        setV(Object.fromEntries(Object.keys(EMPTY).map((k) => [k, p?.[k] ?? EMPTY[k] ?? ""])));
+        setV(profileToForm(p));
         setShowLister(isLandlord(user) || Boolean(p?.lister_type));
       })
       .catch((e) => {
@@ -96,32 +93,14 @@ export default function EditProfilePage() {
 
   async function submit(e) {
     e.preventDefault();
-    if (!v.full_name.trim()) {
-      setMessage({ tone: "error", text: "Add your name." });
+    const problems = Object.values(validateProfileForm(v));
+    if (problems.length) {
+      setMessage({ tone: "error", text: problems[0] });
       return;
     }
     setSaving(true);
     setMessage(null);
-    const year = Number(v.listing_since);
-    const changes = {
-      full_name: v.full_name.trim(),
-      bio: v.bio.trim() || null,
-      languages: v.languages,
-      home_state: v.home_state || null,
-      occupation: v.occupation || null,
-      move_in_timeline: v.move_in_timeline || null,
-      ...(showLister
-        ? {
-            lister_type: v.lister_type || null,
-            business_name: v.business_name.trim() || null,
-            office_address: v.office_address.trim() || null,
-            areas_covered: v.areas_covered,
-            listing_since: year >= 1950 && year <= new Date().getFullYear() ? year : null,
-            registration_body: v.registration_body || null,
-            registration_number: v.registration_number.trim() || null,
-          }
-        : {}),
-    };
+    const changes = formToProfileChanges(v, showLister);
     try {
       await saveProfile(user.id, changes);
       setProfile((p) => ({ ...p, ...changes, avatar_url: avatar }));

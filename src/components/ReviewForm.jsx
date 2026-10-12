@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { leaveReview } from "@shared/account.js";
+import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabaseClient";
 import { StarInput } from "@/components/Stars";
 import Field from "@/components/ui/Field";
@@ -22,23 +24,16 @@ export default function ReviewForm({ inspectionId, reviewing, name, onDone }) {
 
   async function submit(e) {
     e.preventDefault();
-    if (!rating) {
-      setError("Choose a star rating.");
-      return;
-    }
     setBusy(true);
     setError("");
-    const { error: rpcError } = await supabase.rpc("leave_review", {
-      p_inspection: inspectionId,
-      p_rating: rating,
-      p_comment: comment,
-      p_accurate: isLister ? accurate : null,
-    });
-    setBusy(false);
-    if (rpcError) {
-      setError(rpcError.message);
+    try {
+      await leaveReview(supabase, { inspectionId, rating, comment, accurate: isLister ? accurate : null });
+    } catch (err) {
+      setBusy(false);
+      setError(friendlyError(err));
       return;
     }
+    setBusy(false);
     onDone?.();
   }
 

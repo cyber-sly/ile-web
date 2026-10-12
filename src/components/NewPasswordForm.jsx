@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabaseClient";
 import Field from "@/components/ui/Field";
@@ -8,7 +9,7 @@ import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { Lock } from "lucide-react";
 
-const MIN_LENGTH = 8;
+const MIN_LENGTH = MIN_PASSWORD;
 
 // Set a new password for the signed-in user. Used after a reset link and on
 // the account page.

@@ -1,6 +1,7 @@
 "use client";
 
 import { supabase } from "@/lib/supabaseClient";
+import { fetchMyProfile as fetchMyProfileWith, saveProfile as saveProfileWith } from "@shared/account.js";
 import { checkFiles } from "@/lib/uploadMedia";
 import {
   fetchPeople as fetchPeopleWith,
@@ -13,17 +14,12 @@ import {
 export * from "@/lib/profileDisplay";
 
 // The signed-in user's full profile, including private fields.
-export async function fetchMyProfile() {
-  const { data, error } = await supabase.rpc("my_profile");
-  if (error) throw new Error(error.message);
-  return data?.[0] || null;
+export function fetchMyProfile() {
+  return fetchMyProfileWith(supabase);
 }
 
-export async function saveProfile(userId, changes) {
-  const { error } = await supabase.from("profiles").update(changes).eq("id", userId);
-  if (error) throw new Error(error.message);
-  // Keep the name on the auth account in sync (used in menus and emails).
-  if ("full_name" in changes) await supabase.auth.updateUser({ data: { full_name: changes.full_name } });
+export function saveProfile(userId, changes) {
+  return saveProfileWith(supabase, userId, changes);
 }
 
 // Square-crop and shrink a photo to 512px in the browser before upload, so

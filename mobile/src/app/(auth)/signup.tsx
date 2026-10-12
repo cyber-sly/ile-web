@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Link, router } from "expo-router";
@@ -15,7 +16,6 @@ const ROLES = [
   { value: "landlord", Icon: Building2, title: "List property", body: "Owner, agent or caretaker" },
 ] as const;
 
-const MIN_PASSWORD = 8;
 
 export default function SignupScreen() {
   const [role, setRole] = useState<"tenant" | "landlord">("tenant");
