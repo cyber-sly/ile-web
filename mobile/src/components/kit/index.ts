@@ -7,3 +7,4 @@ export { default as SectionHeading, PageTitle } from "./SectionHeading";
 export { default as EmptyState } from "./EmptyState";
 export { CardSkeleton, RowSkeleton, Skeleton } from "./Skeleton";
 export { default as PhotoHeader, Em } from "./PhotoHeader";
+export { default as Logo } from "./Logo";

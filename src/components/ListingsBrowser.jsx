@@ -10,7 +10,7 @@ import { button } from "@/components/ui/Button";
 import { formatNairaShort } from "@/lib/format";
 import { NIGERIA, STATES, stateLabel } from "@/lib/nigeria";
 import { PROPERTY_TYPES, TITLE_DOCUMENTS } from "@/lib/property";
-import { SEARCH_TABS, SORTS, PAGE_SIZE, readFilters, nextParams, buildQuery } from "@/lib/search";
+import { SEARCH_TABS, SORTS, PAGE_SIZE, readFilters, nextParams, buildQuery, listingsHeading } from "@/lib/search";
 import { MapPin, X, SearchX, SlidersHorizontal } from "lucide-react";
 
 const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3";
@@ -112,9 +112,7 @@ function ListingsContent() {
   const activeFilters = ["state", "lga", "ptype", "purpose", "min", "max", "beds", "title"].filter((k) => f[k]).length;
   const hasFilters = activeFilters > 0 || f.q;
 
-  const tabInfo = SEARCH_TABS.find((t) => t.value === f.tab);
-  const where = f.lga ? `${f.lga}, ${stateLabel(f.state)}` : f.state ? stateLabel(f.state) : f.q ? `"${f.q}"` : "Nigeria";
-  const heading = `${tabInfo.heading} ${f.q && !f.state ? "matching" : "in"} ${where}`;
+  const heading = listingsHeading(f);
 
   function clearAll() {
     setQ("");

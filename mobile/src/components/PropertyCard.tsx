@@ -2,9 +2,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ImageOff, MapPin } from "lucide-react-native";
-import { keyFacts, placeLabel, priceParts } from "@shared/property.js";
+import { keyFacts, listerLabel, placeLabel, priceParts } from "@shared/property.js";
 import SaveButton from "@/components/SaveButton";
-import { BoostedBadge, ListingTypeBadge } from "@/components/kit";
+import { BoostedBadge, ListingTypeBadge, VerifiedBadge } from "@/components/kit";
 import { categoryLine, listingBadges } from "@/lib/ui/listingBadges";
 import { colors, fonts, radius, shadows } from "@/theme";
 
@@ -15,11 +15,13 @@ export function coverPhoto(listing: ListingRow): string | null {
 }
 
 // Listing card, like the website's PropertyCard: badges on the photo, a gold
-// category line for land and shops, price, title, place and key facts.
+// category line for land and shops, price, title, place, key facts, and who
+// listed it.
 // `width` fixes the size for sideways rows (Home); otherwise it fills the column.
 export default function PropertyCard({ listing, width }: { listing: ListingRow; width?: number }) {
   const cover = coverPhoto(listing);
-  const { amount, suffix } = priceParts(listing, { short: true });
+  const { amount, suffix } = priceParts(listing);
+  const lister = listing.lister_type ? listerLabel(listing.lister_type) : null;
   const facts: string[] = keyFacts(listing);
   const gold = categoryLine(listing);
   return (
@@ -60,6 +62,12 @@ export default function PropertyCard({ listing, width }: { listing: ListingRow; 
           </Text>
         </View>
         {facts.length > 0 && <Text style={styles.facts}>{facts.join(" · ")}</Text>}
+        {lister || listing.is_verified ? (
+          <View style={styles.footer}>
+            {lister ? <Text style={styles.lister}>Listed by {String(lister).toLowerCase()}</Text> : <View />}
+            {listing.is_verified ? <VerifiedBadge /> : null}
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -80,5 +88,16 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.ink, marginTop: 1 },
   placeRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 },
   place: { flex: 1, fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
-  facts: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.ink, marginTop: 8 },
+  facts: { fontFamily: fonts.sans, fontSize: 14, color: colors.ink, marginTop: 8 },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  lister: { fontFamily: fonts.sans, fontSize: 12, color: colors.inkMuted },
 });

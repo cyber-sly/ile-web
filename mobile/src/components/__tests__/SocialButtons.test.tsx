@@ -50,5 +50,13 @@ test("SocialButtons on top shows the buttons before the divider", () => {
   });
   const order = texts(r!);
   expect(order.indexOf("Continue with Google")).toBeGreaterThanOrEqual(0);
-  expect(order.indexOf("Continue with Google")).toBeLessThan(order.indexOf("or"));
+  expect(order.indexOf("Continue with Google")).toBeLessThan(order.indexOf("or with email"));
+});
+
+test("the sign-up page says Sign up with Google", () => {
+  let r: ReactTestRenderer;
+  act(() => {
+    r = create(<SocialButtons placement="top" googleLabel="Sign up with Google" />);
+  });
+  expect(texts(r!)).toContain("Sign up with Google");
 });

@@ -32,6 +32,7 @@ export default function Button({
   disabled = false,
   icon: Icon,
   iconRight = false,
+  pill = false,
 }: {
   label: string;
   onPress: () => void;
@@ -42,6 +43,7 @@ export default function Button({
   disabled?: boolean;
   icon?: LucideIcon;
   iconRight?: boolean;
+  pill?: boolean;
 }) {
   const v = VARIANTS[variant];
   const s = SIZES[size];
@@ -57,6 +59,7 @@ export default function Button({
         styles.base,
         { height: s.height, paddingHorizontal: s.paddingHorizontal },
         full ? styles.full : styles.fit,
+        pill && styles.pill,
         v.box,
         (pressed || disabled) && styles.dim,
       ]}
@@ -78,6 +81,7 @@ const styles = StyleSheet.create({
   base: { borderRadius: radius.control, alignItems: "center", justifyContent: "center" },
   full: { alignSelf: "stretch" },
   fit: { alignSelf: "flex-start" },
+  pill: { borderRadius: 999 },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
   text: { fontFamily: fonts.sansSemi },
   dim: { opacity: 0.5 },

@@ -30,4 +30,11 @@ describe("PropertyCard", () => {
     expect(t).toContain("Boosted");
     expect(t).not.toContain("FLAT / APARTMENT");
   });
+
+  test("shows the full price period and who listed it, like the website card", () => {
+    const t = texts(render({ category: "homes", listing_type: "rent", property_type: "flat", lister_type: "owner", is_verified: true }));
+    expect(t).toContain(" /year");
+    expect(t).toContain("Listed by owner");
+    expect(t).toContain("Verified");
+  });
 });

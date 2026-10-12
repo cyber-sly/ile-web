@@ -100,7 +100,7 @@ export default function SignupScreen() {
           })}
         </View>
       </View>
-      <SocialButtons role={role} placement="top" />
+      <SocialButtons role={role} placement="top" googleLabel="Sign up with Google" />
       <Field label="Full name" icon={UserRound} value={fullName} onChangeText={setFullName} autoComplete="name" textContentType="name" />
       <Field
         label="Email"

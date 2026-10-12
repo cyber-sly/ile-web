@@ -14,10 +14,12 @@ export default function SocialButtons({
   role,
   remember = true,
   placement = "bottom",
+  googleLabel = "Continue with Google",
 }: {
   role?: Role;
   remember?: boolean;
   placement?: "top" | "bottom";
+  googleLabel?: string;
 }) {
   const providers = useSocialProviders();
   const [busy, setBusy] = useState(false);
@@ -43,7 +45,7 @@ export default function SocialButtons({
   const divider = (
     <View style={styles.dividerRow}>
       <View style={styles.line} />
-      <Text style={styles.or}>or</Text>
+      <Text style={[styles.or, placement === "top" && styles.orTop]}>{placement === "top" ? "or with email" : "or"}</Text>
       <View style={styles.line} />
     </View>
   );
@@ -52,9 +54,9 @@ export default function SocialButtons({
     <View style={styles.wrap}>
       {placement === "bottom" && divider}
       {providers.google && (
-        <Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" disabled={busy} onPress={() => run(signInWithGoogle)} style={[styles.google, busy && styles.dim]}>
+        <Pressable accessibilityRole="button" accessibilityLabel={googleLabel} disabled={busy} onPress={() => run(signInWithGoogle)} style={[styles.google, busy && styles.dim]}>
           <Text style={styles.g}>G</Text>
-          <Text style={styles.googleText}>Continue with Google</Text>
+          <Text style={styles.googleText}>{googleLabel}</Text>
         </Pressable>
       )}
       {providers.apple && (
@@ -76,8 +78,9 @@ export default function SocialButtons({
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  line: { flex: 1, height: 1, backgroundColor: colors.line },
+  line: { flex: 1, height: 1, backgroundColor: colors.lineStrong },
   or: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkMuted },
+  orTop: { fontFamily: fonts.sansSemi, fontSize: 12, letterSpacing: 0.8, textTransform: "uppercase" },
   google: {
     flexDirection: "row",
     alignItems: "center",

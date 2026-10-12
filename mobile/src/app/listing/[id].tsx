@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   badges: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   price: { fontFamily: fonts.sansBold, fontSize: 24, color: colors.ink },
   suffix: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.inkMuted },
-  title: { fontFamily: fonts.serif, fontSize: 30, lineHeight: 36, color: colors.ink, marginTop: -2 },
+  title: { fontFamily: fonts.serif, fontSize: 30, lineHeight: 36, letterSpacing: -0.75, color: colors.ink, marginTop: -2 },
   placeRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   place: { flex: 1, fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted },
   // 1 px line between cells: the line colour shows through the gaps.

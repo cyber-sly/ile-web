@@ -1,6 +1,7 @@
 // Listing search: URL params <-> filters <-> Supabase query.
 // Filters live in the URL so results can be shared and survive refresh.
 import { freshCutoff } from "./property.js";
+import { stateLabel } from "./nigeria.js";
 
 export const PAGE_SIZE = 24;
 
@@ -84,6 +85,14 @@ export function buildQuery(client, f, page = 0) {
   else query = query.order("created_at", { ascending: false });
 
   return query.range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+}
+
+// Page heading for the listings page: "Homes for rent in Lagos",
+// "Land in Eti-Osa, Lagos", "Homes for sale matching \"Lekki\"".
+export function listingsHeading(f) {
+  const tab = SEARCH_TABS.find((t) => t.value === f.tab) || SEARCH_TABS[0];
+  const where = f.lga ? `${f.lga}, ${stateLabel(f.state)}` : f.state ? stateLabel(f.state) : f.q ? `"${f.q}"` : "Nigeria";
+  return `${tab.heading} ${f.q && !f.state ? "matching" : "in"} ${where}`;
 }
 
 // The app keeps filters as an object; this applies the same clearing rules

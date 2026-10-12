@@ -2,14 +2,12 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, Sty
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ArrowLeft, Home, Search, SlidersHorizontal, WifiOff, X } from "lucide-react-native";
-import { buildQuery, PAGE_SIZE, SEARCH_TABS } from "@shared/search.js";
-import { pluralize } from "@shared/format.js";
+import { ArrowLeft, Home, MapPin, SlidersHorizontal, WifiOff, X } from "lucide-react-native";
+import { buildQuery, listingsHeading, PAGE_SIZE, SEARCH_TABS } from "@shared/search.js";
 import { supabase } from "@/lib/supabase";
 import { activeFilterCount, DEFAULT_FILTERS, useFilters, type Filters } from "@/lib/filters";
 import { activeFilterChips } from "@/lib/ui/filterChips";
 import { useSearchText } from "@/lib/useSearchText";
-import Chip from "@/components/Chip";
 import { Button, CardSkeleton, EmptyState } from "@/components/kit";
 import PropertyCard, { type ListingRow } from "@/components/PropertyCard";
 import { useOnline } from "@/components/OfflineBanner";
@@ -41,7 +39,7 @@ export default function SearchScreen() {
   const total = results.data?.pages[0]?.count ?? 0;
   const filterCount = activeFilterCount(filters);
   const chips = activeFilterChips(filters);
-  const heading = SEARCH_TABS.find((t: { value: string }) => t.value === filters.tab)?.heading;
+  const heading = listingsHeading(filters);
 
   function clearFilters() {
     setText("");
@@ -60,19 +58,16 @@ export default function SearchScreen() {
         >
           <ArrowLeft color={colors.ink} size={20} />
         </Pressable>
-        <View style={styles.flex}>
-          <Text style={styles.title} accessibilityRole="header">
-            {heading}
-          </Text>
-          {results.data ? <Text style={styles.count}>{pluralize(total, "result")}</Text> : null}
-        </View>
+        <Text style={[styles.title, styles.flex]} accessibilityRole="header">
+          {heading}
+        </Text>
       </View>
       <View style={styles.searchBox}>
-        <Search color={colors.inkMuted} size={17} />
+        <MapPin color={colors.palm} size={18} />
         <TextInput
           value={text}
           onChangeText={setText}
-          placeholder="Area, LGA or state"
+          placeholder="Search by area, LGA, state or title"
           placeholderTextColor={colors.inkMuted}
           style={styles.searchInput}
           returnKeyType="search"
@@ -80,12 +75,23 @@ export default function SearchScreen() {
           accessibilityLabel="Search by area, LGA or state"
         />
       </View>
+      <View style={styles.tabBar} accessibilityRole="tablist">
+        {SEARCH_TABS.map((t: { value: string; label: string }) => {
+          const on = filters.tab === t.value;
+          return (
+            <Pressable
+              key={t.value}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              onPress={() => change({ tab: t.value })}
+              style={[styles.tab, on && styles.tabOn]}
+            >
+              <Text style={[styles.tabText, on && styles.tabTextOn]}>{t.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
       <View style={styles.row}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs} style={styles.flex}>
-          {SEARCH_TABS.map((t: { value: string; label: string }) => (
-            <Chip key={t.value} label={t.label} selected={filters.tab === t.value} onPress={() => change({ tab: t.value })} />
-          ))}
-        </ScrollView>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={filterCount ? `Filters, ${filterCount} applied` : "Filters"}
@@ -100,9 +106,7 @@ export default function SearchScreen() {
             </View>
           )}
         </Pressable>
-      </View>
-      {chips.length > 0 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.flex}>
           {chips.map((c) => (
             <Pressable
               key={c.key}
@@ -116,7 +120,12 @@ export default function SearchScreen() {
             </Pressable>
           ))}
         </ScrollView>
-      )}
+      </View>
+      {results.data ? (
+        <Text style={styles.count}>
+          {total.toLocaleString()} {total === 1 ? "property" : "properties"}
+        </Text>
+      ) : null}
     </View>
   );
 
@@ -198,8 +207,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.surface,
   },
-  title: { fontFamily: fonts.serif, fontSize: 28, lineHeight: 32, color: colors.ink },
-  count: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.inkMuted },
+  title: { fontFamily: fonts.serif, fontSize: 30, lineHeight: 36, color: colors.ink },
+  count: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.inkMuted, marginTop: 4 },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -209,10 +218,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.control,
     borderWidth: 1,
     borderColor: colors.lineStrong,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   searchInput: { flex: 1, fontFamily: fonts.sans, fontSize: 16, color: colors.ink, paddingVertical: 10 },
-  tabs: { gap: 8 },
+  tabBar: { flexDirection: "row", gap: 4, marginHorizontal: -16, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.line },
+  tab: { paddingHorizontal: 14, paddingVertical: 12 },
+  tabOn: { borderBottomWidth: 2, borderBottomColor: colors.palm, marginBottom: -1 },
+  tabText: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.inkMuted },
+  tabTextOn: { color: colors.palm },
+  chips: { gap: 8 },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
   filterButton: {
     flexDirection: "row",

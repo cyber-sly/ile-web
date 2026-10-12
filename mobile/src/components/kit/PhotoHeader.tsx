@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { colors, fonts } from "@/theme";
+import Logo from "./Logo";
 
 // The website's sign-in photo panel (AuthShell) as a header on phones: photo,
 // dark gradient, Ile logo, close button and a serif quote.
@@ -26,7 +27,7 @@ export default function PhotoHeader({ image, quote, onClose, height = 220 }: { i
         ) : (
           <View style={styles.close} />
         )}
-        <Text style={styles.logo}>Ile</Text>
+        <Logo onDark size={22} />
         <View style={styles.spacer} />
       </View>
       {quote ? <Text style={styles.quote}>{quote}</Text> : null}
@@ -43,6 +44,5 @@ const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14 },
   close: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,253,248,0.9)" },
   spacer: { width: 34 },
-  logo: { fontFamily: fonts.serif, fontSize: 22, color: colors.white },
   quote: { position: "absolute", left: 20, right: 20, bottom: 18, fontFamily: fonts.serifMedium, fontSize: 24, lineHeight: 30, color: colors.white },
 });

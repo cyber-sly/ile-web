@@ -30,7 +30,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.page} keyboardShouldPersistTaps="handled">
-      <Hero onSearch={openSearch} />
+      <Hero onSearch={openSearch} onList={listProperty} />
       <Promises />
       <FreshListings
         listings={latest.data || []}

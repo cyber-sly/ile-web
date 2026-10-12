@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFilters, nextParams, buildQuery, applyFilterChange, fetchLatestListings } from "../search.js";
+import { readFilters, nextParams, buildQuery, applyFilterChange, fetchLatestListings, listingsHeading } from "../search.js";
 
 // Records every builder call so the query can be checked without a database.
 function fakeClient() {
@@ -75,4 +75,12 @@ test("fetchLatestListings asks for fresh active listings, newest first", async (
   assert.ok(calls.some((c) => c[0] === "gte" && c[1] === "last_confirmed_at"));
   assert.ok(calls.some((c) => c[0] === "order" && c[1] === "created_at" && c[2].ascending === false));
   assert.deepEqual(calls.at(-1), ["limit", 8]);
+});
+
+test("listingsHeading names the place, the search text or Nigeria", () => {
+  const f = (v) => readFilters(new URLSearchParams(v));
+  assert.equal(listingsHeading(f({ tab: "rent" })), "Homes for rent in Nigeria");
+  assert.equal(listingsHeading(f({ tab: "sale", state: "FCT" })), "Homes for sale in FCT (Abuja)");
+  assert.equal(listingsHeading(f({ tab: "land", state: "Lagos", lga: "Eti-Osa" })), "Land in Eti-Osa, Lagos");
+  assert.equal(listingsHeading(f({ tab: "rent", q: "Lekki" })), 'Homes for rent matching "Lekki"');
 });

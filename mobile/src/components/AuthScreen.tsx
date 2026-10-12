@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.cream },
   scroll: { paddingBottom: 48 },
   content: { paddingHorizontal: 20, paddingTop: 24 },
-  title: { fontFamily: fonts.serif, fontSize: 32, lineHeight: 38, color: colors.ink },
+  title: { fontFamily: fonts.serif, fontSize: 36, lineHeight: 40, letterSpacing: -0.5, color: colors.ink },
   subtitle: { fontFamily: fonts.sans, fontSize: 16, lineHeight: 22, color: colors.inkMuted, marginTop: 6 },
   body: { marginTop: 24, gap: 18 },
   alert: { padding: 12, borderRadius: radius.control, borderWidth: 1, borderColor: "#EBC3B6", backgroundColor: colors.claySoft },
