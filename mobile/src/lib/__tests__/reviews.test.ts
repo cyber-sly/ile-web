@@ -18,3 +18,7 @@ describe("reviewState", () => {
     expect(reviewState({ id: "i1", status: "confirmed", preferred_date: lagos(-1) }, new Set(["i1"]))).toBe("reviewed");
   });
 });
+
+test("shows nothing until it's known which viewings were reviewed", () => {
+  expect(reviewState({ id: "i1", status: "confirmed", preferred_date: lagos(-1) }, undefined)).toBe("not-yet");
+});

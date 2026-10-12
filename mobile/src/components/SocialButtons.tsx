@@ -9,20 +9,26 @@ import { colors, fonts, radius } from "@/theme";
 
 // "Continue with Google" and (on iPhone) "Sign in with Apple". Shown only for
 // providers switched on in Supabase. Cancelling shows nothing.
-export default function SocialButtons({ role }: { role?: Role }) {
+export default function SocialButtons({ role, remember = true }: { role?: Role; remember?: boolean }) {
   const providers = useSocialProviders();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   if (!providers.google && !providers.apple) return null;
 
-  async function run(signIn: (role?: Role) => Promise<{ ok: true } | { error: string } | { cancelled: true }>) {
+  async function run(signIn: (role?: Role, remember?: boolean) => Promise<{ ok: true } | { error: string } | { cancelled: true }>) {
+    if (busy) return;
     setBusy(true);
     setError("");
-    const result = await signIn(role);
-    setBusy(false);
-    if ("error" in result) setError(friendlyError(result));
-    else if ("ok" in result) router.dismissAll();
+    try {
+      const result = await signIn(role, remember);
+      if ("error" in result) setError(friendlyError(result.error));
+      else if ("ok" in result && router.canDismiss()) router.dismissAll();
+    } catch (e) {
+      setError(friendlyError(e));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (

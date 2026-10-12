@@ -55,8 +55,8 @@ async function finishNewUser(chosen: Role | undefined, name?: string | null) {
 }
 
 // Google, through the phone's browser.
-export async function signInWithGoogle(chosen?: Role): Promise<Result> {
-  await setRememberMe(true);
+export async function signInWithGoogle(chosen?: Role, remember = true): Promise<Result> {
+  await setRememberMe(remember);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo: REDIRECT, skipBrowserRedirect: true },
@@ -73,8 +73,8 @@ export async function signInWithGoogle(chosen?: Role): Promise<Result> {
 }
 
 // Sign in with Apple (iPhone only). Apple shares the name only the first time.
-export async function signInWithApple(chosen?: Role): Promise<Result> {
-  await setRememberMe(true);
+export async function signInWithApple(chosen?: Role, remember = true): Promise<Result> {
+  await setRememberMe(remember);
   const rawNonce = Crypto.randomUUID();
   const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
   try {

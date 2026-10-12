@@ -38,7 +38,7 @@ function ask(title: string, action: string, run: () => void) {
 }
 
 // One viewing request on the lister's Dashboard.
-export default function RequestCard({ request: r, person, details, rating, online, onUpdate, onCounter, reviewed = new Set(), onReviewed }: Props) {
+export default function RequestCard({ request: r, person, details, rating, online, onUpdate, onCounter, reviewed, onReviewed }: Props) {
   const actions = requestActions(r);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");

@@ -8,3 +8,8 @@ test("the root layout starts the message outbox", () => {
   const source = readFileSync(join(__dirname, "..", "..", "app", "_layout.tsx"), "utf8");
   expect(source).toMatch(/import "@\/lib\/outboxApp";/);
 });
+
+test("the Google sign-in return address has a screen (no 'unmatched route' on Android)", () => {
+  const { existsSync } = require("fs");
+  expect(existsSync(join(__dirname, "..", "..", "app", "auth-callback.tsx"))).toBe(true);
+});

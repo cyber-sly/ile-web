@@ -10,6 +10,7 @@ export function parseAuthRedirect(url: string | null | undefined): { accessToken
   const [, afterHash = ""] = url.split("#");
   const [, query = ""] = url.split("#")[0].split("?");
   for (const part of [query, afterHash]) new URLSearchParams(part).forEach((v, k) => params.set(k, v));
+  if (params.get("error") === "access_denied") return { cancelled: true };
   const problem = params.get("error_description") || params.get("error");
   if (problem) return { error: problem.replace(/\+/g, " ") };
   const accessToken = params.get("access_token");

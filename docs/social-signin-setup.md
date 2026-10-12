@@ -35,3 +35,8 @@ The code is already in the app; it switches on once these steps are done:
 Test on an iPhone: Log in → **Continue with Apple**.
 
 If you change the app id from `ng.ile.app`, use the new id in both places above.
+
+**Before the App Store submission:** Apple expects apps with Sign in with Apple to
+revoke the person's Apple sign-in when they delete their account. That needs Apple's
+secret key (created in your Apple Developer account), so it will be added together
+with the iPhone release work.

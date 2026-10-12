@@ -61,7 +61,7 @@ export default function LoginScreen() {
       {!remember && <Text style={styles.hint}>You will be logged out when you close the app. Best for shared phones.</Text>}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button label="Log in" loading={busy} onPress={logIn} disabled={!email || !password} />
-      <SocialButtons />
+      <SocialButtons remember={remember} />
       <Link href="/signup" style={[styles.link, styles.center]}>
         New to Ile? Create a free account
       </Link>

@@ -33,7 +33,7 @@ function confirm(title: string, message: string, action: string, run: () => void
 }
 
 // One viewing on the Viewings tab, with the actions that apply to it.
-export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, reviewed = new Set(), onReviewed }: Props) {
+export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, reviewed, onReviewed }: Props) {
   const l = v.listings;
   const actions = viewingActions(v);
   const [busy, setBusy] = useState(false);

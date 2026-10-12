@@ -7,6 +7,7 @@ import {
   fetchListerProfile,
   formToProfileChanges,
   hasPassword,
+  verifyPassword,
   leaveReview,
   profileToForm,
   reportListing,
@@ -133,4 +134,12 @@ test("fetchListerProfile returns null for a malformed id without a request", asy
   const client = { from: () => ((called = true), {}), rpc: () => ((called = true), {}) };
   assert.equal(await fetchListerProfile(client, "not-a-uuid"), null);
   assert.equal(called, false);
+});
+
+test("verifyPassword is false only for a wrong password", async () => {
+  const answer = (error) => ({ auth: { signInWithPassword: async () => ({ error }) } });
+  assert.equal(await verifyPassword(answer(null), "a@b.c", "right"), true);
+  assert.equal(await verifyPassword(answer({ message: "Invalid login credentials", status: 400 }), "a@b.c", "wrong"), false);
+  await assert.rejects(verifyPassword(answer({ message: "email rate limit exceeded", status: 429 }), "a@b.c", "right"), /rate limit/);
+  await assert.rejects(verifyPassword(answer({ message: "Network request failed" }), "a@b.c", "right"), /Network/);
 });

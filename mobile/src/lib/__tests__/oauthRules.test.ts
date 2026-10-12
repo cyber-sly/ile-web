@@ -14,8 +14,8 @@ describe("parseAuthRedirect", () => {
   });
 
   test("reports an error from Google", () => {
-    expect(parseAuthRedirect("ile://auth-callback#error=access_denied&error_description=The+user+denied+access")).toEqual({
-      error: "The user denied access",
+    expect(parseAuthRedirect("ile://auth-callback#error=server_error&error_description=Database+error+saving+new+user")).toEqual({
+      error: "Database error saving new user",
     });
   });
 
@@ -38,4 +38,8 @@ test("providersEnabled reads Supabase settings", () => {
   expect(providersEnabled({ external: { google: true, apple: false } })).toEqual({ google: true, apple: false });
   expect(providersEnabled({})).toEqual({ google: false, apple: false });
   expect(providersEnabled(null)).toEqual({ google: false, apple: false });
+});
+
+test("declining on Google's consent screen counts as cancelling", () => {
+  expect(parseAuthRedirect("ile://auth-callback#error=access_denied&error_description=The+user+denied+access")).toEqual({ cancelled: true });
 });

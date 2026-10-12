@@ -22,5 +22,9 @@ export async function logOutEverywhere(deps: {
 // the phone is touched, so the person can try again.
 export async function deleteAccountOnPhone(deps: { deleteAccount: () => Promise<void>; clearDevice: () => Promise<void> }) {
   await deps.deleteAccount();
-  await deps.clearDevice();
+  try {
+    await deps.clearDevice();
+  } catch {
+    // The account is gone; leftover local data is cleared on next login/out.
+  }
 }

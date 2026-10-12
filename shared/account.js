@@ -16,10 +16,14 @@ export function hasPassword(user) {
   return (user?.identities || []).some((i) => i.provider === "email");
 }
 
-// Re-check the password without changing the current session.
+// Re-check the password without changing the current session. True when
+// right, false when wrong; anything else (rate limit, offline) is an error,
+// so people aren't told a correct password is wrong.
 export async function verifyPassword(client, email, password) {
   const { error } = await client.auth.signInWithPassword({ email, password });
-  return !error;
+  if (!error) return true;
+  if (/invalid login credentials/i.test(error.message || "")) return false;
+  throw Object.assign(new Error(error.message), { status: error.status });
 }
 
 // Every file in a user's folder (<user id>/...) in one bucket.

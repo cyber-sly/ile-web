@@ -47,3 +47,14 @@ describe("deleteAccountOnPhone", () => {
     expect(order).toEqual([]);
   });
 });
+
+test("a successful deletion is reported as done even if tidying the phone fails", async () => {
+  await expect(
+    deleteAccountOnPhone({
+      deleteAccount: async () => {},
+      clearDevice: async () => {
+        throw new Error("storage busy");
+      },
+    })
+  ).resolves.toBeUndefined();
+});
