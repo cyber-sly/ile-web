@@ -2,7 +2,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, Sty
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ArrowLeft, Home, MapPin, SlidersHorizontal, WifiOff, X } from "lucide-react-native";
+import { ArrowLeft, MapPin, SearchX, SlidersHorizontal, WifiOff, X } from "lucide-react-native";
 import { buildQuery, listingsHeading, PAGE_SIZE, SEARCH_TABS } from "@shared/search.js";
 import { supabase } from "@/lib/supabase";
 import { activeFilterCount, DEFAULT_FILTERS, useFilters, type Filters } from "@/lib/filters";
@@ -121,7 +121,7 @@ export default function SearchScreen() {
           ))}
         </ScrollView>
       </View>
-      {results.data ? (
+      {results.data && total > 0 ? (
         <Text style={styles.count}>
           {total.toLocaleString()} {total === 1 ? "property" : "properties"}
         </Text>
@@ -149,18 +149,18 @@ export default function SearchScreen() {
       <EmptyState
         icon={WifiOff}
         tone="clay"
-        title="Couldn't load homes"
+        title="Couldn't load listings"
         action={<Button label="Try again" variant="secondary" full={false} onPress={() => results.refetch()} />}
       />
     );
   } else {
     empty = (
       <EmptyState
-        icon={Home}
-        title="No homes match these filters"
-        action={filterCount > 0 || filters.q ? <Button label="Clear filters" variant="secondary" full={false} onPress={clearFilters} /> : undefined}
+        icon={SearchX}
+        title="Nothing matches yet"
+        action={filterCount > 0 || filters.q ? <Button label="Clear all filters" full={false} onPress={clearFilters} /> : undefined}
       >
-        Try another area or fewer filters.
+        Try another area, widen your budget, or remove a filter.
       </EmptyState>
     );
   }

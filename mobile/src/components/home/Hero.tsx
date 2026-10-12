@@ -40,7 +40,9 @@ export default function Hero({ onSearch, onList }: { onSearch: (tab: string, q: 
             const on = t.value === tab;
             return (
               <Pressable key={t.value} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setTab(t.value)} style={[styles.tab, on && styles.tabOn]}>
-                <Text style={[styles.tabText, on && styles.tabTextOn]}>{t.label}</Text>
+                <Text style={[styles.tabText, on && styles.tabTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+                  {t.label}
+                </Text>
               </Pressable>
             );
           })}
@@ -90,7 +92,7 @@ const styles = StyleSheet.create({
     ...shadows.float,
   },
   tabs: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: colors.line },
-  tab: { flex: 1, alignItems: "center", paddingVertical: 12 },
+  tab: { flex: 1, alignItems: "center", paddingVertical: 12, paddingHorizontal: 4 },
   tabOn: { borderBottomWidth: 2, borderBottomColor: colors.palm, marginBottom: -1 },
   tabText: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.inkMuted },
   tabTextOn: { color: colors.palm },

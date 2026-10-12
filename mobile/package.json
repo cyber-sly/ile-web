@@ -79,6 +79,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "moduleNameMapper": {
+      "^@/assets/(.*)$": "<rootDir>/assets/$1",
       "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js"
     }
   }

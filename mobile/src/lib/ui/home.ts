@@ -5,8 +5,19 @@ export function accountTabTitle(user: unknown): "Account" | "Log in" {
 }
 
 // What the "Fresh on Ile" section shows.
-export function freshSectionState({ isPending, online, count }: { isPending: boolean; online: boolean; count: number }) {
+export function freshSectionState({
+  isPending,
+  online,
+  count,
+  isError = false,
+}: {
+  isPending: boolean;
+  online: boolean;
+  count: number;
+  isError?: boolean;
+}) {
   if (count > 0) return "list" as const;
+  if (isError) return "error" as const;
   if (isPending) return online ? ("loading" as const) : ("offline" as const);
   return "empty" as const;
 }

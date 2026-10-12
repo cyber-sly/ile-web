@@ -40,3 +40,12 @@ test("screens no longer use the old status badge or bare loading spinners for li
     expect([file, /CardSkeleton|RowSkeleton/.test(read(file))]).toEqual([file, true]);
   }
 });
+
+test("search uses the website's empty-state copy and hides the count when there are no results", () => {
+  const src = read("app/search.tsx");
+  expect(src).toContain("Nothing matches yet");
+  expect(src).toContain("Try another area, widen your budget, or remove a filter.");
+  expect(src).toContain("Clear all filters");
+  expect(src).not.toContain("No homes match these filters");
+  expect(src).toMatch(/results\.data && total > 0/);
+});

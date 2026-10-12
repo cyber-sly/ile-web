@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchLatestListings } from "@shared/search.js";
@@ -29,12 +29,18 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView style={styles.page} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.page}
+      keyboardShouldPersistTaps="handled"
+      refreshControl={<RefreshControl refreshing={latest.isRefetching} onRefresh={() => latest.refetch()} tintColor={colors.palm} />}
+    >
       <Hero onSearch={openSearch} onList={listProperty} />
       <Promises />
       <FreshListings
         listings={latest.data || []}
         isPending={latest.isPending}
+        isError={latest.isError}
+        onRetry={() => latest.refetch()}
         online={online}
         onSeeAll={() => openSearch("rent")}
         onListFirst={listProperty}

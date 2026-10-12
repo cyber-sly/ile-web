@@ -37,14 +37,18 @@ export function FreshListings({
   online,
   onSeeAll,
   onListFirst,
+  isError = false,
+  onRetry,
 }: {
   listings: ListingRow[];
   isPending: boolean;
+  isError?: boolean;
+  onRetry: () => void;
   online: boolean;
   onSeeAll: () => void;
   onListFirst: () => void;
 }) {
-  const state = freshSectionState({ isPending, online, count: listings.length });
+  const state = freshSectionState({ isPending, online, count: listings.length, isError });
   return (
     <View style={styles.section}>
       <View style={styles.pad}>
@@ -71,6 +75,13 @@ export function FreshListings({
         <View style={[styles.pad, styles.offline]}>
           <WifiOff size={16} color={colors.inkMuted} />
           <Text style={styles.muted}>Connect to see the newest listings.</Text>
+        </View>
+      )}
+      {state === "error" && (
+        <View style={[styles.pad, styles.offline]}>
+          <WifiOff size={16} color={colors.inkMuted} />
+          <Text style={[styles.muted, styles.flex1]}>Couldn&apos;t load the newest listings.</Text>
+          <Button label="Try again" variant="secondary" size="sm" full={false} onPress={onRetry} />
         </View>
       )}
       {state === "empty" && (
@@ -170,6 +181,7 @@ const styles = StyleSheet.create({
   skeletons: { flexDirection: "row", gap: 14 },
   gap: { width: 14 },
   offline: { flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 16 },
+  flex1: { flex: 1 },
   muted: { fontFamily: fonts.sans, fontSize: 14, lineHeight: 20, color: colors.inkMuted },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 16 },
   tile: { width: "48%", flexGrow: 1, height: 190, borderRadius: radius.hero, overflow: "hidden", backgroundColor: colors.ink },
