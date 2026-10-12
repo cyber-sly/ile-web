@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
 import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
 import { Star } from "lucide-react-native";
@@ -28,7 +30,13 @@ export default function ListerLine({ listing }: { listing: ListingRow }) {
   const rating = data?.rating;
 
   return (
-    <View style={styles.row}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`See ${name || role}'s profile`}
+      disabled={!id}
+      onPress={() => router.push({ pathname: "/u/[id]", params: { id } })}
+      style={styles.row}
+    >
       {data?.person?.avatar ? (
         <Image source={{ uri: data.person.avatar }} style={styles.avatar} cachePolicy="disk" alt="" />
       ) : (
@@ -57,7 +65,8 @@ export default function ListerLine({ listing }: { listing: ListingRow }) {
         ) : null}
         {data?.reply ? <Text style={styles.reply}>{data.reply}</Text> : null}
       </View>
-    </View>
+      {id ? <ChevronRight color={colors.inkMuted} size={18} /> : null}
+    </Pressable>
   );
 }
 

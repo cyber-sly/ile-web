@@ -68,6 +68,7 @@ export default function RootLayout() {
             <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="my-viewings" options={{ title: "My viewings" }} />
             <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
+            <Stack.Screen name="u/[id]" options={{ title: "" }} />
             <Stack.Screen name="list/new" options={{ title: "List a property" }} />
             <Stack.Screen name="list/[id]/edit" options={{ title: "Edit listing" }} />
             <Stack.Screen name="list/[id]/times" options={{ title: "Viewing times" }} />
