@@ -73,3 +73,32 @@ test("puts notifications back when Expo can't be reached", async () => {
   assert.equal(res.status, 502);
   assert.deepEqual(db.calls.unclaimed, ["n1"]);
 });
+
+test("a failed device or settings lookup puts every notification back", async () => {
+  const db = fakeDb(rows, {});
+  db.tokensFor = async () => {
+    throw new Error("timeout");
+  };
+  const res = await handle(req("s3cret"), { secret: "s3cret", db, fetchImpl: async () => new Response("{}") });
+  assert.equal(res.status, 502);
+  assert.deepEqual(db.calls.unclaimed.sort(), ["n1", "n2"]);
+});
+
+test("messages Expo refuses are logged and not counted as sent", async () => {
+  const db = fakeDb([rows[0]], { u1: ["t1", "t2"] });
+  const logged = [];
+  const original = console.error;
+  console.error = (...a) => logged.push(a.join(" "));
+  try {
+    const res = await handle(req("s3cret"), {
+      secret: "s3cret",
+      db,
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ data: [{ status: "ok", id: "a" }, { status: "error", message: "bad key", details: { error: "InvalidCredentials" } }] })),
+    });
+    assert.deepEqual(await res.json(), { sent: 1, skipped: 0 });
+  } finally {
+    console.error = original;
+  }
+  assert.ok(logged.some((l) => l.includes("InvalidCredentials")));
+});

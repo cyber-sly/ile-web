@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { logOutDevice, removeToken, saveToken } from "../pushTokens";
+import { forgetPendingToken, logOutDevice, removeToken, saveToken } from "../pushTokens";
 
 function fakeClient(error: { message: string } | null = null) {
   const calls: [string, unknown][] = [];
@@ -62,4 +62,29 @@ test("logging out still signs out when there is no token or removing fails", asy
     signedOut.push(true);
   });
   expect(signedOut).toEqual([true, true]);
+});
+
+test("removeToken reports a failure (supabase-js resolves with an error offline)", async () => {
+  const client = { rpc: async () => ({ data: null, error: { message: "Network request failed" } }) };
+  await expect(removeToken(client, "ExponentPushToken[abc]")).rejects.toThrow("Network request failed");
+});
+
+test("an offline logout keeps the token so it can be removed later", async () => {
+  const client = { rpc: async () => ({ data: null, error: { message: "Network request failed" } }) };
+  let stored: string | null = "ExponentPushToken[abc]";
+  let signedOut = false;
+  await logOutDevice(client, { get: async () => stored, clear: async () => { stored = null; } }, async () => {
+    signedOut = true;
+  });
+  expect(signedOut).toBe(true);
+  expect(stored).toBe("ExponentPushToken[abc]");
+});
+
+test("a token left from an offline logout is removed once back online", async () => {
+  const calls: string[] = [];
+  let stored: string | null = "ExponentPushToken[abc]";
+  const client = { rpc: async (name: string) => (calls.push(name), { data: null, error: null }) };
+  await forgetPendingToken(client, { get: async () => stored, clear: async () => { stored = null; } });
+  expect(calls).toEqual(["unregister_push_token"]);
+  expect(stored).toBeNull();
 });

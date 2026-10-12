@@ -26,7 +26,8 @@ These let the database run daily reminders and call the notification sender.
    App nickname: Ile. Skip the SHA-1 field.
 5. Click **Register app**, then **Download google-services.json**.
 6. Put that file in the `ile-web\mobile` folder (next to `app.json`).
-   It's already set to never be committed to GitHub.
+   This file isn't a secret (Google says so); it identifies the app to Firebase and
+   must go along with each app build, so it's fine to keep it with the code.
 7. Click through the remaining Firebase screens (no code changes needed).
 
 ## 3. Give Expo permission to send through Firebase

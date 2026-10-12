@@ -107,14 +107,17 @@ security definer
 set search_path = public
 as $$
 begin
-  delete from public.push_tokens where token = p_token and user_id = auth.uid();
+  -- The token itself is the proof: only this phone knows it. That lets a
+  -- phone stop its notifications even after its session has ended (an
+  -- offline logout retried later, or a session that expired).
+  delete from public.push_tokens where token = p_token;
 end;
 $$;
 
 revoke execute on function public.register_push_token(text, text) from public, anon;
-revoke execute on function public.unregister_push_token(text) from public, anon;
+revoke execute on function public.unregister_push_token(text) from public;
 grant execute on function public.register_push_token(text, text) to authenticated;
-grant execute on function public.unregister_push_token(text) to authenticated;
+grant execute on function public.unregister_push_token(text) to anon, authenticated;
 
 ---------------------------------------------------------------------------
 -- Helpers
@@ -371,7 +374,7 @@ returns setof public.notifications
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 begin
   return query
   update public.notifications n set sent_at = now()
@@ -384,7 +387,7 @@ begin
   )
   returning n.*;
 end;
-$;
+$$;
 
 revoke execute on function public.ile_claim_notifications(integer) from public, anon, authenticated;
 grant execute on function public.ile_claim_notifications(integer) to service_role;

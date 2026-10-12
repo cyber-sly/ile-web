@@ -1,6 +1,7 @@
 # Supabase CLI settings used when deploying Edge Functions.
+project_id = "ile-web"
+
 # send-push checks its own secret header (x-push-secret), so the
 # platform JWT check is off; the database calls it, not users.
-
 [functions.send-push]
 verify_jwt = false

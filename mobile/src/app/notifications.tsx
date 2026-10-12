@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
-import { DEFAULT_PREFS, fetchPrefs, savePrefs, type NotificationPrefs } from "@/lib/notificationPrefs";
+import { DEFAULT_PREFS, fetchPrefs, savePref, type NotificationPrefs } from "@/lib/notificationPrefs";
 import NotificationsCard from "@/components/NotificationsCard";
 import Screen from "@/components/Screen";
 import Button from "@/components/Button";
@@ -43,7 +43,7 @@ export default function NotificationSettings() {
     setError("");
     queryClient.setQueryData(key, next);
     try {
-      await savePrefs(supabase, userId, next);
+      await savePref(supabase, userId, field, value);
     } catch (e) {
       queryClient.setQueryData(key, before);
       setError(friendlyError(e));
@@ -57,6 +57,12 @@ export default function NotificationSettings() {
       <NotificationsCard />
       {prefs.isPending && online ? <ActivityIndicator color={colors.palm} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {prefs.isError && !prefs.data ? (
+        <View style={styles.retry}>
+          <Text style={styles.error}>{friendlyError(prefs.error)}</Text>
+          <Button label="Try again" variant="secondary" onPress={() => prefs.refetch()} />
+        </View>
+      ) : null}
       {ROWS.map((row) => (
         <View key={row.key} style={styles.row}>
           <View style={styles.text}>
@@ -66,7 +72,7 @@ export default function NotificationSettings() {
           <Switch
             accessibilityLabel={row.title}
             value={current[row.key]}
-            disabled={!online || prefs.isPending}
+            disabled={!online || prefs.isPending || (prefs.isError && !prefs.data)}
             onValueChange={(v) => toggle(row.key, v)}
             trackColor={{ true: colors.palm, false: colors.lineStrong }}
           />
@@ -85,4 +91,5 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.ink },
   body: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkMuted },
   error: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.clay },
+  retry: { gap: 8 },
 });

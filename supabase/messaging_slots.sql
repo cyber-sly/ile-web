@@ -35,7 +35,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   requested text := new.raw_user_meta_data ->> 'role';
 begin
@@ -48,7 +48,7 @@ begin
   on conflict (id) do nothing;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists ile_on_auth_user_created on auth.users;
 create trigger ile_on_auth_user_created

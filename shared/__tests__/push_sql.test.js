@@ -55,3 +55,21 @@ test("claiming pending notifications is atomic and only for the server", () => {
   assert.match(s, /revoke execute on function public\.ile_claim_notifications\(integer\) from public, anon, authenticated/);
   assert.match(s, /grant execute on function public\.ile_claim_notifications\(integer\) to service_role/);
 });
+
+test("a phone can stop its notifications even after its session has ended", () => {
+  const s = sql();
+  const body = s.split(/create or replace function public\.unregister_push_token/i)[1].split("$$;")[0];
+  assert.doesNotMatch(body, /auth\.uid\(\)/);
+  assert.match(s, /grant execute on function public\.unregister_push_token\(text\) to anon, authenticated/);
+});
+
+test("the Supabase CLI config names the project and keeps send-push's own auth", () => {
+  const toml = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "config.toml"), "utf8");
+  assert.match(toml, /^project_id = "/m);
+  assert.match(toml, /\[functions\.send-push\]\s*\nverify_jwt = false/);
+});
+
+test("Firebase's Android config file is uploaded with app builds", () => {
+  const ignore = readFileSync(join(import.meta.dirname, "..", "..", "mobile", ".gitignore"), "utf8");
+  assert.doesNotMatch(ignore, /^google-services\.json$/m);
+});

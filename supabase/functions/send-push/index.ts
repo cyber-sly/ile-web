@@ -21,11 +21,13 @@ const db = {
     return data ?? [];
   },
   async tokensFor(userIds: string[]) {
-    const { data } = await supabase.from("push_tokens").select("token, user_id").in("user_id", userIds);
+    const { data, error } = await supabase.from("push_tokens").select("token, user_id").in("user_id", userIds);
+    if (error) throw new Error(error.message);
     return groupBy(data ?? [], (r) => r.token);
   },
   async prefsFor(userIds: string[]) {
-    const { data } = await supabase.from("notification_prefs").select("*").in("user_id", userIds);
+    const { data, error } = await supabase.from("notification_prefs").select("*").in("user_id", userIds);
+    if (error) throw new Error(error.message);
     return Object.fromEntries((data ?? []).map((p) => [p.user_id, p]));
   },
   async deleteTokens(tokens: string[]) {

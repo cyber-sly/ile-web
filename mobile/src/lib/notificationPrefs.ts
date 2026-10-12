@@ -17,6 +17,14 @@ export async function fetchPrefs(client: Client, userId: string): Promise<Notifi
   };
 }
 
+// Save one setting only, so a stale screen can never undo the others.
+export async function savePref(client: Client, userId: string, field: keyof NotificationPrefs, value: boolean) {
+  const { error } = await client
+    .from("notification_prefs")
+    .upsert({ user_id: userId, [field]: value, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (error) throw new Error(error.message);
+}
+
 export async function savePrefs(client: Client, userId: string, prefs: NotificationPrefs) {
   const { error } = await client
     .from("notification_prefs")

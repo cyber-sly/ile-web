@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { DEFAULT_PREFS, fetchPrefs, savePrefs } from "../notificationPrefs";
+import { DEFAULT_PREFS, fetchPrefs, savePref, savePrefs } from "../notificationPrefs";
 
 function fakeClient(row: Record<string, unknown> | null) {
   const calls: unknown[][] = [];
@@ -39,5 +39,12 @@ describe("notification settings", () => {
     expect(client.calls[0][0]).toBe("upsert");
     expect(client.calls[0][2]).toMatchObject({ user_id: "u1", reminders: false, messages: true });
     expect(client.calls[0][3]).toEqual({ onConflict: "user_id" });
+  });
+
+  test("savePref changes only the one setting, so it can't undo others", async () => {
+    const client = fakeClient(null);
+    await savePref(client, "u1", "reminders", false);
+    expect(client.calls[0][2]).toEqual(expect.objectContaining({ user_id: "u1", reminders: false }));
+    expect(Object.keys(client.calls[0][2] as object).sort()).toEqual(["reminders", "updated_at", "user_id"]);
   });
 });

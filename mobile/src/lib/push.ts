@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { notificationRoute } from "@shared/notifications.js";
 import { supabase } from "./supabase";
-import { logOutDevice, saveToken } from "./pushTokens";
+import { forgetPendingToken, logOutDevice, saveToken } from "./pushTokens";
 
 const TOKEN_KEY = "ile:push-token";
 export type PushPermission = "granted" | "denied" | "undetermined" | "unsupported";
@@ -54,20 +54,25 @@ export async function enablePush(): Promise<PushPermission> {
   return "granted";
 }
 
-// On login (or app start while logged in): keep this phone's token current.
-export async function syncPush(userId: string | null) {
-  if (!userId || (await getPermission()) !== "granted") return;
-  try {
-    await registerDevice();
-  } catch {
-    // Offline: the next app start tries again.
-  }
-}
-
 const tokenStorage = {
   get: () => AsyncStorage.getItem(TOKEN_KEY),
   clear: () => AsyncStorage.removeItem(TOKEN_KEY),
 };
+
+// On login (or app start while logged in): keep this phone's token current.
+// With nobody logged in (logout, expired session): make sure this phone no
+// longer gets the previous account's notifications.
+export async function syncPush(userId: string | null) {
+  try {
+    if (!userId) {
+      await forgetPendingToken(supabase, tokenStorage);
+      return;
+    }
+    if ((await getPermission()) === "granted") await registerDevice();
+  } catch {
+    // Offline: the next app start tries again.
+  }
+}
 
 // Log out on this phone (stops its notifications for this account first).
 export function logOutThisDevice() {
