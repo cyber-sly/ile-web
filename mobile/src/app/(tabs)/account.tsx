@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import Screen from "@/components/Screen";
 import Button from "@/components/Button";
-import { supabase } from "@/lib/supabase";
+import { logOutThisDevice } from "@/lib/push";
 import { isLister, useSession } from "@/lib/useSession";
 import { colors, fonts, radius } from "@/theme";
 
@@ -26,7 +26,7 @@ export default function AccountScreen() {
 
   async function logOut() {
     setBusy(true);
-    await supabase.auth.signOut({ scope: "local" }); // this device only, like the website
+    await logOutThisDevice(); // this device only, like the website; stops its notifications first
     setBusy(false);
   }
 

@@ -11,6 +11,7 @@ import { uniqueTopic } from "@/lib/realtime";
 import { useSession } from "@/lib/useSession";
 import Screen from "@/components/Screen";
 import Button from "@/components/Button";
+import NotificationsCard from "@/components/NotificationsCard";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts } from "@/theme";
 
@@ -92,7 +93,14 @@ export default function InboxTab() {
         data={inbox.data || []}
         keyExtractor={(t) => String(t.id)}
         renderItem={({ item }) => <ThreadRow thread={item} userId={userId} />}
-        ListHeaderComponent={<Text style={styles.title}>Messages</Text>}
+        ListHeaderComponent={
+          <View>
+            <Text style={styles.title}>Messages</Text>
+            <View style={styles.cardWrap}>
+              <NotificationsCard />
+            </View>
+          </View>
+        }
         ListEmptyComponent={empty}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={inbox.isRefetching} onRefresh={() => inbox.refetch()} tintColor={colors.palm} />}
@@ -143,6 +151,7 @@ function ThreadRow({ thread: t, userId }: { thread: Thread; userId: string }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.cream },
   list: { paddingBottom: 40 },
+  cardWrap: { paddingHorizontal: 16 },
   title: { fontFamily: fonts.serif, fontSize: 30, color: colors.ink, marginTop: 4, marginBottom: 12, paddingHorizontal: 16 },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.line },
   pressed: { backgroundColor: colors.surface },

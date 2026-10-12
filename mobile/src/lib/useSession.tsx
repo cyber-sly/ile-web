@@ -10,6 +10,7 @@ import { syncOutboxAccount } from "./outboxApp";
 import { persister, queryClient } from "./queryClient";
 import { accountChanged } from "./accountChange";
 import { drafts } from "./drafts";
+import { syncPush } from "./push";
 
 type SessionState = { session: Session | null; user: User | null; loading: boolean };
 const SessionContext = createContext<SessionState>({ session: null, user: null, loading: true });
@@ -63,6 +64,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     previousUser.current = userId;
     syncSavedAccount(userId);
     syncOutboxAccount(userId);
+    syncPush(userId);
   }, [state.loading, userId]);
 
   return <SessionContext.Provider value={state}>{children}</SessionContext.Provider>;

@@ -20,7 +20,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "ng.ile.app"
+      "package": "ng.ile.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "single",
@@ -50,6 +51,12 @@
           "photosPermission": "Ile uses your photos so you can add them to your listing.",
           "cameraPermission": "Ile uses your camera so you can take photos of your property.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#14583B"
         }
       ]
     ],

@@ -14,6 +14,7 @@ import RequestCard, { type RequestRow } from "@/components/dashboard/RequestCard
 import ListingRow, { type ListingRowData } from "@/components/dashboard/ListingRow";
 import CounterSheet from "@/components/dashboard/CounterSheet";
 import Button from "@/components/Button";
+import NotificationsCard from "@/components/NotificationsCard";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius } from "@/theme";
 
@@ -172,6 +173,7 @@ export default function Dashboard() {
             <Text style={styles.addText}>List a property</Text>
           </Pressable>
         </View>
+        <NotificationsCard />
         {body}
       </ScrollView>
       <CounterSheet

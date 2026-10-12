@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import Screen from "@/components/Screen";
 import Button from "@/components/Button";
+import NotificationsCard from "@/components/NotificationsCard";
 import ViewingCard, { type ViewingRow } from "@/components/ViewingCard";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts } from "@/theme";
@@ -84,6 +85,7 @@ export default function MyViewings() {
           <View style={styles.header}>
             <Text style={styles.title}>My viewings</Text>
             <Text style={styles.subtitle}>Track the viewings you&apos;ve requested and respond to new times.</Text>
+            <NotificationsCard />
           </View>
         }
         ListEmptyComponent={empty}

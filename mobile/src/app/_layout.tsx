@@ -15,9 +15,16 @@ import { persister, PERSIST_MAX_AGE, queryClient, shouldPersist } from "@/lib/qu
 import OfflineBanner from "@/components/OfflineBanner";
 // Started here, not from a screen: screens load lazily in release builds.
 import "@/lib/outboxApp";
+import { usePushTaps } from "@/lib/push";
 import { colors, fonts } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();
+
+// Opens the right screen when a notification is tapped.
+function PushTaps() {
+  usePushTaps();
+  return null;
+}
 
 const persistOptions = { persister, maxAge: PERSIST_MAX_AGE, dehydrateOptions: { shouldDehydrateQuery: shouldPersist } };
 
@@ -38,6 +45,7 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <View style={{ flex: 1, backgroundColor: colors.cream }}>
           <OfflineBanner />
+          <PushTaps />
           <Stack
             screenOptions={{
               contentStyle: { backgroundColor: colors.cream },

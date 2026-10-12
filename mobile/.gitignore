@@ -44,3 +44,7 @@ example
 
 # local env (public Supabase URL/key; never commit)
 .env
+
+# Firebase config (founder's own; never commit)
+google-services.json
+GoogleService-Info.plist
