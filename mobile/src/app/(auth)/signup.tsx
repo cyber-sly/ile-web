@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SocialButtons from "@/components/SocialButtons";
 import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -107,6 +108,7 @@ export default function SignupScreen() {
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button label="Create account" loading={busy} onPress={signUp} disabled={!fullName || !email || !password} />
+      <SocialButtons role={role} />
       <Text style={styles.terms}>By creating an account you agree to our Terms of Service and Privacy Policy.</Text>
       <Link href="/login" style={styles.link}>
         Already have an account? Log in
