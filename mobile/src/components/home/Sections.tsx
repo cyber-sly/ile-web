@@ -1,9 +1,8 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { ArrowRight, CalendarCheck, Eye, Home as HomeIcon, KeyRound, Search, ShieldCheck, Wallet, WifiOff } from "lucide-react-native";
 import PropertyCard, { type ListingRow } from "@/components/PropertyCard";
-import { Button, CardSkeleton, EmptyState, SectionHeading } from "@/components/kit";
+import { Button, CardSkeleton, EmptyState, SectionHeading, Shade } from "@/components/kit";
 import { HOME_CATEGORIES, HOME_PROMISES, HOME_STEPS, freshSectionState } from "@/lib/ui/home";
 import { colors, fonts, radius } from "@/theme";
 
@@ -108,7 +107,7 @@ export function Categories({ onPick }: { onPick: (tab: string) => void }) {
         {HOME_CATEGORIES.map((c) => (
           <Pressable key={c.tab} accessibilityRole="button" accessibilityLabel={c.title} onPress={() => onPick(c.tab)} style={styles.tile}>
             <Image source={{ uri: c.image }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" alt="" />
-            <LinearGradient colors={["transparent", "rgba(15,28,21,0.3)", "rgba(15,28,21,0.85)"]} style={StyleSheet.absoluteFill} />
+            <Shade colors={["transparent", "rgba(15,28,21,0.3)", "rgba(15,28,21,0.85)"]} />
             <View style={styles.tileText}>
               <Text style={styles.tileTitle}>{c.title}</Text>
               <Text style={styles.tileBlurb} numberOfLines={2}>

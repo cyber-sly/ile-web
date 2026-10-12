@@ -1,11 +1,11 @@
 import { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { colors, fonts } from "@/theme";
 import Logo from "./Logo";
+import Shade from "./Shade";
 
 // The website's sign-in photo panel (AuthShell) as a header on phones: photo,
 // dark gradient, Ile logo, close button and a serif quote.
@@ -14,11 +14,7 @@ export default function PhotoHeader({ image, quote, onClose, height = 220 }: { i
   return (
     <View style={{ height: height + insets.top }}>
       <Image source={{ uri: image }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" alt="" />
-      <LinearGradient
-        colors={["rgba(15,28,21,0.35)", "rgba(15,28,21,0.1)", "rgba(15,28,21,0.85)"]}
-        locations={[0, 0.45, 1]}
-        style={StyleSheet.absoluteFill}
-      />
+      <Shade colors={["rgba(15,28,21,0.35)", "rgba(15,28,21,0.1)", "rgba(15,28,21,0.85)"]} locations={[0, 0.45, 1]} />
       <View style={[styles.top, { paddingTop: insets.top + 8 }]}>
         {onClose ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose} style={styles.close}>

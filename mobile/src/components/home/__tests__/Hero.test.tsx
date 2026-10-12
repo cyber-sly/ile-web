@@ -2,7 +2,6 @@ import { expect, jest, test } from "@jest/globals";
 import { Text } from "react-native";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 
-jest.mock("expo-linear-gradient", () => ({ LinearGradient: () => null }));
 
 import Hero from "../Hero";
 

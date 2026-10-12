@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MapPin, Plus, Search } from "lucide-react-native";
 import { SEARCH_TABS } from "@shared/search.js";
-import { Button, Em, Logo } from "@/components/kit";
+import { Button, Em, Logo, Shade } from "@/components/kit";
 import { colors, fonts, radius, shadows } from "@/theme";
 
 // The website's top bar and hero (Navbar + HomeHero + SearchBox): photo,
@@ -24,10 +23,7 @@ export default function Hero({ onSearch, onList }: { onSearch: (tab: string, q: 
 
       <View style={styles.photoBox}>
         <Image source={require("@/assets/images/hero.jpg")} style={StyleSheet.absoluteFill} contentFit="cover" alt="" />
-        <LinearGradient
-          colors={["rgba(15,28,21,0.2)", "rgba(15,28,21,0.35)", "rgba(15,28,21,0.8)"]}
-          style={StyleSheet.absoluteFill}
-        />
+        <Shade colors={["rgba(15,28,21,0.2)", "rgba(15,28,21,0.35)", "rgba(15,28,21,0.8)"]} />
         <Text style={styles.h1} accessibilityRole="header">
           Find your place in Nigeria, <Em>without the wahala.</Em>
         </Text>
