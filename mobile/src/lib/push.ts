@@ -9,7 +9,7 @@ import { notificationRoute } from "@shared/notifications.js";
 import { supabase } from "./supabase";
 import { forgetPendingToken, logOutDevice, saveToken } from "./pushTokens";
 
-const TOKEN_KEY = "ile:push-token";
+export const TOKEN_KEY = "ile:push-token";
 export type PushPermission = "granted" | "denied" | "undetermined" | "unsupported";
 
 // Show notifications as banners even while the app is open.

@@ -69,6 +69,9 @@ export default function RootLayout() {
             <Stack.Screen name="my-viewings" options={{ title: "My viewings" }} />
             <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
             <Stack.Screen name="u/[id]" options={{ title: "" }} />
+            <Stack.Screen name="account/profile" options={{ title: "Edit profile" }} />
+            <Stack.Screen name="account/password" options={{ title: "Change password" }} />
+            <Stack.Screen name="account/delete" options={{ title: "Delete account" }} />
             <Stack.Screen name="list/new" options={{ title: "List a property" }} />
             <Stack.Screen name="list/[id]/edit" options={{ title: "Edit listing" }} />
             <Stack.Screen name="list/[id]/times" options={{ title: "Viewing times" }} />
