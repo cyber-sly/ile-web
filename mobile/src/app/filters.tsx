@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { LocateFixed } from "lucide-react-native";
 import { NIGERIA, STATES, stateLabel } from "@shared/nigeria.js";
@@ -8,9 +8,9 @@ import { SORTS } from "@shared/search.js";
 import { DEFAULT_FILTERS, useFilters } from "@/lib/filters";
 import { findNearMe, NEAR_ME_ERRORS } from "@/lib/nearMe";
 import Chip from "@/components/Chip";
-import Button from "@/components/Button";
+import { Button, Field } from "@/components/kit";
 import SelectField from "@/components/SelectField";
-import { colors, fonts, radius } from "@/theme";
+import { colors, fonts } from "@/theme";
 
 type Choice = { value: string; label: string; category?: string };
 
@@ -159,15 +159,13 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 function PriceInput({ label, value, onChange, onBlur }: { label: string; value: string; onChange: (v: string) => void; onBlur: () => void }) {
   return (
     <View style={styles.price}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
+      <Field
+        label={label}
         value={value ? Number(value).toLocaleString("en-NG") : ""}
         onChangeText={(v) => onChange(digits(v))}
         onBlur={onBlur}
         keyboardType="number-pad"
         placeholder="Any"
-        placeholderTextColor={colors.inkMuted}
-        style={styles.input}
         accessibilityLabel={label}
       />
     </View>
@@ -182,18 +180,7 @@ const styles = StyleSheet.create({
   label: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.ink },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   prices: { flexDirection: "row", gap: 12 },
-  price: { flex: 1, gap: 6 },
-  input: {
-    minHeight: 48,
-    paddingHorizontal: 14,
-    borderRadius: radius.control,
-    borderWidth: 1,
-    borderColor: colors.lineStrong,
-    backgroundColor: colors.surface,
-    fontFamily: fonts.sans,
-    fontSize: 16,
-    color: colors.ink,
-  },
+  price: { flex: 1 },
   footer: { flexDirection: "row", gap: 12, padding: 16, borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.surface },
   flex: { flex: 1 },
   nearMeError: { flexDirection: "row", alignItems: "center", gap: 6 },
