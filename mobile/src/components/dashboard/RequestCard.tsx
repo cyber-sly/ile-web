@@ -10,7 +10,7 @@ import { formatDateTime } from "@shared/format.js";
 import { moveInLabel, occupationLabel } from "@shared/profileDisplay.js";
 import { friendlyError } from "@shared/errors.js";
 import { openChat } from "@/lib/messagingApp";
-import StatusBadge from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
 
 export type RequestRow = Record<string, any>;

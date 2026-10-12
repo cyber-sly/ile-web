@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, router } from "expo-router";
 import { useQueries } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import { useRecentIds } from "@/lib/recent";
 import { fetchListing } from "@/lib/listing";
 import { useSession } from "@/lib/useSession";
 import PropertyCard, { type ListingRow } from "@/components/PropertyCard";
-import Button from "@/components/Button";
+import { Button, CardSkeleton, EmptyState, PageTitle } from "@/components/kit";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts } from "@/theme";
 
@@ -45,7 +45,7 @@ export default function SavedScreen() {
 
   const header = (
     <View style={styles.header}>
-      <Text style={styles.title}>Saved homes</Text>
+      <PageTitle>Saved homes</PageTitle>
       {saved.listings.length > 0 && <Text style={styles.count}>{pluralize(saved.listings.length, "home")}</Text>}
       {!user && (
         <Text style={styles.hint}>
@@ -60,23 +60,27 @@ export default function SavedScreen() {
 
   let empty;
   if (waiting && online) {
-    empty = <ActivityIndicator color={colors.palm} style={styles.loading} />;
+    empty = (
+      <View style={styles.skeletons}>
+        <CardSkeleton />
+        <CardSkeleton />
+      </View>
+    );
   } else if (waiting) {
     empty = (
-      <View style={styles.empty}>
-        <WifiOff color={colors.inkMuted} size={28} />
-        <Text style={styles.emptyTitle}>Connect to load your saved homes</Text>
-        <Text style={styles.emptyBody}>Homes you&apos;ve opened before will show here offline.</Text>
-      </View>
+      <EmptyState icon={WifiOff} title="Connect to load your saved homes">
+        Homes you&apos;ve opened before will show here offline.
+      </EmptyState>
     );
   } else {
     empty = (
-      <View style={styles.empty}>
-        <Heart color={colors.inkMuted} size={30} />
-        <Text style={styles.emptyTitle}>No saved homes yet</Text>
-        <Text style={styles.emptyBody}>Tap the heart on any home to keep it here.</Text>
-        <Button label="Start searching" onPress={() => router.navigate("/search")} />
-      </View>
+      <EmptyState
+        icon={Heart}
+        title="Nothing saved yet"
+        action={<Button label="Start browsing" full={false} onPress={() => router.navigate("/search")} />}
+      >
+        Save the places you like so you can compare them and book viewings later.
+      </EmptyState>
     );
   }
 
@@ -111,15 +115,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.cream },
   list: { padding: 16, paddingBottom: 40 },
   header: { gap: 6, marginBottom: 16 },
-  title: { fontFamily: fonts.serif, fontSize: 30, color: colors.ink, marginTop: 4 },
   count: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.inkMuted },
   hint: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
   link: { fontFamily: fonts.sansSemi, color: colors.palm },
   gap: { height: 14 },
-  loading: { marginTop: 40 },
-  empty: { alignItems: "center", gap: 10, paddingVertical: 48, paddingHorizontal: 12 },
-  emptyTitle: { fontFamily: fonts.sansSemi, fontSize: 17, color: colors.ink, textAlign: "center" },
-  emptyBody: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted, textAlign: "center", marginBottom: 6 },
+  skeletons: { gap: 14 },
   recent: { gap: 14, marginTop: 28 },
   sectionTitle: { fontFamily: fonts.serif, fontSize: 22, color: colors.ink },
 });

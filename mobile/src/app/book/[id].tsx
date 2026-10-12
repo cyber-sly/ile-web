@@ -11,7 +11,7 @@ import { useSession } from "@/lib/useSession";
 import { REQUEST_TIMES, requestDays, todayInLagos } from "@/lib/requestTimes";
 import DayTimePicker from "@/components/DayTimePicker";
 import Button from "@/components/Button";
-import StatusBadge from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
 
 type Viewing = { id: string; status: string; preferred_date: string; preferred_time: string | null; proposed_date?: string; proposed_time?: string };

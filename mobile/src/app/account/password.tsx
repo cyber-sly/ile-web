@@ -6,6 +6,7 @@ import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabase";
 import Screen from "@/components/Screen";
 import Field from "@/components/Field";
+import { Lock } from "lucide-react-native";
 import Button from "@/components/Button";
 import { colors, fonts } from "@/theme";
 
@@ -40,6 +41,7 @@ export default function ChangePasswordScreen() {
     <Screen title="Change password">
       <Field
         label="New password"
+        icon={Lock}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -47,7 +49,7 @@ export default function ChangePasswordScreen() {
         textContentType="newPassword"
         hint={`At least ${MIN_PASSWORD} characters.`}
       />
-      <Field label="Confirm new password" value={confirm} onChangeText={setConfirm} secureTextEntry autoComplete="new-password" textContentType="newPassword" />
+      <Field label="Confirm new password" icon={Lock} value={confirm} onChangeText={setConfirm} secureTextEntry autoComplete="new-password" textContentType="newPassword" />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button label="Save new password" loading={busy} disabled={!password || !confirm} onPress={save} />
     </Screen>

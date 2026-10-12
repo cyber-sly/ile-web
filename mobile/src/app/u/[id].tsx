@@ -1,8 +1,8 @@
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
-import { Award, Building2, CalendarDays, Clock, Languages, MapPin, Star } from "lucide-react-native";
+import { Award, Building2, CalendarDays, Clock, Home as HomeIcon, Languages, MapPin, Star } from "lucide-react-native";
 import { fetchListerProfile } from "@shared/account.js";
 import { formatResponseTime, registrationLabel } from "@shared/profileDisplay.js";
 import { listerLabel } from "@shared/property.js";
@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import PropertyCard from "@/components/PropertyCard";
 import ReviewList from "@/components/ReviewList";
 import Screen from "@/components/Screen";
-import Button from "@/components/Button";
+import { Button, CardSkeleton, EmptyState, RowSkeleton } from "@/components/kit";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius } from "@/theme";
 
@@ -23,7 +23,14 @@ export default function ListerProfileScreen() {
   const data = useQuery({ queryKey: ["lister-profile", id], queryFn: () => fetchListerProfile(supabase, id) });
 
   if (data.isPending && !online) return <Screen title="Connect to see this profile" />;
-  if (data.isPending) return <ActivityIndicator color={colors.palm} style={styles.loading} />;
+  if (data.isPending) {
+    return (
+      <View style={styles.skeleton}>
+        <RowSkeleton />
+        <CardSkeleton />
+      </View>
+    );
+  }
   if (data.isError) {
     return (
       <Screen title="Couldn't load this profile" subtitle="Check your connection and try again.">
@@ -87,7 +94,9 @@ export default function ListerProfileScreen() {
 
       <Text style={styles.section}>Listed now ({listings.length})</Text>
       {listings.length === 0 ? (
-        <Text style={styles.muted}>Nothing listed right now.</Text>
+        <EmptyState icon={HomeIcon} title="Nothing listed right now">
+          Check back later, or browse other listings on Ile.
+        </EmptyState>
       ) : (
         <View style={styles.listings}>
           {listings.map((l: Record<string, any>) => (
@@ -105,7 +114,7 @@ export default function ListerProfileScreen() {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.cream },
   content: { padding: 20, gap: 14, paddingBottom: 48 },
-  loading: { marginTop: 40 },
+  skeleton: { flex: 1, gap: 16, padding: 16, backgroundColor: colors.cream },
   header: { alignItems: "center", gap: 6 },
   avatar: { width: 88, height: 88, borderRadius: 44 },
   initial: { alignItems: "center", justifyContent: "center", backgroundColor: colors.palmSoft },

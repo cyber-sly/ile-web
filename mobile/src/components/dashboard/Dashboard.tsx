@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { fetchReviewedIds } from "@/lib/reviews";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Plus, WifiOff } from "lucide-react-native";
+import { CalendarDays, ChevronRight, Home as HomeIcon, Plus, WifiOff } from "lucide-react-native";
 import { deleteListing, fetchMyListings, fetchRequests, updateListing } from "@shared/lister.js";
 import { sortViewings, updateViewing, ACTIVE_STATUSES } from "@shared/viewings.js";
 import { fetchPeople, fetchRatings, fetchTenantDetails } from "@shared/people.js";
@@ -14,10 +14,10 @@ import { useSession } from "@/lib/useSession";
 import RequestCard, { type RequestRow } from "@/components/dashboard/RequestCard";
 import ListingRow, { type ListingRowData } from "@/components/dashboard/ListingRow";
 import CounterSheet from "@/components/dashboard/CounterSheet";
-import Button from "@/components/Button";
+import { Button, EmptyState, PageTitle, RowSkeleton, Skeleton } from "@/components/kit";
 import NotificationsCard from "@/components/NotificationsCard";
 import { useOnline } from "@/components/OfflineBanner";
-import { colors, fonts, radius } from "@/theme";
+import { colors, fonts, radius, shadows } from "@/theme";
 
 type DashboardData = {
   listings: ListingRowData[];
@@ -105,20 +105,33 @@ export default function Dashboard() {
 
   let body;
   if (dashboard.isPending && !online) {
-    body = (
-      <View style={styles.empty}>
-        <WifiOff color={colors.inkMuted} size={28} />
-        <Text style={styles.emptyTitle}>Connect to load your dashboard</Text>
-      </View>
-    );
+    body = <EmptyState icon={WifiOff} title="Connect to load your dashboard" />;
   } else if (dashboard.isPending) {
-    body = <ActivityIndicator color={colors.palm} style={styles.loading} />;
+    body = (
+      <>
+        <View style={styles.tiles}>
+          <View style={styles.flex1}>
+            <Skeleton height={70} rounded={radius.card} />
+          </View>
+          <View style={styles.flex1}>
+            <Skeleton height={70} rounded={radius.card} />
+          </View>
+          <View style={styles.flex1}>
+            <Skeleton height={70} rounded={radius.card} />
+          </View>
+        </View>
+        <RowSkeleton />
+        <RowSkeleton />
+      </>
+    );
   } else if (dashboard.isError) {
     body = (
-      <View style={styles.empty}>
-        <Text style={styles.emptyTitle}>Couldn&apos;t load your dashboard</Text>
-        <Button label="Try again" variant="secondary" onPress={() => dashboard.refetch()} />
-      </View>
+      <EmptyState
+        icon={WifiOff}
+        tone="clay"
+        title="Couldn't load your dashboard"
+        action={<Button label="Try again" variant="secondary" full={false} onPress={() => dashboard.refetch()} />}
+      />
     );
   } else {
     body = (
@@ -140,14 +153,23 @@ export default function Dashboard() {
         )}
 
         <Text style={styles.section}>Viewing requests</Text>
-        {open.length === 0 ? <Text style={styles.muted}>No requests waiting. New ones appear here.</Text> : open.map(card)}
+        {open.length === 0 ? (
+          <EmptyState icon={CalendarDays} title="No requests yet">
+            When someone books a viewing on one of your listings, it shows up here.
+          </EmptyState>
+        ) : (
+          open.map(card)
+        )}
 
         <Text style={styles.section}>My listings</Text>
         {(d?.listings || []).length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>You haven&apos;t listed anything yet</Text>
-            <Text style={styles.muted}>It&apos;s free. Add photos straight from your phone.</Text>
-          </View>
+          <EmptyState
+            icon={HomeIcon}
+            title="No listings yet"
+            action={<Button label="List a property" full={false} onPress={() => router.push("/list/new")} />}
+          >
+            It&apos;s free and takes about five minutes.
+          </EmptyState>
         ) : (
           (d?.listings || []).map((l) => (
             <ListingRow key={l.id} listing={l} online={online} onUpdate={(c) => changeListing(l, c)} onDelete={() => removeListing(l)} />
@@ -171,16 +193,8 @@ export default function Dashboard() {
         refreshControl={<RefreshControl refreshing={dashboard.isRefetching} onRefresh={() => dashboard.refetch()} tintColor={colors.palm} />}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Dashboard</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="List a property"
-            onPress={() => router.push("/list/new")}
-            style={styles.add}
-          >
-            <Plus color={colors.white} size={18} />
-            <Text style={styles.addText}>List a property</Text>
-          </Pressable>
+          <PageTitle>Dashboard</PageTitle>
+          <Button label="List a property" size="sm" full={false} icon={Plus} onPress={() => router.push("/list/new")} />
         </View>
         <NotificationsCard />
         {body}
@@ -200,19 +214,14 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.cream },
   content: { padding: 16, paddingBottom: 48, gap: 12 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 4 },
-  title: { fontFamily: fonts.serif, fontSize: 30, color: colors.ink },
-  add: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, backgroundColor: colors.palm },
-  addText: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.white },
   dim: { opacity: 0.5 },
   tiles: { flexDirection: "row", gap: 8 },
-  tile: { flex: 1, padding: 12, borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
-  tileValue: { fontFamily: fonts.sansBold, fontSize: 22, color: colors.ink },
+  tile: { flex: 1, padding: 14, borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, ...shadows.card },
+  flex1: { flex: 1 },
+  tileValue: { fontFamily: fonts.serif, fontSize: 26, color: colors.ink },
   tileLabel: { fontFamily: fonts.sans, fontSize: 12, color: colors.inkMuted },
   linkRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12, borderRadius: radius.control, backgroundColor: colors.palmSoft },
   linkText: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.palm },
   section: { fontFamily: fonts.serif, fontSize: 22, color: colors.ink, marginTop: 12 },
   muted: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
-  loading: { marginTop: 40 },
-  empty: { alignItems: "center", gap: 8, paddingVertical: 32 },
-  emptyTitle: { fontFamily: fonts.sansSemi, fontSize: 16, color: colors.ink, textAlign: "center" },
 });

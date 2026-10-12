@@ -32,7 +32,7 @@ import { logOutEverywhereHere } from "@/lib/accountDevice";
 import { useSavedIds } from "@/lib/saved";
 import { useUnreadCount } from "@/lib/unread";
 import Screen from "@/components/Screen";
-import Button from "@/components/Button";
+import { Button, EmptyState } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
 
 const SITE = process.env.EXPO_PUBLIC_SITE_URL;
@@ -67,9 +67,19 @@ export default function AccountScreen() {
 
   if (!user) {
     return (
-      <Screen title="Account" subtitle="Log in to book viewings, message listers and save homes.">
-        <Button label="Log in" onPress={() => router.push("/login")} />
-        <Button label="Create a free account" variant="secondary" onPress={() => router.push("/signup")} />
+      <Screen title="Account">
+        <EmptyState
+          icon={UserRound}
+          title="You're not logged in"
+          action={
+            <View style={styles.authButtons}>
+              <Button label="Log in" onPress={() => router.push("/login")} />
+              <Button label="Create a free account" variant="neutral" onPress={() => router.push("/signup")} />
+            </View>
+          }
+        >
+          Log in to manage your viewings, listings and saved homes.
+        </EmptyState>
         <View style={styles.group}>
           <Row Icon={Shield} label="Privacy Policy" onPress={() => WebBrowser.openBrowserAsync(`${SITE}/privacy`)} />
           <Row Icon={FileText} label="Terms of Service" onPress={() => WebBrowser.openBrowserAsync(`${SITE}/terms`)} />
@@ -218,6 +228,7 @@ const styles = StyleSheet.create({
   tileValue: { fontFamily: fonts.sansBold, fontSize: 20, color: colors.ink },
   tileLabel: { fontFamily: fonts.sans, fontSize: 12, color: colors.inkMuted },
   section: { fontFamily: fonts.sansSemi, fontSize: 13, color: colors.inkMuted, textTransform: "uppercase", letterSpacing: 0.8, marginTop: 8 },
+  authButtons: { alignSelf: "stretch", gap: 10 },
   group: { borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, overflow: "hidden" },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.line },
   pressed: { backgroundColor: colors.cream },

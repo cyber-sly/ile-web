@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { uniqueTopic } from "@/lib/realtime";
 import { useSession } from "@/lib/useSession";
 import Screen from "@/components/Screen";
-import Button from "@/components/Button";
+import { Button, EmptyState, PageTitle, RowSkeleton } from "@/components/kit";
 import NotificationsCard from "@/components/NotificationsCard";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts } from "@/theme";
@@ -62,28 +62,33 @@ export default function InboxTab() {
 
   let empty;
   if (inbox.isPending && !online) {
+    empty = <EmptyState icon={WifiOff} title="Connect to load your messages" />;
+  } else if (inbox.isPending) {
     empty = (
-      <View style={styles.empty}>
-        <WifiOff color={colors.inkMuted} size={28} />
-        <Text style={styles.emptyTitle}>Connect to load your messages</Text>
+      <View>
+        <RowSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
       </View>
     );
-  } else if (inbox.isPending) {
-    empty = <ActivityIndicator color={colors.palm} style={styles.loading} />;
   } else if (inbox.isError) {
     empty = (
-      <View style={styles.empty}>
-        <Text style={styles.emptyTitle}>Couldn&apos;t load your messages</Text>
-        <Button label="Try again" variant="secondary" onPress={() => inbox.refetch()} />
-      </View>
+      <EmptyState
+        icon={WifiOff}
+        tone="clay"
+        title="Couldn't load your messages"
+        action={<Button label="Try again" variant="secondary" full={false} onPress={() => inbox.refetch()} />}
+      />
     );
   } else {
     empty = (
-      <View style={styles.empty}>
-        <MessagesSquare color={colors.inkMuted} size={30} />
-        <Text style={styles.emptyTitle}>No messages yet</Text>
-        <Text style={styles.emptyBody}>Message a lister from any listing.</Text>
-      </View>
+      <EmptyState
+        icon={MessagesSquare}
+        title="No messages yet"
+        action={<Button label="Browse listings" full={false} onPress={() => router.navigate("/search")} />}
+      >
+        Tap “Message lister” on any listing to ask a question before you book a viewing.
+      </EmptyState>
     );
   }
 
@@ -95,13 +100,15 @@ export default function InboxTab() {
         renderItem={({ item }) => <ThreadRow thread={item} userId={userId} />}
         ListHeaderComponent={
           <View>
-            <Text style={styles.title}>Messages</Text>
+            <View style={styles.titleWrap}>
+              <PageTitle>Messages</PageTitle>
+            </View>
             <View style={styles.cardWrap}>
               <NotificationsCard />
             </View>
           </View>
         }
-        ListEmptyComponent={empty}
+        ListEmptyComponent={<View style={styles.emptyWrap}>{empty}</View>}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={inbox.isRefetching} onRefresh={() => inbox.refetch()} tintColor={colors.palm} />}
       />
@@ -152,7 +159,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.cream },
   list: { paddingBottom: 40 },
   cardWrap: { paddingHorizontal: 16 },
-  title: { fontFamily: fonts.serif, fontSize: 30, color: colors.ink, marginTop: 4, marginBottom: 12, paddingHorizontal: 16 },
+  emptyWrap: { paddingHorizontal: 16, paddingTop: 8 },
+  titleWrap: { paddingHorizontal: 16, marginBottom: 12 },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.line },
   pressed: { backgroundColor: colors.surface },
   avatar: { width: 48, height: 48, borderRadius: 24 },
@@ -168,8 +176,4 @@ const styles = StyleSheet.create({
   previewUnread: { fontFamily: fonts.sansSemi, color: colors.ink },
   badge: { minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6, alignItems: "center", justifyContent: "center", backgroundColor: colors.palm },
   badgeText: { fontFamily: fonts.sansBold, fontSize: 12, color: colors.white },
-  loading: { marginTop: 40 },
-  empty: { alignItems: "center", gap: 10, paddingVertical: 48, paddingHorizontal: 24 },
-  emptyTitle: { fontFamily: fonts.sansSemi, fontSize: 17, color: colors.ink, textAlign: "center" },
-  emptyBody: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted, textAlign: "center" },
 });

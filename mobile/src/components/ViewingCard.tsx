@@ -10,7 +10,7 @@ import { viewingActions } from "@shared/viewings.js";
 import { formatDateTime } from "@shared/format.js";
 import { placeLabel } from "@shared/property.js";
 import { openChat } from "@/lib/messagingApp";
-import StatusBadge from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/kit";
 import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
 

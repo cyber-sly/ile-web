@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { fetchReviewedIds } from "@/lib/reviews";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -8,7 +8,7 @@ import { acceptChanges, fetchMyViewings, sortViewings, updateViewing } from "@sh
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import Screen from "@/components/Screen";
-import Button from "@/components/Button";
+import { Button, EmptyState, PageTitle, RowSkeleton } from "@/components/kit";
 import NotificationsCard from "@/components/NotificationsCard";
 import ViewingCard, { type ViewingRow } from "@/components/ViewingCard";
 import { useOnline } from "@/components/OfflineBanner";
@@ -55,29 +55,33 @@ export default function MyViewings() {
 
   let empty;
   if (viewings.isPending && !online) {
+    empty = <EmptyState icon={WifiOff} title="Connect to load your viewings" />;
+  } else if (viewings.isPending) {
     empty = (
-      <View style={styles.empty}>
-        <WifiOff color={colors.inkMuted} size={28} />
-        <Text style={styles.emptyTitle}>Connect to load your viewings</Text>
+      <View style={styles.skeletons}>
+        <RowSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
       </View>
     );
-  } else if (viewings.isPending) {
-    empty = <ActivityIndicator color={colors.palm} style={styles.loading} />;
   } else if (viewings.isError) {
     empty = (
-      <View style={styles.empty}>
-        <Text style={styles.emptyTitle}>Couldn&apos;t load your viewings</Text>
-        <Button label="Try again" variant="secondary" onPress={() => viewings.refetch()} />
-      </View>
+      <EmptyState
+        icon={WifiOff}
+        tone="clay"
+        title="Couldn't load your viewings"
+        action={<Button label="Try again" variant="secondary" full={false} onPress={() => viewings.refetch()} />}
+      />
     );
   } else {
     empty = (
-      <View style={styles.empty}>
-        <CalendarX color={colors.inkMuted} size={30} />
-        <Text style={styles.emptyTitle}>No viewings booked yet</Text>
-        <Text style={styles.emptyBody}>Book a free viewing from any listing.</Text>
-        <Button label="Find a place to view" onPress={() => router.navigate("/search")} />
-      </View>
+      <EmptyState
+        icon={CalendarX}
+        title="No viewings booked yet"
+        action={<Button label="Find a place to view" full={false} onPress={() => router.navigate("/search")} />}
+      >
+        Book a free viewing from any listing page.
+      </EmptyState>
     );
   }
 
@@ -98,7 +102,7 @@ export default function MyViewings() {
         )}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text style={styles.title}>My viewings</Text>
+            <PageTitle>My viewings</PageTitle>
             <Text style={styles.subtitle}>Track the viewings you&apos;ve requested and respond to new times.</Text>
             <NotificationsCard />
           </View>
@@ -116,11 +120,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.cream },
   list: { padding: 16, paddingBottom: 40 },
   header: { gap: 6, marginBottom: 16 },
-  title: { fontFamily: fonts.serif, fontSize: 30, color: colors.ink, marginTop: 4 },
   subtitle: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
   gap: { height: 14 },
-  loading: { marginTop: 40 },
-  empty: { alignItems: "center", gap: 10, paddingVertical: 48, paddingHorizontal: 12 },
-  emptyTitle: { fontFamily: fonts.sansSemi, fontSize: 17, color: colors.ink, textAlign: "center" },
-  emptyBody: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted, textAlign: "center", marginBottom: 6 },
+  skeletons: { gap: 12 },
 });

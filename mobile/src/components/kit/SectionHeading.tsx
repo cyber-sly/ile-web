@@ -47,5 +47,5 @@ const styles = StyleSheet.create({
   subtitle: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
   action: { flexDirection: "row", alignItems: "center", gap: 4, paddingBottom: 3 },
   actionText: { fontFamily: fonts.sansSemi, fontSize: 14, color: colors.palm },
-  page: { fontFamily: fonts.serif, fontSize: 32, lineHeight: 38, color: colors.ink },
+  page: { fontFamily: fonts.serif, fontSize: 30, lineHeight: 36, color: colors.ink },
 });

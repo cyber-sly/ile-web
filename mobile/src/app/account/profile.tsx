@@ -3,7 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, ImagePlus, Trash2, X } from "lucide-react-native";
+import { Camera, ImagePlus, MapPin, Trash2, UserRound, X } from "lucide-react-native";
 import { fetchMyProfile, formToProfileChanges, profileToForm, saveProfile, validateProfileForm } from "@shared/account.js";
 import { LANGUAGES, MOVE_IN, OCCUPATIONS, REGISTRATION_BODIES } from "@shared/profileDisplay.js";
 import { LISTER_TYPES } from "@shared/property.js";
@@ -124,8 +124,8 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
         </View>
 
         <Text style={styles.section}>About you</Text>
-        <Field label="Name" value={v.full_name} onChangeText={(full_name) => set({ full_name })} maxLength={80} error={errors.full_name} />
-        <Field label="Short bio (optional)" value={v.bio} onChangeText={(bio) => set({ bio })} multiline maxLength={300} hint={`${v.bio.length}/300`} />
+        <Field label="Name" icon={UserRound} value={v.full_name} onChangeText={(full_name) => set({ full_name })} maxLength={80} error={errors.full_name} />
+        <Field label="Short bio" optional value={v.bio} onChangeText={(bio) => set({ bio })} multiline maxLength={300} hint={`${v.bio.length}/300`} />
         <Text style={styles.label}>Languages you speak</Text>
         <View style={styles.chips}>
           {(LANGUAGES as string[]).map((l) => (
@@ -161,7 +161,7 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
                 <Chip key={o.value} label={o.label} selected={v.lister_type === o.value} onPress={() => set({ lister_type: o.value })} />
               ))}
             </View>
-            <Field label="Business or agency name (optional)" value={v.business_name} onChangeText={(business_name) => set({ business_name })} maxLength={100} />
+            <Field label="Business or agency name" optional value={v.business_name} onChangeText={(business_name) => set({ business_name })} maxLength={100} />
             <Field
               label="Office address (optional)"
               value={v.office_address}
@@ -180,7 +180,7 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
             </View>
             <View style={styles.addRow}>
               <View style={styles.flex}>
-                <Field label="Add an area" value={area} onChangeText={setArea} maxLength={60} placeholder="e.g. Lekki" />
+                <Field label="Add an area" icon={MapPin} value={area} onChangeText={setArea} maxLength={60} placeholder="e.g. Lekki" />
               </View>
               <View style={styles.addButton}>
                 <Button
