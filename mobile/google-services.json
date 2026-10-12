@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "676780460896",
+    "project_id": "ileapp-e5f97",
+    "storage_bucket": "ileapp-e5f97.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676780460896:android:ea4ab309d493dd994cec05",
+        "android_client_info": {
+          "package_name": "ng.ile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHGONYOF2Do6vQv226qZ0ZFKE0KuVXfUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676780460896:android:db8afe794ec2360d4cec05",
+        "android_client_info": {
+          "package_name": "ng.ile.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHGONYOF2Do6vQv226qZ0ZFKE0KuVXfUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
