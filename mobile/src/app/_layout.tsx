@@ -6,6 +6,8 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
+import { Fraunces_500Medium } from "@expo-google-fonts/fraunces/500Medium";
+import { Fraunces_400Regular_Italic } from "@expo-google-fonts/fraunces/400Regular_Italic";
 import { Inter_400Regular } from "@expo-google-fonts/inter/400Regular";
 import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
 import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
@@ -29,7 +31,7 @@ function PushTaps() {
 const persistOptions = { persister, maxAge: PERSIST_MAX_AGE, dehydrateOptions: { shouldDehydrateQuery: shouldPersist } };
 
 export default function RootLayout() {
-  const [loaded, fontError] = useFonts({ Fraunces_600SemiBold, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
+  const [loaded, fontError] = useFonts({ Fraunces_600SemiBold, Fraunces_500Medium, Fraunces_400Regular_Italic, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
   // If fonts fail to load, carry on with system fonts rather than a blank screen.
   const ready = loaded || Boolean(fontError);
 
