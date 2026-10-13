@@ -57,3 +57,76 @@ export function seekerProgress(count) {
   const n = Math.max(0, Math.floor(Number(count) || 0));
   return { batches: Math.floor(n / 5), toNext: 5 - (n % 5) };
 }
+
+// --- Database calls (security-definer functions in referrals_boosts.sql) ---
+
+// True when the database doesn't have the function yet (SQL not run).
+function missingFunction(error) {
+  return error?.code === "PGRST202" || /could not find the function/i.test(error?.message || "");
+}
+
+export async function inviteCodeExists(client, code) {
+  const valid = normalizeCode(code);
+  if (!valid) return false;
+  const { data, error } = await client.rpc("invite_code_exists", { p_code: valid });
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
+// For a brand-new Google/Apple account: record who invited them.
+export async function claimInviteCode(client, code) {
+  const valid = normalizeCode(code);
+  if (!valid) return false;
+  const { data, error } = await client.rpc("claim_invite_code", { p_code: valid });
+  if (error) return false;
+  return Boolean(data);
+}
+
+// Tracking never gets in the way: failures are ignored.
+export async function recordShareVisit(client, { listingId, code, device }) {
+  const valid = normalizeCode(code);
+  if (!valid || !listingId || !device) return;
+  try {
+    await client.rpc("record_share_visit", { p_listing: listingId, p_code: valid, p_device: device });
+  } catch {}
+}
+
+export async function recordBookingRef(client, inspectionId, code) {
+  const valid = normalizeCode(code);
+  if (!valid || !inspectionId) return;
+  try {
+    await client.rpc("record_booking_ref", { p_inspection: inspectionId, p_code: valid });
+  } catch {}
+}
+
+// { code, balance, joined, listers, views, bookings, seekers_confirmed },
+// or null when the feature isn't set up in the database yet.
+export async function fetchReferralSummary(client) {
+  const { data, error } = await client.rpc("my_referral_summary");
+  if (error) {
+    if (missingFunction(error)) return null;
+    throw new Error(error.message);
+  }
+  return data || null;
+}
+
+// Returns the listing's new boosted_until.
+export async function spendBoostDays(client, listingId, days) {
+  const { data, error } = await client.rpc("spend_boost_days", { p_listing: listingId, p_days: days });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function fetchHeldRewards(client) {
+  const { data, error } = await client.rpc("admin_held_rewards");
+  if (error) {
+    if (missingFunction(error)) return [];
+    throw new Error(error.message);
+  }
+  return data || [];
+}
+
+export async function resolveHeldReward(client, id, approve) {
+  const { error } = await client.rpc("admin_resolve_reward", { p_id: id, p_approve: approve });
+  if (error) throw new Error(error.message);
+}
