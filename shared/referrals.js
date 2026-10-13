@@ -52,6 +52,13 @@ export function readRef(storage, now = Date.now()) {
   return null;
 }
 
+// The code to send with a new account: what the person typed (if anything),
+// otherwise the code they arrived with.
+export function signupInviteCode(typed, remembered) {
+  if (String(typed ?? "").trim()) return normalizeCode(typed);
+  return normalizeCode(remembered);
+}
+
 // Invited home-seekers earn boost days in batches of 5.
 export function seekerProgress(count) {
   const n = Math.max(0, Math.floor(Number(count) || 0));

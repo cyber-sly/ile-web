@@ -14,6 +14,7 @@ import MessageButton from "@/components/MessageButton";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SlotPicker from "@/components/SlotPicker";
 import { ACTIVE_STATUSES, fetchActiveViewing, fetchOpenSlots, requestViewing } from "@shared/viewings.js";
+import { readRefHere, recordBookingRef } from "@/lib/referrals";
 import { button } from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
@@ -314,6 +315,7 @@ function RequestForm({ listing, user, onBooked }) {
     setBooking(true);
     try {
       const data = await requestViewing(supabase, listing.id, user.id, date, time);
+      recordBookingRef(data?.id, readRefHere());
       setBooking(false);
       onBooked(data);
     } catch (err) {

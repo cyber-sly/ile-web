@@ -2,6 +2,7 @@ import { Fraunces, Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import MobileTabBar from "@/components/MobileTabBar";
 import Footer from "@/components/Footer";
+import RefCapture from "@/components/RefCapture";
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE, CONTACT_EMAIL } from "@/lib/site";
 import "./globals.css";
 
@@ -79,6 +80,7 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
       >
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_SCHEMA) }} />
+        <RefCapture />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

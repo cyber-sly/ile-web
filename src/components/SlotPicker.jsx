@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatTime, formatDateTime } from "@/lib/format";
 import { bookSlot, groupSlotsByDay } from "@shared/viewings.js";
+import { readRefHere, recordBookingRef } from "@/lib/referrals";
 import { button } from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { Zap } from "lucide-react";
@@ -41,6 +42,7 @@ export default function SlotPicker({ listingId, slots, onBooked }) {
       return;
     }
     setBooking(false);
+    recordBookingRef(id, readRefHere());
     onBooked({ id, status: "confirmed", preferred_date: date, preferred_time: time });
   }
 

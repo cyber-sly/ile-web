@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { PENDING_ROLE_KEY } from "@/lib/oauth";
+import { PENDING_INVITE_KEY, claimInviteCode, readRefHere } from "@/lib/referrals";
 import AuthShell, { safeNext } from "@/components/AuthShell";
 import { button } from "@/components/ui/Button";
 import { AlertCircle } from "lucide-react";
@@ -17,6 +18,17 @@ export default function AuthCallbackPage() {
       <Callback />
     </Suspense>
   );
+}
+
+// The invite code typed on the sign-up page, else the one they arrived with.
+function readPendingInvite() {
+  try {
+    const code = localStorage.getItem(PENDING_INVITE_KEY);
+    localStorage.removeItem(PENDING_INVITE_KEY);
+    return code || readRefHere();
+  } catch {
+    return null;
+  }
 }
 
 function readPendingRole() {
@@ -60,6 +72,8 @@ function Callback() {
         const fullName = meta.full_name || meta.name || "";
         await supabase.auth.updateUser({ data: { role, full_name: fullName } });
         await supabase.from("profiles").update({ role, full_name: fullName }).eq("id", user.id);
+        const invite = readPendingInvite();
+        if (invite) await claimInviteCode(invite);
       }
 
       const destination =

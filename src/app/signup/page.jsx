@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,7 +11,10 @@ import GoogleButton from "@/components/GoogleButton";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
-import { User, Mail, Lock, Search, Building2, MailCheck } from "lucide-react";
+import { User, Mail, Lock, Search, Building2, MailCheck, Gift } from "lucide-react";
+import { inviteCodeExists, readRefHere, signupInviteCode } from "@/lib/referrals";
+
+const UNKNOWN_CODE = "We couldn't find that invite code, so it wasn't added.";
 
 const ROLES = [
   { value: "tenant", icon: Search, title: "Find a place", body: "Rent or buy a home" },
@@ -38,6 +41,33 @@ function SignupForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [invite, setInvite] = useState("");
+  const [inviteNote, setInviteNote] = useState("");
+
+  // Pre-fill the code someone arrived with (from a shared link).
+  // Deferred so it runs after hydration (the code lives in this browser only).
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      const remembered = searchParams.get("ref") || readRefHere();
+      if (remembered) setInvite((typed) => typed || signupInviteCode(remembered, null) || "");
+    });
+    return () => cancelAnimationFrame(id);
+  }, [searchParams]);
+
+  // The code to send, or null. An unknown code is dropped with a note; sign-up
+  // still goes ahead. If the check itself fails, the code is left out quietly.
+  async function checkInvite() {
+    setInviteNote("");
+    const code = signupInviteCode(invite, null);
+    if (!invite.trim()) return null;
+    try {
+      if (code && (await inviteCodeExists(code))) return code;
+    } catch {
+      return null;
+    }
+    setInviteNote(UNKNOWN_CODE);
+    return null;
+  }
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -45,10 +75,11 @@ function SignupForm() {
     setLoading(true);
 
     setRememberMe(true);
+    const inviteCode = await checkInvite();
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, role } },
+      options: { data: { full_name: fullName, role, ...(inviteCode && { invite_code: inviteCode }) } },
     });
 
     if (signUpError) {
@@ -79,6 +110,7 @@ function SignupForm() {
           <p className="mt-3 text-ink">
             We sent a confirmation link to <strong>{email}</strong>. Open it to activate your account, then log in.
           </p>
+          {inviteNote && <p className="mt-3 text-sm text-ink-muted">{inviteNote}</p>}
           <Link
             href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
             className={button({ full: true, className: "mt-5" })}
@@ -127,7 +159,7 @@ function SignupForm() {
           </div>
         </fieldset>
 
-        <GoogleButton role={role} next={next} label="Sign up with Google" />
+        <GoogleButton role={role} next={next} label="Sign up with Google" inviteCode={signupInviteCode(invite, null)} />
 
         <Field
           label="Full name"
@@ -156,6 +188,21 @@ function SignupForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+        />
+        <Field
+          label="Invite code"
+          optional
+          icon={Gift}
+          autoCapitalize="characters"
+          autoComplete="off"
+          placeholder="e.g. TUNDE7"
+          value={invite}
+          onChange={(e) => {
+            setInvite(e.target.value);
+            setInviteNote("");
+          }}
+          onBlur={() => checkInvite()}
+          error={inviteNote || undefined}
         />
         {error && <Alert>{error}</Alert>}
         <button type="submit" disabled={loading} className={button({ size: "lg", full: true })}>

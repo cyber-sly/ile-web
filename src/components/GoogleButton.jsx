@@ -4,6 +4,7 @@ import { useState } from "react";
 import { friendlyError } from "@shared/errors.js";
 import { supabase, setRememberMe } from "@/lib/supabaseClient";
 import { PENDING_ROLE_KEY, useProviderEnabled } from "@/lib/oauth";
+import { PENDING_INVITE_KEY } from "@/lib/referrals";
 
 // Google's "G" mark, in its official colours.
 function GoogleMark() {
@@ -21,7 +22,7 @@ function GoogleMark() {
 // Google, then back to /auth/callback, which finishes setup and returns them
 // to `next`. `role` (signup page only) is remembered across the round trip.
 // Renders nothing until Google is enabled in Supabase.
-export default function GoogleButton({ next, role, remember = true, label = "Continue with Google" }) {
+export default function GoogleButton({ next, role, inviteCode, remember = true, label = "Continue with Google" }) {
   const enabled = useProviderEnabled("google");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -33,6 +34,8 @@ export default function GoogleButton({ next, role, remember = true, label = "Con
     try {
       if (role) localStorage.setItem(PENDING_ROLE_KEY, role);
       else localStorage.removeItem(PENDING_ROLE_KEY);
+      if (inviteCode) localStorage.setItem(PENDING_INVITE_KEY, inviteCode);
+      else localStorage.removeItem(PENDING_INVITE_KEY);
     } catch {}
 
     const callback = new URL("/auth/callback", window.location.origin);

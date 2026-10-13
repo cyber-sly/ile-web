@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeCode, shareMessage, inviteMessage, rememberRef, readRef, seekerProgress, fetchReferralSummary, recordShareVisit, spendBoostDays, inviteCodeExists } from "../referrals.js";
+import { normalizeCode, shareMessage, inviteMessage, rememberRef, readRef, seekerProgress, signupInviteCode, fetchReferralSummary, recordShareVisit, spendBoostDays, inviteCodeExists } from "../referrals.js";
 
 const SITE = "https://ile.test";
 const LISTING = { id: "l1", title: "2-bed flat", price: 350000, listing_type: "rent", lga: "Ikeja", state: "Lagos" };
@@ -98,4 +98,11 @@ test("inviteCodeExists normalises before asking", async () => {
   const none = fakeClient({ data: true, error: null });
   assert.equal(await inviteCodeExists(none, "bad-code"), false);
   assert.equal(none.calls.length, 0);
+});
+
+test("signupInviteCode prefers the typed code, falls back to the remembered one", () => {
+  assert.equal(signupInviteCode(" ade12 ", "TUNDE7"), "ADE12");
+  assert.equal(signupInviteCode("", "TUNDE7"), "TUNDE7");
+  assert.equal(signupInviteCode("not a code!", "TUNDE7"), null);
+  assert.equal(signupInviteCode("", null), null);
 });
