@@ -33,6 +33,8 @@ import { useSavedIds } from "@/lib/saved";
 import { useUnreadCount } from "@/lib/unread";
 import Screen from "@/components/Screen";
 import { Button, EmptyState } from "@/components/kit";
+import InviteCard from "@/components/InviteCard";
+import { useReferralSummary } from "@/lib/referrals";
 import { colors, fonts, radius } from "@/theme";
 
 const SITE = process.env.EXPO_PUBLIC_SITE_URL;
@@ -56,6 +58,7 @@ export default function AccountScreen() {
   const { user, loading } = useSession();
   const savedCount = useSavedIds().length;
   const unread = useUnreadCount(user?.id ?? null);
+  const referral = useReferralSummary(user?.id);
   const [busy, setBusy] = useState(false);
   const profile = useQuery({
     queryKey: ["my-profile", user?.id ?? ""],
@@ -169,6 +172,8 @@ export default function AccountScreen() {
             <Text style={styles.tileLabel}>Unread</Text>
           </Pressable>
         </View>
+
+        <InviteCard summary={referral.data ?? null} />
 
         <Text style={styles.section}>Profile and settings</Text>
         <View style={styles.group}>

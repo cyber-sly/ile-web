@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ImageOff } from "lucide-react-native";
 import { listingActions, takenStatus } from "@shared/lister.js";
-import { isAvailable, isExpired, isModerated, placeLabel, priceParts, STATUS_LABELS } from "@shared/property.js";
+import { isAvailable, isBoosted, isExpired, isModerated, placeLabel, priceParts, STATUS_LABELS } from "@shared/property.js";
 import { friendlyError } from "@shared/errors.js";
 import { colors, fonts, radius } from "@/theme";
 
@@ -15,12 +15,14 @@ type Props = {
   online: boolean;
   onUpdate: (changes: Record<string, string>) => Promise<void>;
   onDelete: () => Promise<void>;
+  onShare?: () => void;
+  onBoost?: () => void;
 };
 
 const confirmNow = () => ({ last_confirmed_at: new Date().toISOString() });
 
 // One of the lister's listings on the Dashboard, with its actions.
-export default function ListingRow({ listing: l, online, onUpdate, onDelete }: Props) {
+export default function ListingRow({ listing: l, online, onUpdate, onDelete, onShare, onBoost }: Props) {
   const actions = listingActions(l);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -96,6 +98,8 @@ export default function ListingRow({ listing: l, online, onUpdate, onDelete }: P
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <View style={styles.actions}>
+        {onShare && isAvailable(l) && <Small label="Share" onPress={onShare} />}
+        {onBoost && isAvailable(l) && <Small label={isBoosted(l) ? "Boosted" : "Boost"} disabled={!online} onPress={onBoost} />}
         {actions.edit && <Small label="Edit" onPress={() => router.push({ pathname: "/list/[id]/edit", params: { id: String(l.id) } })} />}
         {actions.times && <Small label="Viewing times" disabled={!online} onPress={() => router.push({ pathname: "/list/[id]/times", params: { id: String(l.id) } })} />}
         {actions.markTaken && <Small label={taken === "sold" ? "Mark as sold" : "Mark as let"} disabled={disabled} onPress={() => run(() => onUpdate({ status: taken }))} />}

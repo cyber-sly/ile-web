@@ -26,6 +26,10 @@ describe("shouldPersist", () => {
     expect(shouldPersist(query(["dashboard", "u1"]), scope)).toBe(true);
   });
 
+  test("keeps the referral summary", () => {
+    expect(shouldPersist(query(["referral-summary", "u1"]), scope)).toBe(true);
+  });
+
   test("keeps the Home tab newest listings", () => {
     expect(shouldPersist(query(["home-latest"]), scope)).toBe(true);
   });

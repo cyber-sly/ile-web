@@ -41,7 +41,19 @@ test("passes the role and 'Keep me logged in' to Google sign-in", async () => {
   await act(async () => {
     await r!.root.findByProps({ accessibilityLabel: "Continue with Google" }).props.onPress();
   });
-  expect(mockGoogle).toHaveBeenCalledWith("landlord", false);
+  expect(mockGoogle).toHaveBeenCalledWith("landlord", false, undefined);
+});
+
+test("passes the invite code to Google sign-in", async () => {
+  mockGoogle.mockImplementation(async () => ({ cancelled: true }));
+  let r: ReactTestRenderer;
+  act(() => {
+    r = create(<SocialButtons role="landlord" inviteCode="TUNDE7" />);
+  });
+  await act(async () => {
+    await r!.root.findByProps({ accessibilityLabel: "Continue with Google" }).props.onPress();
+  });
+  expect(mockGoogle).toHaveBeenCalledWith("landlord", true, "TUNDE7");
 });
 
 test("SocialButtons on top shows the buttons before the divider", () => {

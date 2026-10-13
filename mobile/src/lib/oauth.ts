@@ -6,6 +6,7 @@ import * as Crypto from "expo-crypto";
 import { supabase } from "./supabase";
 import { setRememberMe } from "./secureStore";
 import { parseAuthRedirect, providersEnabled, roleForNewUser, type Role } from "./oauthRules";
+import { claimInviteCode } from "./referrals";
 
 const REDIRECT = "ile://auth-callback";
 type Result = { ok: true } | { error: string } | { cancelled: true };
@@ -41,8 +42,9 @@ export function useSocialProviders() {
 }
 
 // First Google/Apple sign-in: record the role picked on the sign-up screen and
-// a name, on the auth account and the profile (like the website's /auth/callback).
-async function finishNewUser(chosen: Role | undefined, name?: string | null) {
+// a name, on the auth account and the profile (like the website's /auth/callback),
+// and who invited them.
+async function finishNewUser(chosen: Role | undefined, name?: string | null, inviteCode?: string | null) {
   const { data } = await supabase.auth.getUser();
   const user = data.user;
   if (!user) return;
@@ -51,11 +53,12 @@ async function finishNewUser(chosen: Role | undefined, name?: string | null) {
   const fullName = (name || user.user_metadata?.full_name || user.user_metadata?.name || "").trim();
   await supabase.auth.updateUser({ data: { role, full_name: fullName } });
   await supabase.from("profiles").update({ role, full_name: fullName }).eq("id", user.id);
+  if (inviteCode) await claimInviteCode(inviteCode);
   await supabase.auth.refreshSession();
 }
 
 // Google, through the phone's browser.
-export async function signInWithGoogle(chosen?: Role, remember = true): Promise<Result> {
+export async function signInWithGoogle(chosen?: Role, remember = true, inviteCode?: string | null): Promise<Result> {
   await setRememberMe(remember);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -68,12 +71,12 @@ export async function signInWithGoogle(chosen?: Role, remember = true): Promise<
   if ("cancelled" in parsed || "error" in parsed) return parsed;
   const { error: sessionError } = await supabase.auth.setSession({ access_token: parsed.accessToken, refresh_token: parsed.refreshToken });
   if (sessionError) return { error: sessionError.message };
-  await finishNewUser(chosen);
+  await finishNewUser(chosen, null, inviteCode);
   return { ok: true };
 }
 
 // Sign in with Apple (iPhone only). Apple shares the name only the first time.
-export async function signInWithApple(chosen?: Role, remember = true): Promise<Result> {
+export async function signInWithApple(chosen?: Role, remember = true, inviteCode?: string | null): Promise<Result> {
   await setRememberMe(remember);
   const rawNonce = Crypto.randomUUID();
   const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
@@ -86,7 +89,7 @@ export async function signInWithApple(chosen?: Role, remember = true): Promise<R
     const { error } = await supabase.auth.signInWithIdToken({ provider: "apple", token: credential.identityToken, nonce: rawNonce });
     if (error) return { error: error.message };
     const name = [credential.fullName?.givenName, credential.fullName?.familyName].filter(Boolean).join(" ");
-    await finishNewUser(chosen, name || null);
+    await finishNewUser(chosen, name || null, inviteCode);
     return { ok: true };
   } catch (e) {
     if ((e as { code?: string }).code === "ERR_REQUEST_CANCELED") return { cancelled: true };

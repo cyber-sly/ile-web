@@ -4,13 +4,16 @@ import { friendlyError } from "@shared/errors.js";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { Building2, Lock, Mail, MailCheck, Search, UserRound } from "lucide-react-native";
+import { Building2, Gift, Lock, Mail, MailCheck, Search, UserRound } from "lucide-react-native";
 import SocialButtons from "@/components/SocialButtons";
 import AuthScreen, { FooterLink, FormError, SIGNUP_PHOTO } from "@/components/AuthScreen";
 import { Button, Em, Field } from "@/components/kit";
 import { supabase } from "@/lib/supabase";
 import { setRememberMe } from "@/lib/secureStore";
 import { afterSignupRoute } from "@/lib/ui/home";
+import { inviteCodeExists, signupInviteCode } from "@/lib/referrals";
+
+const UNKNOWN_CODE = "We couldn't find that invite code, so it wasn't added.";
 import { colors, fonts, radius } from "@/theme";
 
 const SITE = process.env.EXPO_PUBLIC_SITE_URL;
@@ -21,7 +24,7 @@ const ROLES = [
 ] as const;
 
 export default function SignupScreen() {
-  const params = useLocalSearchParams<{ role?: string; next?: string }>();
+  const params = useLocalSearchParams<{ role?: string; next?: string; ref?: string }>();
   const next = afterSignupRoute(params.next);
   const [role, setRole] = useState<"tenant" | "landlord">(params.role === "landlord" ? "landlord" : "tenant");
   const [fullName, setFullName] = useState("");
@@ -30,6 +33,23 @@ export default function SignupScreen() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [invite, setInvite] = useState(() => signupInviteCode(params.ref, null) || "");
+  const [inviteNote, setInviteNote] = useState("");
+
+  // The code to send, or null. An unknown code is dropped with a note; sign-up
+  // still goes ahead. If the check itself fails, the code is left out quietly.
+  async function checkInvite() {
+    setInviteNote("");
+    if (!invite.trim()) return null;
+    const code = signupInviteCode(invite, null);
+    try {
+      if (code && (await inviteCodeExists(code))) return code;
+    } catch {
+      return null;
+    }
+    setInviteNote(UNKNOWN_CODE);
+    return null;
+  }
 
   async function signUp() {
     setError("");
@@ -39,10 +59,11 @@ export default function SignupScreen() {
     }
     setBusy(true);
     await setRememberMe(true);
+    const inviteCode = await checkInvite();
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: fullName.trim(), role } },
+      options: { data: { full_name: fullName.trim(), role, ...(inviteCode && { invite_code: inviteCode }) } },
     });
     setBusy(false);
     if (signUpError) {
@@ -65,6 +86,7 @@ export default function SignupScreen() {
           <Text style={styles.body}>
             We sent a confirmation link to <Text style={styles.strong}>{email.trim()}</Text>. Open it to activate your account, then log in.
           </Text>
+          {inviteNote ? <Text style={styles.muted}>{inviteNote}</Text> : null}
           <Button label="Go to log in" onPress={() => router.replace("/login")} />
         </View>
       </AuthScreen>
@@ -103,7 +125,7 @@ export default function SignupScreen() {
           })}
         </View>
       </View>
-      <SocialButtons role={role} placement="top" googleLabel="Sign up with Google" next={next} />
+      <SocialButtons role={role} placement="top" googleLabel="Sign up with Google" next={next} inviteCode={signupInviteCode(invite, null)} />
       <Field label="Full name" icon={UserRound} value={fullName} onChangeText={setFullName} autoComplete="name" textContentType="name" />
       <Field
         label="Email"
@@ -124,6 +146,21 @@ export default function SignupScreen() {
         autoComplete="new-password"
         textContentType="newPassword"
         hint={`At least ${MIN_PASSWORD} characters.`}
+      />
+      <Field
+        label="Invite code"
+        optional
+        icon={Gift}
+        value={invite}
+        onChangeText={(v) => {
+          setInvite(v);
+          setInviteNote("");
+        }}
+        onBlur={() => checkInvite()}
+        autoCapitalize="characters"
+        autoCorrect={false}
+        placeholder="e.g. TUNDE7"
+        error={inviteNote || undefined}
       />
       {error ? <FormError>{error}</FormError> : null}
       <Button label={busy ? "Creating account…" : "Create account"} loading={busy} onPress={signUp} disabled={!fullName || !email || !password} />
@@ -161,6 +198,7 @@ const styles = StyleSheet.create({
   notice: { gap: 12, padding: 20, borderRadius: radius.card, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
   body: { fontFamily: fonts.sans, fontSize: 16, color: colors.ink, lineHeight: 22 },
   strong: { fontFamily: fonts.sansSemi },
+  muted: { fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
   terms: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 17, color: colors.inkMuted, textAlign: "center", marginTop: -6 },
   termsLink: { fontFamily: fonts.sansSemi, color: colors.palm },
 });

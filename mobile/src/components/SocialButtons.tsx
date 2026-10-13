@@ -16,12 +16,14 @@ export default function SocialButtons({
   placement = "bottom",
   googleLabel = "Continue with Google",
   next,
+  inviteCode,
 }: {
   role?: Role;
   remember?: boolean;
   placement?: "top" | "bottom";
   googleLabel?: string;
   next?: "/list/new" | null;
+  inviteCode?: string | null;
 }) {
   const providers = useSocialProviders();
   const [busy, setBusy] = useState(false);
@@ -29,12 +31,14 @@ export default function SocialButtons({
 
   if (!providers.google && !providers.apple) return null;
 
-  async function run(signIn: (role?: Role, remember?: boolean) => Promise<{ ok: true } | { error: string } | { cancelled: true }>) {
+  async function run(
+    signIn: (role?: Role, remember?: boolean, inviteCode?: string | null) => Promise<{ ok: true } | { error: string } | { cancelled: true }>
+  ) {
     if (busy) return;
     setBusy(true);
     setError("");
     try {
-      const result = await signIn(role, remember);
+      const result = await signIn(role, remember, inviteCode);
       if ("error" in result) setError(friendlyError(result.error));
       else if ("ok" in result) {
         if (router.canDismiss()) router.dismissAll();

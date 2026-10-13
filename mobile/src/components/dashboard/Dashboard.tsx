@@ -14,6 +14,10 @@ import { useSession } from "@/lib/useSession";
 import RequestCard, { type RequestRow } from "@/components/dashboard/RequestCard";
 import ListingRow, { type ListingRowData } from "@/components/dashboard/ListingRow";
 import CounterSheet from "@/components/dashboard/CounterSheet";
+import ShareStats from "@/components/dashboard/ShareStats";
+import BoostSheet from "@/components/dashboard/BoostSheet";
+import ShareSheet from "@/components/ShareSheet";
+import { useReferralSummary } from "@/lib/referrals";
 import { Button, EmptyState, PageTitle, RowSkeleton, Skeleton } from "@/components/kit";
 import NotificationsCard from "@/components/NotificationsCard";
 import { useOnline } from "@/components/OfflineBanner";
@@ -51,6 +55,9 @@ export default function Dashboard() {
   const key = ["dashboard", userId];
   const dashboard = useQuery({ queryKey: key, queryFn: () => fetchDashboard(userId), enabled: Boolean(userId) });
   const [countering, setCountering] = useState<RequestRow | null>(null);
+  const [sharing, setSharing] = useState<ListingRowData | null>(null);
+  const [boosting, setBoosting] = useState<ListingRowData | null>(null);
+  const summary = useReferralSummary(userId);
   const requestIds = (dashboard.data?.requests || []).map((r) => String(r.id));
   const reviewed = useQuery({
     queryKey: ["reviewed", userId, requestIds.join(",")],
@@ -172,7 +179,15 @@ export default function Dashboard() {
           </EmptyState>
         ) : (
           (d?.listings || []).map((l) => (
-            <ListingRow key={l.id} listing={l} online={online} onUpdate={(c) => changeListing(l, c)} onDelete={() => removeListing(l)} />
+            <ListingRow
+              key={l.id}
+              listing={l}
+              online={online}
+              onUpdate={(c) => changeListing(l, c)}
+              onDelete={() => removeListing(l)}
+              onShare={() => setSharing(l)}
+              onBoost={summary.data ? () => setBoosting(l) : undefined}
+            />
           ))
         )}
 
@@ -197,8 +212,20 @@ export default function Dashboard() {
           <Button label="List a property" size="sm" full={false} icon={Plus} onPress={() => router.push("/list/new")} />
         </View>
         <NotificationsCard />
+        <ShareStats summary={summary.data ?? null} />
         {body}
       </ScrollView>
+      {sharing && <ShareSheet listing={sharing} code={summary.data?.code ?? null} visible onClose={() => setSharing(null)} />}
+      <BoostSheet
+        key={boosting ? String(boosting.id) : "none"}
+        listing={boosting ? { id: String(boosting.id), title: String(boosting.title) } : null}
+        balance={summary.data?.balance ?? 0}
+        onDone={() => {
+          queryClient.invalidateQueries({ queryKey: key });
+          summary.refetch();
+        }}
+        onClose={() => setBoosting(null)}
+      />
       <CounterSheet
         visible={countering !== null}
         onClose={() => setCountering(null)}

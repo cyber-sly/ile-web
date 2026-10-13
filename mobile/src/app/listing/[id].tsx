@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ReportSheet from "@/components/ReportSheet";
 import { useSession } from "@/lib/useSession";
-import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
@@ -9,7 +9,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Check, CircleAlert, Flag, MapPin, PlayCircle, Share2, ShieldCheck, WifiOff } from "lucide-react-native";
 import { detailFacts, fullPlace, isBoosted, priceParts } from "@shared/property.js";
 import { supabase } from "@/lib/supabase";
-import { fetchListing, fetchSimilar, listingPhotos, listingState, listingUrl } from "@/lib/listing";
+import { fetchListing, fetchSimilar, listingPhotos, listingState } from "@/lib/listing";
+import { useReferralSummary } from "@/lib/referrals";
+import ShareSheet from "@/components/ShareSheet";
 import { addRecent } from "@/lib/recent";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import MoveInCost from "@/components/MoveInCost";
@@ -29,6 +31,8 @@ export default function ListingScreen() {
   const online = useOnline();
   const { user } = useSession();
   const [reporting, setReporting] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const summary = useReferralSummary(user?.id);
   const listingQuery = useQuery({ queryKey: ["listing", id], queryFn: () => fetchListing(supabase, id) });
   const listing = listingQuery.data ?? null;
   const similarQuery = useQuery({
@@ -44,12 +48,8 @@ export default function ListingScreen() {
     Image.prefetch(listingPhotos(listing).slice(0, 6), { cachePolicy: "disk" }).catch(() => {});
   }, [listing]);
 
-  async function share() {
-    if (!listing) return;
-    const url = listingUrl(String(listing.id));
-    try {
-      await Share.share({ message: `${listing.title}\n${url}`, url });
-    } catch {}
+  function share() {
+    if (listing) setSharing(true);
   }
 
   const header = (
@@ -241,6 +241,7 @@ export default function ListingScreen() {
       )}
     </ScrollView>
     <ListingActions listing={listing} />
+    <ShareSheet listing={listing} code={summary.data?.code ?? null} visible={sharing} onClose={() => setSharing(false)} />
     </View>
   );
 }
