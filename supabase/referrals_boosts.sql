@@ -19,7 +19,6 @@ create index if not exists profiles_referred_by_idx on public.profiles (referred
 alter table public.listings add column if not exists boosted_until timestamptz;
 create index if not exists listings_boosted_until_idx on public.listings (boosted_until) where boosted_until is not null;
 
-alter table public.inspections add column if not exists ref_code text;
 
 -- ---------------------------------------------------------------------------
 -- Codes
@@ -208,10 +207,19 @@ create index if not exists share_visits_code_idx on public.share_visits (code);
 alter table public.share_visits enable row level security;
 -- No policies: only the functions below read or write it.
 
-create index if not exists inspections_ref_code_idx on public.inspections (ref_code) where ref_code is not null;
+-- Which code a booking came through. Kept apart from inspections so the
+-- booking rules (guard_inspection_update) are never involved.
+create table if not exists public.booking_refs (
+  inspection_id uuid primary key references public.inspections (id) on delete cascade,
+  code text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists booking_refs_code_idx on public.booking_refs (code);
+alter table public.booking_refs enable row level security;
+-- No policies: only the functions below read or write it.
 
--- Owners can edit their listings, and tenants their viewings, but only the
--- functions below may change boosted_until and ref_code.
+-- Owners can edit their listings, but only the functions below may change
+-- boosted_until.
 create or replace function public.ile_guard_listing_boost()
 returns trigger
 language plpgsql
@@ -234,27 +242,8 @@ create trigger ile_guard_listing_boost
 before insert or update on public.listings
 for each row execute function public.ile_guard_listing_boost();
 
-create or replace function public.ile_guard_inspection_ref()
-returns trigger
-language plpgsql
-set search_path = public
-as $$
-begin
-  if coalesce(current_setting('ile.ref', true), '') <> 'on' then
-    if tg_op = 'INSERT' then
-      new.ref_code := null;
-    elsif new.ref_code is distinct from old.ref_code then
-      new.ref_code := old.ref_code;
-    end if;
-  end if;
-  return new;
-end;
-$$;
-
 drop trigger if exists ile_guard_inspection_ref on public.inspections;
-create trigger ile_guard_inspection_ref
-before insert or update on public.inspections
-for each row execute function public.ile_guard_inspection_ref();
+drop function if exists public.ile_guard_inspection_ref();
 
 -- One visit per listing, code, device and day (Lagos time).
 create or replace function public.record_share_visit(p_listing uuid, p_code text, p_device text)
@@ -299,10 +288,12 @@ begin
   if not exists (select 1 from public.profiles where invite_code = v_code and id <> auth.uid()) then
     return;
   end if;
-  perform set_config('ile.ref', 'on', true);
-  update public.inspections
-  set ref_code = v_code
-  where id = p_inspection and tenant_id = auth.uid() and ref_code is null;
+  if not exists (select 1 from public.inspections where id = p_inspection and tenant_id = auth.uid()) then
+    return;
+  end if;
+  insert into public.booking_refs (inspection_id, code)
+  values (p_inspection, v_code)
+  on conflict (inspection_id) do nothing;
 end;
 $$;
 
@@ -347,7 +338,7 @@ begin
         )
     ),
     'views', (select count(*) from public.share_visits where code = v_code),
-    'bookings', (select count(*) from public.inspections where ref_code = v_code)
+    'bookings', (select count(*) from public.booking_refs where code = v_code)
   );
 end;
 $$;
@@ -440,12 +431,25 @@ begin
     and created_at >= v_month_start;
   v_days := greatest(0, least(p_days, 30 - v_earned));
 
-  if (
-    select count(*)
-    from public.profiles p
-    join auth.users u on u.id = p.id
-    where p.referred_by = p_user and u.email_confirmed_at > now() - interval '1 hour'
-  ) > 10 then
+  -- More than 10 confirmed sign-ups through this code within any hour. Runs
+  -- are hourly, so every window starting in the last 2 hours is checked.
+  if exists (
+    select 1
+    from (
+      select u.email_confirmed_at as t
+      from public.profiles p
+      join auth.users u on u.id = p.id
+      where p.referred_by = p_user and u.email_confirmed_at > now() - interval '2 hours'
+    ) s
+    where (
+      select count(*)
+      from public.profiles p2
+      join auth.users u2 on u2.id = p2.id
+      where p2.referred_by = p_user
+        and u2.email_confirmed_at >= s.t
+        and u2.email_confirmed_at < s.t + interval '1 hour'
+    ) > 10
+  ) then
     v_status := 'held';
   end if;
 

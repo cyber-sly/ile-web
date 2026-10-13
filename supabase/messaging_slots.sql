@@ -30,25 +30,9 @@ grant select (id, full_name, role, created_at) on public.profiles to anon, authe
 -- are accepted and the name is capped at the profile limit. Kept identical
 -- to supabase/fix_signup_trigger.sql, which also removes the project's
 -- older duplicate trigger.
-create or replace function public.ile_handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  requested text := new.raw_user_meta_data ->> 'role';
-begin
-  insert into public.profiles (id, full_name, role)
-  values (
-    new.id,
-    left(coalesce(new.raw_user_meta_data ->> 'full_name', ''), 80),
-    case when requested in ('tenant', 'landlord') then requested else 'tenant' end
-  )
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
+-- public.ile_handle_new_user() is defined in supabase/referrals_boosts.sql
+-- (it also records invite codes). It is not repeated here, so re-running this
+-- file can never bring back an older version.
 
 drop trigger if exists ile_on_auth_user_created on auth.users;
 create trigger ile_on_auth_user_created

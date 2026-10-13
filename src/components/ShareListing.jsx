@@ -12,7 +12,7 @@ import { button } from "@/components/ui/Button";
 export default function ShareListing({ listing, user, onClose }) {
   const [code, setCode] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [imageHint, setImageHint] = useState(false);
+  const [prepared, setPrepared] = useState(null); // { url, file }
 
   useEffect(() => {
     let live = true;
@@ -35,6 +35,23 @@ export default function ShareListing({ listing, user, onClose }) {
   const message = shareMessage({ listing, site: SITE_URL, code });
   const image = cardUrl({ site: SITE_URL, listingId: listing.id, code });
 
+  // Fetch the picture as soon as the dialog opens, so tapping can share it
+  // straight away (phones only allow sharing right after a tap).
+  useEffect(() => {
+    let live = true;
+    fetch(image)
+      .then((res) => (res.ok ? res.blob() : null))
+      .then((blob) => {
+        if (!live || !blob) return;
+        const f = new File([blob], "ile-listing.png", { type: "image/png" });
+        if (navigator.canShare?.({ files: [f] })) setPrepared({ url: image, file: f });
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [image]);
+
   async function sendLink() {
     if (navigator.share) {
       try {
@@ -51,19 +68,11 @@ export default function ShareListing({ listing, user, onClose }) {
     } catch {}
   }
 
-  async function postImage() {
-    try {
-      const blob = await (await fetch(image)).blob();
-      const file = new File([blob], "ile-listing.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text: message });
-        return;
-      }
-    } catch {
-      // fall through to opening the picture
-    }
-    window.open(image, "_blank", "noopener");
-    setImageHint(true);
+  // Only the picture made for the current link (the code can arrive later).
+  const file = prepared?.url === image ? prepared.file : null;
+
+  function postImage() {
+    navigator.share({ files: [file], text: message }).catch(() => {});
   }
 
   return (
@@ -89,11 +98,17 @@ export default function ShareListing({ listing, user, onClose }) {
             {copied ? <Check size={18} aria-hidden="true" /> : <Link2 size={18} aria-hidden="true" />}
             {copied ? "Link copied" : "Send link"}
           </button>
-          <button type="button" onClick={postImage} className={button({ variant: "secondary", size: "lg", full: true })}>
-            <ImageIcon size={18} aria-hidden="true" /> Post to Status / Stories
-          </button>
-          {imageHint && (
-            <p className="text-sm text-ink-muted">The picture opened in a new tab. Long-press or right-click it to save, then post it.</p>
+          {file ? (
+            <button type="button" onClick={postImage} className={button({ variant: "secondary", size: "lg", full: true })}>
+              <ImageIcon size={18} aria-hidden="true" /> Post to Status / Stories
+            </button>
+          ) : (
+            <>
+              <a href={image} target="_blank" rel="noopener noreferrer" className={button({ variant: "secondary", size: "lg", full: true })}>
+                <ImageIcon size={18} aria-hidden="true" /> Post to Status / Stories
+              </a>
+              <p className="text-sm text-ink-muted">Opens the picture. Long-press or right-click it to save, then post it.</p>
+            </>
           )}
         </div>
       </div>

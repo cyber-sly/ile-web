@@ -110,3 +110,42 @@ test("fetchLatestListings orders boosted listings first", async () => {
   assert.equal(orders[0][1], "boosted_until");
   assert.equal(orders[1][1], "created_at");
 });
+
+// Before supabase/referrals_boosts.sql is run, listings has no boosted_until.
+function clientMissingBoostColumn() {
+  const runs = [];
+  return {
+    runs,
+    from: () => {
+      const calls = [];
+      runs.push(calls);
+      const builder = new Proxy({}, {
+        get: (_, method) =>
+          method === "then"
+            ? (resolve) =>
+                resolve(
+                  calls.some((c) => c[0] === "order" && c[1] === "boosted_until")
+                    ? { data: null, count: null, error: { code: "42703", message: "column listings.boosted_until does not exist" } }
+                    : { data: [{ id: "l1" }], count: 1, error: null }
+                )
+            : (...args) => {
+                calls.push([method, ...args]);
+                return builder;
+              },
+      });
+      return builder;
+    },
+  };
+}
+
+test("search still works before the boost column exists", async () => {
+  const client = clientMissingBoostColumn();
+  const { data, error } = await buildQuery(client, { tab: "rent" });
+  assert.equal(error, null);
+  assert.deepEqual(data, [{ id: "l1" }]);
+});
+
+test("Fresh on Ile still works before the boost column exists", async () => {
+  const rows = await fetchLatestListings(clientMissingBoostColumn());
+  assert.deepEqual(rows, [{ id: "l1" }]);
+});

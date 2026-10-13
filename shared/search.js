@@ -51,7 +51,17 @@ function clean(text) {
 
 // `client` is a Supabase client (web or mobile), passed in so this file
 // stays free of platform code.
-export function buildQuery(client, f, page = 0) {
+// Until supabase/referrals_boosts.sql has been run there is no boosted_until
+// column; searches then run without the boost ordering instead of failing.
+const missingBoostColumn = (error) => error?.code === "42703" && /boosted_until/.test(error.message || "");
+
+// Runs the search: { data, count, error }.
+export async function buildQuery(client, f, page = 0) {
+  const result = await searchQuery(client, f, page, true);
+  return missingBoostColumn(result.error) ? searchQuery(client, f, page, false) : result;
+}
+
+function searchQuery(client, f, page, boostFirst) {
   let query = client
     .from("listings")
     .select("*", { count: "exact" })
@@ -82,7 +92,7 @@ export function buildQuery(client, f, page = 0) {
 
   // Boosted listings first while their boost lasts (expired ones are cleared
   // every few minutes by the database), then the chosen order.
-  query = query.order("boosted_until", { ascending: false, nullsFirst: false });
+  if (boostFirst) query = query.order("boosted_until", { ascending: false, nullsFirst: false });
   if (f.sort === "low") query = query.order("price", { ascending: true });
   else if (f.sort === "high") query = query.order("price", { ascending: false });
   else query = query.order("created_at", { ascending: false });
@@ -106,14 +116,13 @@ export function applyFilterChange(filters, changes) {
 
 // The newest fresh listings ("Fresh on Ile" on the home page).
 export async function fetchLatestListings(client, limit = 8) {
-  const { data, error } = await client
-    .from("listings")
-    .select("*")
-    .eq("status", "active")
-    .gte("last_confirmed_at", freshCutoff())
-    .order("boosted_until", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const latest = (boostFirst) => {
+    let query = client.from("listings").select("*").eq("status", "active").gte("last_confirmed_at", freshCutoff());
+    if (boostFirst) query = query.order("boosted_until", { ascending: false, nullsFirst: false });
+    return query.order("created_at", { ascending: false }).limit(limit);
+  };
+  let { data, error } = await latest(true);
+  if (missingBoostColumn(error)) ({ data, error } = await latest(false));
   if (error) throw new Error(error.message);
   return data || [];
 }

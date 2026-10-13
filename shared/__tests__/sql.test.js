@@ -29,3 +29,33 @@ test("every SQL function body is quoted with $$ on both ends", () => {
     assert.equal(opens, closes, `${file}: ${opens} bodies opened, ${closes} closed`);
   }
 });
+
+// guard_inspection_update (review_fixes.sql) rejects tenant updates that keep
+// the status, so booking credit must not be written onto inspections rows.
+test("booking credit is stored without updating the booking", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "referrals_boosts.sql"), "utf8");
+  const body = sql.match(/function public\.record_booking_ref[\s\S]*?\n\$\$;/)?.[0] || "";
+  assert.ok(body, "record_booking_ref is defined");
+  assert.doesNotMatch(body, /update public\.inspections/i);
+  assert.match(body, /insert into public\.booking_refs/i);
+});
+
+// Re-running an older migration must not bring back a new-user function that
+// forgets invite codes; only referrals_boosts.sql defines it now.
+test("only referrals_boosts.sql defines the new-user function, and it records who invited them", () => {
+  const dir = join(import.meta.dirname, "..", "..", "supabase");
+  const definers = readdirSync(dir)
+    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => /create or replace function public\.ile_handle_new_user/i.test(readFileSync(join(dir, f), "utf8")));
+  assert.deepEqual(definers, ["referrals_boosts.sql"]);
+  assert.match(readFileSync(join(dir, "referrals_boosts.sql"), "utf8"), /referred_by/);
+});
+
+// Rewards are checked hourly, so a burst of sign-ups can straddle two runs.
+// The hold rule looks at every 1-hour window starting in the last 2 hours.
+test("held-reward check looks at any 1-hour window in the last 2 hours", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "referrals_boosts.sql"), "utf8");
+  const body = sql.match(/function public\.ile_add_reward[\s\S]*?\n\$\$;/)?.[0] || "";
+  assert.match(body, /interval '2 hours'/);
+  assert.match(body, /s\.t \+ interval '1 hour'/);
+});
