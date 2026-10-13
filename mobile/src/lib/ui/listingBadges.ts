@@ -1,10 +1,10 @@
-import { categoryOf, typeLabel } from "@shared/property.js";
+import { categoryOf, isBoosted, typeLabel } from "@shared/property.js";
 
 type Listing = Record<string, any>;
 
 // Badges on a card's photo, in the website's order (PropertyCard.jsx).
 export function listingBadges(listing: Listing): ("boosted" | "type")[] {
-  return listing.is_boosted ? ["boosted", "type"] : ["type"];
+  return isBoosted(listing) ? ["boosted", "type"] : ["type"];
 }
 
 // The small gold line above the price ("RESIDENTIAL LAND"), shown for land and

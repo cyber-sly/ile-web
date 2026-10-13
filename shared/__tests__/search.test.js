@@ -84,3 +84,29 @@ test("listingsHeading names the place, the search text or Nigeria", () => {
   assert.equal(listingsHeading(f({ tab: "land", state: "Lagos", lga: "Eti-Osa" })), "Land in Eti-Osa, Lagos");
   assert.equal(listingsHeading(f({ tab: "rent", q: "Lekki" })), 'Homes for rent matching "Lekki"');
 });
+
+test("buildQuery orders boosted listings first", () => {
+  const client = fakeClient();
+  buildQuery(client, { tab: "rent", sort: "low" });
+  const orders = client.calls.filter((c) => c[0] === "order");
+  assert.equal(orders[0][1], "boosted_until");
+  assert.deepEqual(orders[0][2], { ascending: false, nullsFirst: false });
+  assert.equal(orders[1][1], "price");
+});
+
+test("fetchLatestListings orders boosted listings first", async () => {
+  const calls = [];
+  const builder = new Proxy({}, {
+    get: (_, method) =>
+      method === "then"
+        ? (resolve) => resolve({ data: [], error: null })
+        : (...args) => {
+            calls.push([method, ...args]);
+            return builder;
+          },
+  });
+  await fetchLatestListings({ from: () => builder });
+  const orders = calls.filter((c) => c[0] === "order");
+  assert.equal(orders[0][1], "boosted_until");
+  assert.equal(orders[1][1], "created_at");
+});

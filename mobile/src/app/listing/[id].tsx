@@ -7,7 +7,7 @@ import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { useQuery } from "@tanstack/react-query";
 import { Check, CircleAlert, Flag, MapPin, PlayCircle, Share2, ShieldCheck, WifiOff } from "lucide-react-native";
-import { detailFacts, fullPlace, priceParts } from "@shared/property.js";
+import { detailFacts, fullPlace, isBoosted, priceParts } from "@shared/property.js";
 import { supabase } from "@/lib/supabase";
 import { fetchListing, fetchSimilar, listingPhotos, listingState, listingUrl } from "@/lib/listing";
 import { addRecent } from "@/lib/recent";
@@ -133,7 +133,7 @@ export default function ListingScreen() {
           <ListingTypeBadge type={listing.listing_type} />
           {listing.serviced ? <ServicedBadge /> : null}
           {listing.is_verified ? <VerifiedBadge /> : null}
-          {listing.is_boosted ? <BoostedBadge /> : null}
+          {isBoosted(listing) ? <BoostedBadge /> : null}
         </View>
         <Text style={styles.title} accessibilityRole="header">
           {listing.title}

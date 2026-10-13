@@ -12,7 +12,11 @@ describe("categoryLine", () => {
 
 describe("listingBadges", () => {
   test("puts boosted before the type badge", () => {
-    expect(listingBadges({ is_boosted: true })).toEqual(["boosted", "type"]);
+    expect(listingBadges({ boosted_until: new Date(Date.now() + 86400000).toISOString() })).toEqual(["boosted", "type"]);
     expect(listingBadges({})).toEqual(["type"]);
+  });
+
+  test("listingBadges shows boosted only while boosted_until is in the future", () => {
+    expect(listingBadges({ boosted_until: new Date(Date.now() - 60000).toISOString(), is_boosted: true })).toEqual(["type"]);
   });
 });

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MapPin, ImageOff } from "lucide-react";
 import { ListingTypeBadge, VerifiedBadge, BoostedBadge } from "@/components/ui/Badge";
 import SaveButton from "@/components/SaveButton";
-import { priceParts, placeLabel, keyFacts, typeLabel, listerLabel, categoryOf } from "@/lib/property";
+import { priceParts, placeLabel, keyFacts, typeLabel, listerLabel, categoryOf, isBoosted } from "@/lib/property";
 
 // One card for every listing grid. The save button sits beside the link, not
 // inside it, so there are no nested interactive elements.
@@ -31,7 +31,7 @@ export default function PropertyCard({ listing, priority = false }) {
             </div>
           )}
           <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-            {listing.is_boosted && <BoostedBadge />}
+            {isBoosted(listing) && <BoostedBadge />}
             <ListingTypeBadge type={listing.listing_type} />
           </div>
         </div>

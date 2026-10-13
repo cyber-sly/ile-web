@@ -8,6 +8,7 @@ import { useUser } from "@/lib/useUser";
 import { stateLabel } from "@/lib/nigeria";
 import {
   categoryOf, priceParts, fullPlace, detailFacts, isAvailable, freshCutoff, isExpired, isModerated,
+  isBoosted,
 } from "@/lib/property";
 import Lightbox from "@/components/Lightbox";
 import PhotoGallery from "@/components/PhotoGallery";
@@ -211,7 +212,7 @@ export default function ListingDetail({ initialListing }) {
               {!available && <Badge tone="clay">{listing.status === "sold" ? "Sold" : "Let"}</Badge>}
               {listing.serviced && <Badge tone="palm" icon={Sparkles}>Serviced</Badge>}
               {listing.is_verified && <VerifiedBadge />}
-              {listing.is_boosted && <BoostedBadge />}
+              {isBoosted(listing) && <BoostedBadge />}
             </div>
             <h1 className="mt-3 font-serif text-3xl font-semibold leading-tight tracking-tight text-ink md:text-[2.75rem]">
               {listing.title}

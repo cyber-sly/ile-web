@@ -25,7 +25,7 @@ describe("PropertyCard", () => {
   });
 
   test("shows For rent and Boosted badges on the photo, and no gold line for homes", () => {
-    const t = texts(render({ category: "homes", listing_type: "rent", property_type: "flat", is_boosted: true, bedrooms: 2 }));
+    const t = texts(render({ category: "homes", listing_type: "rent", property_type: "flat", boosted_until: new Date(Date.now() + 86400000).toISOString(), bedrooms: 2 }));
     expect(t).toContain("For rent");
     expect(t).toContain("Boosted");
     expect(t).not.toContain("FLAT / APARTMENT");
