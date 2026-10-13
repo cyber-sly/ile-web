@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
 import { formatDateTime } from "@/lib/format";
-import { priceParts, placeLabel, isAvailable, isModerated, isExpired, needsConfirming, STATUS_LABELS } from "@/lib/property";
+import { priceParts, placeLabel, isAvailable, isModerated, isExpired, needsConfirming, isBoosted, STATUS_LABELS } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
 import Field from "@/components/ui/Field";
@@ -20,9 +20,12 @@ import { canReview, fetchRatings, fetchReviewedIds, viewingDateReached } from "@
 import ReviewForm from "@/components/ReviewForm";
 import { RatingSummary } from "@/components/Stars";
 import {
-  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, ChevronRight, Share2,
+  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, ChevronRight, Share2, Rocket,
 } from "lucide-react";
 import ShareListing from "@/components/ShareListing";
+import ShareStats from "@/components/ShareStats";
+import BoostDialog from "@/components/BoostDialog";
+import { fetchReferralSummary } from "@/lib/referrals";
 
 const GROUPS = [
   { key: "reply", title: "Needs your reply", statuses: ["pending"] },
@@ -36,6 +39,20 @@ export default function DashboardPage() {
 
   const [listings, setListings] = useState([]);
   const [sharing, setSharing] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [boosting, setBoosting] = useState(null);
+
+  // Share stats and boost days (null until the feature is set up).
+  useEffect(() => {
+    if (!user) return;
+    let live = true;
+    fetchReferralSummary()
+      .then((s) => live && setSummary(s))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [user, boosting]);
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -268,6 +285,15 @@ export default function DashboardPage() {
         {/* Listings */}
         <section aria-labelledby="listings-heading">
           {sharing && <ShareListing listing={sharing} user={user} onClose={() => setSharing(null)} />}
+          {boosting && summary && (
+            <BoostDialog
+              listing={boosting}
+              balance={summary.balance}
+              onDone={(id, until) => setListings((all) => all.map((x) => (x.id === id ? { ...x, boosted_until: until } : x)))}
+              onClose={() => setBoosting(null)}
+            />
+          )}
+          <ShareStats summary={summary} />
           <h2 id="listings-heading" className="font-serif text-2xl font-semibold text-ink">
             Your listings
           </h2>
@@ -348,6 +374,15 @@ export default function DashboardPage() {
                           className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
                         >
                           <Share2 size={14} aria-hidden="true" /> Share
+                        </button>
+                      )}
+                      {isAvailable(l) && summary && (
+                        <button
+                          type="button"
+                          onClick={() => setBoosting(l)}
+                          className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
+                        >
+                          <Rocket size={14} aria-hidden="true" /> {isBoosted(l) ? "Boosted" : "Boost"}
                         </button>
                       )}
                       {listingActions(l).markTaken ? (

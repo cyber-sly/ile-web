@@ -3,7 +3,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import * as rules from "@shared/referrals.js";
 
-export { normalizeCode, shareMessage, shareUrl, cardUrl, inviteMessage, seekerProgress, signupInviteCode } from "@shared/referrals.js";
+export { normalizeCode, shareMessage, shareUrl, cardUrl, inviteMessage, seekerProgress, signupInviteCode, statsLine } from "@shared/referrals.js";
 
 export const PENDING_INVITE_KEY = "ile:pending-invite";
 const DEVICE_KEY = "ile:device";

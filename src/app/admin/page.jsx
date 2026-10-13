@@ -11,6 +11,7 @@ import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import { ShieldCheck, ImageOff, ExternalLink, Trash2, RotateCcw, X } from "lucide-react";
+import HeldRewards from "@/components/HeldRewards";
 
 const reasonLabel = (v) => REPORT_REASONS.find((r) => r.value === v)?.label || v;
 
@@ -134,6 +135,8 @@ export default function AdminPage() {
         Reported listings, most-reported first. Three reports from different people hide a listing automatically.
       </p>
       {(error || data.error) && <Alert className="mt-6">{error || data.error}</Alert>}
+
+      <HeldRewards />
 
       <section className="mt-8">
         <h2 className="font-serif text-2xl font-semibold text-ink">Open reports ({data.groups.length})</h2>

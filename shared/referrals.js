@@ -2,6 +2,7 @@
 // the app; the database (supabase/referrals_boosts.sql) is the source of truth
 // for who invited whom and for boost days.
 import { placeLabel, priceParts } from "./property.js";
+import { pluralize } from "./format.js";
 
 const CODE_SHAPE = /^[A-Z]{1,6}\d{1,3}$/;
 const REF_KEY = "ile:ref";
@@ -57,6 +58,11 @@ export function readRef(storage, now = Date.now()) {
 export function signupInviteCode(typed, remembered) {
   if (String(typed ?? "").trim()) return normalizeCode(typed);
   return normalizeCode(remembered);
+}
+
+// "Your shares: 120 views · 9 bookings · 4 joined with your code · 14 boost days left"
+export function statsLine({ views = 0, bookings = 0, joined = 0, balance = 0 }) {
+  return `Your shares: ${pluralize(views, "view")} · ${pluralize(bookings, "booking")} · ${joined} joined with your code · ${pluralize(balance, "boost day")} left`;
 }
 
 // Invited home-seekers earn boost days in batches of 5.

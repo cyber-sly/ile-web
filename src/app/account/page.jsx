@@ -17,6 +17,7 @@ import NewPasswordForm from "@/components/NewPasswordForm";
 import DeleteAccount from "@/components/DeleteAccount";
 import SettingsRow, { SettingsGroup } from "@/components/SettingsRow";
 import { button } from "@/components/ui/Button";
+import InviteCard from "@/components/InviteCard";
 import {
   Heart, CalendarDays, LayoutDashboard, PlusCircle, LogOut, UserRound, ShieldCheck, KeyRound,
   MonitorSmartphone, Pencil, MessageCircle, Shield, FileText, Mail, Eye, Building2, Home,
@@ -210,6 +211,8 @@ export default function AccountPage() {
           )}
         </div>
       </header>
+
+      <InviteCard />
 
       {/* At a glance */}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

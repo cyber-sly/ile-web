@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeCode, shareMessage, inviteMessage, rememberRef, readRef, seekerProgress, signupInviteCode, cardUrl, fetchReferralSummary, recordShareVisit, spendBoostDays, inviteCodeExists } from "../referrals.js";
+import { normalizeCode, shareMessage, inviteMessage, rememberRef, readRef, seekerProgress, signupInviteCode, cardUrl, statsLine, fetchReferralSummary, recordShareVisit, spendBoostDays, inviteCodeExists } from "../referrals.js";
 
 const SITE = "https://ile.test";
 const LISTING = { id: "l1", title: "2-bed flat", price: 350000, listing_type: "rent", lga: "Ikeja", state: "Lagos" };
@@ -110,4 +110,15 @@ test("signupInviteCode prefers the typed code, falls back to the remembered one"
 test("cardUrl adds the code only when valid", () => {
   assert.equal(cardUrl({ site: SITE, listingId: "l1", code: "TUNDE7" }), "https://ile.test/share/listing/l1/card?ref=TUNDE7");
   assert.equal(cardUrl({ site: SITE, listingId: "l1", code: "bad-code" }), "https://ile.test/share/listing/l1/card");
+});
+
+test("statsLine formats the dashboard copy", () => {
+  assert.equal(
+    statsLine({ views: 120, bookings: 9, joined: 4, balance: 14 }),
+    "Your shares: 120 views · 9 bookings · 4 joined with your code · 14 boost days left"
+  );
+  assert.equal(
+    statsLine({ views: 1, bookings: 1, joined: 1, balance: 1 }),
+    "Your shares: 1 view · 1 booking · 1 joined with your code · 1 boost day left"
+  );
 });
