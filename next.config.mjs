@@ -23,6 +23,8 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false,
+  // The share-card route reads its fonts from disk at runtime.
+  outputFileTracingIncludes: { "/share/listing/[id]/card": ["./src/app/share/fonts/**"] },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

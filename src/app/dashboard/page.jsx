@@ -20,8 +20,9 @@ import { canReview, fetchRatings, fetchReviewedIds, viewingDateReached } from "@
 import ReviewForm from "@/components/ReviewForm";
 import { RatingSummary } from "@/components/Stars";
 import {
-  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, ChevronRight,
+  Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, ChevronRight, Share2,
 } from "lucide-react";
+import ShareListing from "@/components/ShareListing";
 
 const GROUPS = [
   { key: "reply", title: "Needs your reply", statuses: ["pending"] },
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const user = useUser();
 
   const [listings, setListings] = useState([]);
+  const [sharing, setSharing] = useState(null);
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -265,6 +267,7 @@ export default function DashboardPage() {
 
         {/* Listings */}
         <section aria-labelledby="listings-heading">
+          {sharing && <ShareListing listing={sharing} user={user} onClose={() => setSharing(null)} />}
           <h2 id="listings-heading" className="font-serif text-2xl font-semibold text-ink">
             Your listings
           </h2>
@@ -338,6 +341,15 @@ export default function DashboardPage() {
                       <Link href={`/listings/${l.id}/edit`} className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}>
                         <Pencil size={14} aria-hidden="true" /> Edit
                       </Link>
+                      {isAvailable(l) && (
+                        <button
+                          type="button"
+                          onClick={() => setSharing(l)}
+                          className={button({ variant: "ghost", size: "sm", className: "!h-8 !px-2.5" })}
+                        >
+                          <Share2 size={14} aria-hidden="true" /> Share
+                        </button>
+                      )}
                       {listingActions(l).markTaken ? (
                         <button
                           type="button"

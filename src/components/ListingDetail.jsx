@@ -11,6 +11,7 @@ import {
   isBoosted,
 } from "@/lib/property";
 import Lightbox from "@/components/Lightbox";
+import ShareListing from "@/components/ShareListing";
 import PhotoGallery from "@/components/PhotoGallery";
 import BookingPanel from "@/components/BookingPanel";
 import PropertyCard from "@/components/PropertyCard";
@@ -47,7 +48,7 @@ export default function ListingDetail({ initialListing }) {
   const [listing, setListing] = useState(initialListing);
   const [similar, setSimilar] = useState([]);
   const [lightbox, setLightbox] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
@@ -67,21 +68,8 @@ export default function ListingDetail({ initialListing }) {
     fetchSimilar(initialListing);
   }, [id, initialListing]);
 
-  async function handleShare() {
-    const url = window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: listing.title, url });
-        return;
-      } catch {
-        // dismissed: fall back to copying the link
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {}
+  function handleShare() {
+    setSharing(true);
   }
 
   async function handleDelete() {
@@ -157,8 +145,8 @@ export default function ListingDetail({ initialListing }) {
           </nav>
           <div className="flex shrink-0 gap-2">
             <button type="button" onClick={handleShare} className={button({ variant: "neutral", size: "sm" })}>
-              {copied ? <Check size={16} aria-hidden="true" /> : <Share2 size={16} aria-hidden="true" />}
-              {copied ? "Link copied" : "Share"}
+              <Share2 size={16} aria-hidden="true" />
+              Share
             </button>
             <SaveButton id={listing.id} withLabel className="h-9 border border-line-strong bg-surface px-3.5 hover:border-ink/30" />
           </div>
@@ -345,6 +333,7 @@ export default function ListingDetail({ initialListing }) {
         </button>
       </div>
 
+      {sharing && <ShareListing listing={listing} user={user} onClose={() => setSharing(false)} />}
       {lightbox !== null && (
         <Lightbox images={images} title={listing.title} start={lightbox} onClose={() => setLightbox(null)} />
       )}

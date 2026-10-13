@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeCode, shareMessage, inviteMessage, rememberRef, readRef, seekerProgress, signupInviteCode, fetchReferralSummary, recordShareVisit, spendBoostDays, inviteCodeExists } from "../referrals.js";
+import { normalizeCode, shareMessage, inviteMessage, rememberRef, readRef, seekerProgress, signupInviteCode, cardUrl, fetchReferralSummary, recordShareVisit, spendBoostDays, inviteCodeExists } from "../referrals.js";
 
 const SITE = "https://ile.test";
 const LISTING = { id: "l1", title: "2-bed flat", price: 350000, listing_type: "rent", lga: "Ikeja", state: "Lagos" };
@@ -105,4 +105,9 @@ test("signupInviteCode prefers the typed code, falls back to the remembered one"
   assert.equal(signupInviteCode("", "TUNDE7"), "TUNDE7");
   assert.equal(signupInviteCode("not a code!", "TUNDE7"), null);
   assert.equal(signupInviteCode("", null), null);
+});
+
+test("cardUrl adds the code only when valid", () => {
+  assert.equal(cardUrl({ site: SITE, listingId: "l1", code: "TUNDE7" }), "https://ile.test/share/listing/l1/card?ref=TUNDE7");
+  assert.equal(cardUrl({ site: SITE, listingId: "l1", code: "bad-code" }), "https://ile.test/share/listing/l1/card");
 });
