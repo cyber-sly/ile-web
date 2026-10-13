@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { moveInCost, feeWarning, isExpired, priceParts } from "../property.js";
+import { moveInCost, feeWarning, isExpired, priceParts, isBoosted } from "../property.js";
 
 const daysAgo = (n) => new Date(Date.now() - n * 86_400_000).toISOString();
 
@@ -51,4 +51,11 @@ test("detailFacts says when land has no title document", async () => {
   const { detailFacts } = await import("../property.js");
   const facts = detailFacts({ category: "land", property_type: "residential_land" });
   assert.equal(facts.find((f) => f.key === "title").value, "Not stated");
+});
+
+test("isBoosted is false for a past date, true for a future one, false when missing", () => {
+  const now = Date.parse("2026-10-13T12:00:00Z");
+  assert.equal(isBoosted({ boosted_until: "2026-10-13T11:00:00Z" }, now), false);
+  assert.equal(isBoosted({ boosted_until: "2026-10-14T11:00:00Z" }, now), true);
+  assert.equal(isBoosted({}, now), false);
 });

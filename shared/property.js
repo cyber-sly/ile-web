@@ -230,3 +230,9 @@ export function detailFacts(listing) {
   if (listing.lister_type) facts.push({ key: "lister", label: "Listed by", value: listerLabel(listing.lister_type) });
   return facts;
 }
+
+// A listing shows as boosted (and sorts first) only while its boost lasts.
+export function isBoosted(listing, now = Date.now()) {
+  const until = Date.parse(listing?.boosted_until || "");
+  return Number.isFinite(until) && until > now;
+}
