@@ -8,6 +8,7 @@ import { getListing } from "@/lib/supabaseServer";
 import { SITE_URL } from "@/lib/site";
 import { isModerated, keyFacts, placeLabel, priceParts } from "@/lib/property";
 import { normalizeCode, shareUrl } from "@shared/referrals.js";
+import { BRAND, WORD_PATHS, WORD_BOX, viewBoxOf } from "@shared/brand.js";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,19 @@ const FONTS = join(process.cwd(), "src/app/share/fonts");
 
 // Website colours (globals.css).
 const C = { cream: "#F6F1E7", surface: "#FFFDF8", ink: "#1E1B16", muted: "#6B6357", palm: "#14583B", gold: "#C99A2E", line: "#E8E0D0" };
+
+// The Ile wordmark as an SVG data URL (ImageResponse draws it via <img>).
+const WORDMARK_HEIGHT = 96;
+const WORDMARK = (() => {
+  const colour = { ink: BRAND.navy, door: BRAND.green, knob: "#fff" };
+  const paths = WORD_PATHS.map((p) =>
+    p.stroke
+      ? `<path d="${p.d}" fill="none" stroke="${colour[p.tone]}" stroke-width="${p.stroke}"/>`
+      : `<path d="${p.d}" fill="${colour[p.tone]}"/>`
+  ).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBoxOf(WORD_BOX)}">${paths}</svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+})();
 
 // Listing photos are WebP, which ImageResponse can't draw: fetch, crop to
 // the card's photo area and hand it over as a JPEG. No photo -> null.
@@ -102,9 +116,12 @@ export async function GET(request, { params }) {
 
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: "auto", marginBottom: 72 }}>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", fontFamily: "Fraunces", fontSize: 96, color: C.ink }}>
-                Ile<span style={{ color: C.palm }}>.</span>
-              </div>
+              <img
+                src={WORDMARK}
+                alt="Ile"
+                height={WORDMARK_HEIGHT}
+                width={Math.round((WORDMARK_HEIGHT * WORD_BOX.w) / WORD_BOX.h)}
+              />
               <div style={{ display: "flex", fontSize: 34, color: C.muted, marginTop: 4 }}>Free viewings. No inspection fees.</div>
               {code ? (
                 <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: C.palm, marginTop: 18 }}>Use code {code} on Ile</div>
