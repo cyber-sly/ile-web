@@ -151,7 +151,7 @@ export default function Home() {
                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                 className="-z-20 object-cover transition-transform duration-700 group-hover:scale-[1.04]"
               />
-              <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0F1C15]/85 via-[#0F1C15]/30 to-transparent" />
+              <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0E1526]/85 via-[#0E1526]/30 to-transparent" />
               <h3 className="font-serif text-2xl font-semibold">{c.title}</h3>
               <p className="mt-1 max-w-sm text-white/85">{c.blurb}</p>
               <span className="mt-4 inline-flex items-center gap-1.5 font-semibold">

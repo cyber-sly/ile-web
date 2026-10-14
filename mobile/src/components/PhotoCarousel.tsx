@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: "rgba(30,27,22,0.7)",
+    backgroundColor: "rgba(27,38,64,0.7)",
   },
   counterText: { fontFamily: fonts.sansSemi, fontSize: 13, color: colors.white },
 });

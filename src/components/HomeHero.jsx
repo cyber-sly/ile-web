@@ -61,7 +61,7 @@ export default function HomeHero() {
             }`}
           />
         )}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0F1C15]/20 via-[#0F1C15]/35 to-[#0F1C15]/80" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0E1526]/20 via-[#0E1526]/35 to-[#0E1526]/80" />
 
         <div className="px-5 pb-24 pt-28 sm:px-10 sm:pb-28 sm:pt-40 md:pt-48">
           <h1 className="animate-fade-up max-w-3xl font-serif text-[2.6rem] font-medium leading-[1.04] tracking-tight text-white sm:text-6xl md:text-7xl">

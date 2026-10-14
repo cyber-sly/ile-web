@@ -26,7 +26,7 @@ export default function Hero({ onSearch, onList }: { onSearch: (tab: string, q: 
 
       <View style={styles.photoBox}>
         <Image source={require("@/assets/images/hero.jpg")} style={StyleSheet.absoluteFill} contentFit="cover" alt="" />
-        <Shade colors={["rgba(15,28,21,0.2)", "rgba(15,28,21,0.35)", "rgba(15,28,21,0.8)"]} />
+        <Shade colors={["rgba(14,21,38,0.2)", "rgba(14,21,38,0.35)", "rgba(14,21,38,0.8)"]} />
         <Text style={styles.h1} accessibilityRole="header">
           Find your place in Nigeria, <Em>without the wahala.</Em>
         </Text>

@@ -36,7 +36,7 @@ async function registerDevice() {
     await Notifications.setNotificationChannelAsync("default", {
       name: "Ile",
       importance: Notifications.AndroidImportance.HIGH,
-      lightColor: "#14583B",
+      lightColor: "#1F7A2C",
     });
   }
   const projectId = Constants.expoConfig?.extra?.eas?.projectId;

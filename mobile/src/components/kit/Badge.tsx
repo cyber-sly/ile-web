@@ -9,7 +9,7 @@ import { colors, fonts } from "@/theme";
 export type Tone = "neutral" | "palm" | "gold" | "clay" | "solid" | "sale" | "overlay";
 
 const TONES: Record<Tone, { bg: string; fg: string }> = {
-  neutral: { bg: "rgba(30,27,22,0.05)", fg: colors.inkMuted },
+  neutral: { bg: "rgba(27,38,64,0.05)", fg: colors.inkMuted },
   palm: { bg: colors.palmSoft, fg: colors.palm },
   gold: { bg: colors.goldSoft, fg: colors.goldInk },
   clay: { bg: colors.claySoft, fg: colors.clay },

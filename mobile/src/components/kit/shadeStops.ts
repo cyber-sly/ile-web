@@ -1,6 +1,6 @@
 export type ShadeStop = { offset: string; color: string; opacity: number };
 
-// "rgba(15,28,21,0.3)" / "transparent" -> SVG stop colour and opacity.
+// "rgba(14,21,38,0.3)" / "transparent" -> SVG stop colour and opacity.
 function split(color: string): { color: string; opacity: number } {
   if (color === "transparent") return { color: "rgb(0,0,0)", opacity: 0 };
   const m = color.replace(/\s/g, "").match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/);

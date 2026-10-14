@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   notice: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   noticeText: { flex: 1, fontFamily: fonts.sans, fontSize: 14, color: colors.inkMuted },
   sectionTitle: { fontFamily: fonts.serif, fontSize: 22, color: colors.ink, marginTop: 12 },
-  paragraph: { fontFamily: fonts.sans, fontSize: 17, lineHeight: 27, color: "rgba(30,27,22,0.85)" },
+  paragraph: { fontFamily: fonts.sans, fontSize: 17, lineHeight: 27, color: "rgba(27,38,64,0.85)" },
   muted: { fontFamily: fonts.sans, fontSize: 15, color: colors.inkMuted },
   features: { gap: 12 },
   featureRow: { flexDirection: "row", alignItems: "center", gap: 12 },

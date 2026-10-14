@@ -16,7 +16,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FONTS = join(process.cwd(), "src/app/share/fonts");
 
 // Website colours (globals.css).
-const C = { cream: "#F6F1E7", surface: "#FFFDF8", ink: "#1E1B16", muted: "#6B6357", palm: "#14583B", gold: "#C99A2E", line: "#E8E0D0" };
+const C = { cream: "#F6F1E7", surface: "#FFFDF8", ink: "#1B2640", muted: "#5A6275", palm: "#1F7A2C", gold: "#C99A2E", line: "#E8E0D0" };
 
 // The Ile wordmark as an SVG data URL (ImageResponse draws it via <img>).
 const WORDMARK_HEIGHT = 96;

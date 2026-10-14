@@ -108,7 +108,7 @@ export function Categories({ onPick }: { onPick: (tab: string) => void }) {
         {HOME_CATEGORIES.map((c) => (
           <Tap key={c.tab} accessibilityRole="button" accessibilityLabel={c.title} onPress={() => onPick(c.tab)} style={styles.tile}>
             <Image source={{ uri: c.image }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" alt="" />
-            <Shade colors={["transparent", "rgba(15,28,21,0.3)", "rgba(15,28,21,0.85)"]} />
+            <Shade colors={["transparent", "rgba(14,21,38,0.3)", "rgba(14,21,38,0.85)"]} />
             <View style={styles.tileText}>
               <Text style={styles.tileTitle}>{c.title}</Text>
               <Text style={styles.tileBlurb} numberOfLines={2}>

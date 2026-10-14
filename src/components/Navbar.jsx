@@ -46,7 +46,7 @@ export default function Navbar() {
   return (
     <header
       className={`sticky top-0 z-50 border-b bg-surface/90 backdrop-blur-xl transition-[border-color,box-shadow] duration-300 ${
-        scrolled ? "border-line shadow-[0_8px_24px_-18px_rgba(30,27,22,0.4)]" : "border-transparent"
+        scrolled ? "border-line shadow-[0_8px_24px_-18px_rgba(27,38,64,0.4)]" : "border-transparent"
       }`}
     >
       <nav aria-label="Main" className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:px-6">

@@ -18,7 +18,7 @@ export default function PhotoHeader({ image, quote, onClose, height = 220 }: { i
   return (
     <View style={{ height: height + top }}>
       <Image source={{ uri: image }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" alt="" />
-      <Shade colors={["rgba(15,28,21,0.35)", "rgba(15,28,21,0.1)", "rgba(15,28,21,0.85)"]} locations={[0, 0.45, 1]} />
+      <Shade colors={["rgba(14,21,38,0.35)", "rgba(14,21,38,0.1)", "rgba(14,21,38,0.85)"]} locations={[0, 0.45, 1]} />
       <View style={[styles.top, { paddingTop: top + 8 }]}>
         {onClose ? (
           <Tap accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose} style={styles.close}>

@@ -75,7 +75,7 @@ export default function ShareSheet({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: "rgba(30,27,22,0.4)" },
+  backdrop: { flex: 1, backgroundColor: "rgba(27,38,64,0.4)" },
   sheet: {
     gap: 12,
     padding: 20,

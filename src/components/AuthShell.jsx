@@ -12,7 +12,7 @@ export default function AuthShell({ title, subtitle, image, quote, children }) {
       <div className="relative hidden p-6 lg:block">
         <div className="relative isolate h-full overflow-hidden rounded-[var(--radius-hero)]">
           <img src={image} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0F1C15]/80 via-transparent to-transparent" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0E1526]/80 via-transparent to-transparent" />
           {quote && (
             <p className="absolute inset-x-8 bottom-8 font-serif text-3xl font-medium leading-snug text-white">
               {quote}

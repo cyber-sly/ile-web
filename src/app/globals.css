@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
-/* Design tokens. Use these names in components (bg-cream, text-ink-muted, ...)
+/* Design tokens, matched to the logo (shared/brand.js): navy text, and a
+   deeper shade of the logo green that keeps white text readable (5.4:1).
+   Use these names in components (bg-cream, text-ink-muted, ...)
    rather than raw hex values, so the palette can change in one place. */
 @theme {
   --color-cream: #F6F1E7;     /* page background */
   --color-surface: #FFFDF8;   /* cards, panels, navbar */
   --color-line: #E8E0D0;      /* borders, dividers */
   --color-line-strong: #D9CFBC;
-  --color-ink: #1E1B16;       /* primary text */
-  --color-ink-muted: #6B6357; /* secondary text, 5:1 on cream */
-  --color-palm: #14583B;      /* brand, primary actions, verified */
-  --color-palm-dark: #0F4530;
-  --color-palm-soft: #E7F0EA;
+  --color-ink: #1B2640;       /* primary text: logo navy */
+  --color-ink-muted: #5A6275; /* secondary text, 5.4:1 on cream */
+  --color-palm: #1F7A2C;      /* brand, primary actions, verified */
+  --color-palm-dark: #15511D;
+  --color-palm-soft: #E6F4E8;
   --color-gold: #C99A2E;      /* boosted/featured, never small text */
   --color-gold-soft: #F7EDD3;
   --color-gold-ink: #7A5200;  /* readable text on gold-soft */
@@ -22,8 +24,8 @@
   --radius-card: 16px;
   --radius-hero: 20px;
 
-  --shadow-float: 0 14px 34px -18px rgba(30, 27, 22, 0.45);
-  --shadow-card: 0 1px 2px rgba(30, 27, 22, 0.04);
+  --shadow-float: 0 14px 34px -18px rgba(27,38,64, 0.45);
+  --shadow-card: 0 1px 2px rgba(27,38,64, 0.04);
 }
 
 /* Fonts come from next/font in layout.js; inline so utilities read them directly. */
