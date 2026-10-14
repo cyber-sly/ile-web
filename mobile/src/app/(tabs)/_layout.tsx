@@ -18,7 +18,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.palm,
         tabBarInactiveTintColor: colors.inkMuted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.line },
-        tabBarLabelStyle: { fontFamily: fonts.sansSemi, fontSize: 11 },
+        tabBarLabelStyle: { fontFamily: fonts.sansSemi, fontSize: 12 },
         sceneStyle: { backgroundColor: colors.cream },
       }}
     >
@@ -30,7 +30,7 @@ export default function TabLayout() {
           title: "Inbox",
           tabBarIcon: ({ color }) => <MessageCircle color={color} size={22} />,
           tabBarBadge: unread > 0 ? (unread > 99 ? "99+" : unread) : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.clay, fontFamily: fonts.sansBold, fontSize: 11 },
+          tabBarBadgeStyle: { backgroundColor: colors.clay, fontFamily: fonts.sansBold, fontSize: 12 },
         }}
       />
       <Tabs.Screen

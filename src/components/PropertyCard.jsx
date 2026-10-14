@@ -38,7 +38,7 @@ export default function PropertyCard({ listing, priority = false }) {
 
         <div className="flex flex-1 flex-col p-4">
           {category !== "homes" && listing.property_type && (
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gold-ink">
+            <p className="text-xs font-bold uppercase tracking-wider text-gold-ink">
               {typeLabel(listing.property_type)}
             </p>
           )}

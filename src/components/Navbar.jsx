@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useUser, isLandlord, loginHref, useIsAdmin } from "@/lib/useUser";
 import { useUnreadCount } from "@/lib/messaging";
 import { button } from "@/components/ui/Button";
+import { useClosing } from "@/lib/useClosing";
 import Logo from "@/components/Logo";
 import { Plus, Heart, CalendarDays, LayoutDashboard, LogOut, ChevronDown, UserRound, MessageCircle, ShieldCheck } from "lucide-react";
 
@@ -75,7 +76,7 @@ export default function Navbar() {
             <Link href="/messages" className={`${linkClass("/messages")} relative`}>
               Messages
               {unread > 0 && (
-                <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-bold text-white">
+                <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-clay px-1 text-xs font-bold text-white">
                   {unread}
                   <span className="sr-only"> unread</span>
                 </span>
@@ -106,21 +107,22 @@ export default function Navbar() {
 function AccountMenu({ user, landlord, onLogout }) {
   const admin = useIsAdmin(user);
   const [open, setOpen] = useState(false);
+  const [closing, closeMenu] = useClosing(() => setOpen(false), 120);
   const ref = useRef(null);
   const name = user.user_metadata?.full_name || user.email;
   const initial = (name || "?").trim()[0]?.toUpperCase();
 
   useEffect(() => {
     if (!open) return;
-    const onDown = (e) => !ref.current?.contains(e.target) && setOpen(false);
-    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    const onDown = (e) => !ref.current?.contains(e.target) && closeMenu();
+    const onKey = (e) => e.key === "Escape" && closeMenu();
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [open, closeMenu]);
 
   const item = "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-ink/5";
 
@@ -128,7 +130,7 @@ function AccountMenu({ user, landlord, onLogout }) {
     <div ref={ref} className="relative hidden md:block">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => (open ? closeMenu() : setOpen(true))}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Account menu"
@@ -142,13 +144,13 @@ function AccountMenu({ user, landlord, onLogout }) {
       {open && (
         <div
           role="menu"
-          className="animate-fade-in absolute right-0 mt-2 w-64 rounded-[var(--radius-card)] border border-line bg-surface p-2 shadow-[var(--shadow-float)]"
+          className={`${closing ? "animate-pop-out" : "animate-pop-in"} absolute right-0 mt-2 w-64 origin-top-right rounded-[var(--radius-card)] border border-line bg-surface p-2 shadow-[var(--shadow-float)]`}
         >
           <div className="border-b border-line px-3 pb-3 pt-2">
             <p className="truncate font-semibold text-ink">{name}</p>
             <p className="text-xs text-ink-muted">{landlord ? "Lister account" : "Home-seeker account"}</p>
           </div>
-          <div className="pt-2" onClick={() => setOpen(false)}>
+          <div className="pt-2" onClick={closeMenu}>
             <Link role="menuitem" href="/account" className={item}>
               <UserRound size={16} aria-hidden="true" /> Account
             </Link>

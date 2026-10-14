@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { useEffect, useMemo, useState } from "react";
 import { EMPTY_DRAFT, draftFromListing, draftToRow, validateDraft, MAX_PHOTOS, MAX_PHOTO_MB, MAX_VIDEOS, MAX_VIDEO_MB } from "@shared/lister.js";
 import { useRouter } from "next/navigation";
@@ -218,7 +219,7 @@ export default function ListingForm({ listing, userId }) {
         );
       }
     } catch (err) {
-      setFormError(`Upload failed: ${err.message}`);
+      setFormError(friendlyError(err));
       setStatus("");
       return;
     }
@@ -240,7 +241,7 @@ export default function ListingForm({ listing, userId }) {
       : await supabase.from("listings").insert({ ...toSave, landlord_id: userId }).select("id").single();
 
     if (error) {
-      setFormError(error.message);
+      setFormError(friendlyError(error));
       setStatus("");
       return;
     }
@@ -588,12 +589,12 @@ function Thumb({ src, cover, isNew, onRemove }) {
     <div className="relative aspect-square overflow-hidden rounded-[var(--radius-control)] bg-line">
       <img src={src} alt="" className="h-full w-full object-cover" />
       {cover && (
-        <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-ink/75 px-2 py-0.5 text-[11px] font-semibold text-white">
+        <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-ink/75 px-2 py-0.5 text-xs font-semibold text-white">
           <Star size={11} aria-hidden="true" /> Cover
         </span>
       )}
       {isNew && !cover && (
-        <span className="absolute bottom-1.5 left-1.5 rounded-full bg-palm px-2 py-0.5 text-[11px] font-semibold text-white">New</span>
+        <span className="absolute bottom-1.5 left-1.5 rounded-full bg-palm px-2 py-0.5 text-xs font-semibold text-white">New</span>
       )}
       <button
         type="button"

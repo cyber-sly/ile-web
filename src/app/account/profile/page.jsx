@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { useEffect, useRef, useState } from "react";
 import { EMPTY_PROFILE_FORM, formToProfileChanges, profileToForm, validateProfileForm } from "@shared/account.js";
 import Link from "next/link";
@@ -52,7 +53,7 @@ export default function EditProfilePage() {
       })
       .catch((e) => {
         setProfile({});
-        setMessage({ tone: "error", text: e.message });
+        setMessage({ tone: "error", text: friendlyError(e) });
       });
   }, [user]);
 
@@ -75,7 +76,7 @@ export default function EditProfilePage() {
       setAvatar(url);
       setMessage({ tone: "success", text: "Profile photo updated." });
     } catch (err) {
-      setMessage({ tone: "error", text: err.message });
+      setMessage({ tone: "error", text: friendlyError(err) });
     }
     setUploading(false);
   }
@@ -86,7 +87,7 @@ export default function EditProfilePage() {
       await saveProfile(user.id, { avatar_url: null });
       setAvatar(null);
     } catch (err) {
-      setMessage({ tone: "error", text: err.message });
+      setMessage({ tone: "error", text: friendlyError(err) });
     }
     setUploading(false);
   }
@@ -106,7 +107,7 @@ export default function EditProfilePage() {
       setProfile((p) => ({ ...p, ...changes, avatar_url: avatar }));
       setMessage({ tone: "success", text: "Profile saved." });
     } catch (err) {
-      setMessage({ tone: "error", text: err.message });
+      setMessage({ tone: "error", text: friendlyError(err) });
     }
     setSaving(false);
   }

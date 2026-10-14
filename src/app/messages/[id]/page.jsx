@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -109,7 +110,7 @@ export default function ConversationPage() {
       .single();
     setSending(false);
     if (sendError) {
-      setError(sendError.message);
+      setError(friendlyError(sendError));
       return;
     }
     setDraft("");
@@ -193,7 +194,7 @@ export default function ConversationPage() {
                   }`}
                 >
                   <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{m.body}</p>
-                  <p className={`mt-0.5 text-right text-[11px] ${mine ? "text-white/70" : "text-ink-muted"}`}>
+                  <p className={`mt-0.5 text-right text-xs ${mine ? "text-white/70" : "text-ink-muted"}`}>
                     {clock(m.created_at)}
                     {mine && m.read_at && " · Seen"}
                   </p>

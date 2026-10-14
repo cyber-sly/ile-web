@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   badges: { position: "absolute", top: 12, left: 12, flexDirection: "row", flexWrap: "wrap", gap: 6, right: 56 },
   save: { position: "absolute", top: 10, right: 10 },
   body: { padding: 16, gap: 3 },
-  gold: { fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 0.8, color: colors.goldInk },
+  gold: { fontFamily: fonts.sansBold, fontSize: 12, letterSpacing: 0.8, color: colors.goldInk },
   price: { fontFamily: fonts.sansBold, fontSize: 18, color: colors.ink },
   suffix: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.inkMuted },
   title: { fontFamily: fonts.sansSemi, fontSize: 15, color: colors.ink, marginTop: 1 },

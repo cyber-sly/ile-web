@@ -16,7 +16,7 @@ export default function SaveButton({ listingId, size = "sm" }: { listingId: stri
       onPress={() => toggleSaved(String(listingId))}
       style={[styles.button, { width: dim, height: dim, borderRadius: dim / 2 }]}
     >
-      <Heart size={size === "md" ? 22 : 18} color={saved ? colors.palm : colors.ink} fill={saved ? colors.palm : "transparent"} />
+      <Heart size={size === "md" ? 22 : 18} color={saved ? colors.clay : colors.ink} fill={saved ? colors.clay : "transparent"} />
     </Pressable>
   );
 }

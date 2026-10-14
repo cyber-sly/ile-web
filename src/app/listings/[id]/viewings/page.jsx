@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { useEffect, useState } from "react";
 import { WEEKDAYS, SLOT_LENGTHS, DEFAULT_WINDOW, availabilityRows } from "@shared/lister.js";
 import { useParams } from "next/navigation";
@@ -69,7 +70,7 @@ export default function ViewingTimesPage() {
     });
     if (saveError) {
       setSaving(false);
-      setMessage({ tone: "error", text: saveError.message });
+      setMessage({ tone: "error", text: friendlyError(saveError) });
       return;
     }
     const { data: open } = await supabase.rpc("listing_open_slots", { p_listing: id, p_days: 14 });

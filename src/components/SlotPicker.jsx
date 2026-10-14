@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatTime, formatDateTime } from "@/lib/format";
@@ -7,6 +8,7 @@ import { bookSlot, groupSlotsByDay } from "@shared/viewings.js";
 import { readRefHere, recordBookingRef } from "@/lib/referrals";
 import { button } from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import { toast } from "@/lib/toast";
 import { Zap } from "lucide-react";
 
 function dayParts(isoDate) {
@@ -38,11 +40,12 @@ export default function SlotPicker({ listingId, slots, onBooked }) {
       id = await bookSlot(supabase, listingId, date, time);
     } catch (err) {
       setBooking(false);
-      setError(err.message);
+      setError(friendlyError(err));
       return;
     }
     setBooking(false);
     recordBookingRef(id, readRefHere());
+    toast("Viewing booked");
     onBooked({ id, status: "confirmed", preferred_date: date, preferred_time: time });
   }
 
@@ -71,9 +74,9 @@ export default function SlotPicker({ listingId, slots, onBooked }) {
                 on ? "border-palm bg-palm text-white" : "border-line-strong bg-surface text-ink hover:border-ink/30"
               }`}
             >
-              <span className={`text-[11px] font-semibold uppercase ${on ? "text-white/80" : "text-ink-muted"}`}>{p.weekday}</span>
+              <span className={`text-xs font-semibold uppercase ${on ? "text-white/80" : "text-ink-muted"}`}>{p.weekday}</span>
               <span className="text-lg font-bold leading-tight">{p.day}</span>
-              <span className={`text-[11px] ${on ? "text-white/80" : "text-ink-muted"}`}>{p.month}</span>
+              <span className={`text-xs ${on ? "text-white/80" : "text-ink-muted"}`}>{p.month}</span>
             </button>
           );
         })}

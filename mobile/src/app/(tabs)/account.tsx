@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   cardText: { flex: 1, gap: 2 },
   name: { fontFamily: fonts.serif, fontSize: 22, color: colors.white },
   email: { fontFamily: fonts.sans, fontSize: 13, color: "rgba(255,255,255,0.75)" },
-  role: { fontFamily: fonts.sansSemi, fontSize: 11, color: colors.gold, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 },
+  role: { fontFamily: fonts.sansSemi, fontSize: 12, color: colors.goldInk, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 },
   progress: { fontFamily: fonts.sans, fontSize: 13, color: "rgba(255,255,255,0.85)" },
   editButton: {
     flexDirection: "row",

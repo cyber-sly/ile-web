@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/lib/toast";
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchSavedIds, saveListing, unsaveListing, importSavedIds } from "@shared/saved.js";
@@ -101,6 +102,7 @@ export async function toggleSaved(id) {
     else await saveListing(supabase, userId, key);
   } catch {
     emit(previous); // undo the heart if the save didn't stick
+    toast("Couldn't update your saved homes. Please try again.", { tone: "error" });
   }
 }
 

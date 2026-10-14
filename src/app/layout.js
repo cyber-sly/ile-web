@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar";
 import MobileTabBar from "@/components/MobileTabBar";
 import Footer from "@/components/Footer";
 import RefCapture from "@/components/RefCapture";
+import Toaster from "@/components/ui/Toaster";
+import ConfirmHost from "@/components/ui/ConfirmHost";
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE, CONTACT_EMAIL } from "@/lib/site";
 import "./globals.css";
 
@@ -85,6 +87,8 @@ export default function RootLayout({ children }) {
         <main className="flex-1">{children}</main>
         <Footer />
         <MobileTabBar />
+        <Toaster />
+        <ConfirmHost />
       </body>
     </html>
   );

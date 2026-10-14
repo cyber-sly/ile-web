@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PropertyCard from "@/components/PropertyCard";
@@ -70,7 +71,7 @@ function ListingsContent() {
     let cancelled = false;
     buildQuery(f, 0).then(({ data, count, error }) => {
       if (cancelled) return;
-      setResult({ key: paramKey, items: data || [], count: count || 0, page: 0, error: error?.message || "" });
+      setResult({ key: paramKey, items: data || [], count: count || 0, page: 0, error: error ? friendlyError(error) : "" });
     });
     return () => {
       cancelled = true;
@@ -99,7 +100,7 @@ function ListingsContent() {
     // Ignore the response if the filters changed while it was loading.
     setResult((r) => {
       if (r.key !== key) return r;
-      if (error) return { ...r, error: error.message };
+      if (error) return { ...r, error: friendlyError(error) };
       return { ...r, items: [...r.items, ...(data || [])], page };
     });
   }
@@ -285,7 +286,7 @@ function ListingsContent() {
                 </button>
               )}
             </div>
-            <div className={GRID}>
+            <div className={`${GRID} stagger-in`}>
               {result.items.map((listing, i) => (
                 <PropertyCard key={listing.id} listing={listing} priority={i < 3} />
               ))}

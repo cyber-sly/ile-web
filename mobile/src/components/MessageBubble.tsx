@@ -43,6 +43,6 @@ const styles = StyleSheet.create({
   pending: { opacity: 0.6 },
   body: { fontFamily: fonts.sans, fontSize: 16, lineHeight: 22, color: colors.ink },
   bodyMine: { color: colors.white },
-  status: { fontFamily: fonts.sans, fontSize: 11, color: colors.inkMuted, marginTop: 3, marginHorizontal: 4 },
+  status: { fontFamily: fonts.sans, fontSize: 12, color: colors.inkMuted, marginTop: 3, marginHorizontal: 4 },
   failed: { color: colors.clay, fontFamily: fonts.sansMedium },
 });

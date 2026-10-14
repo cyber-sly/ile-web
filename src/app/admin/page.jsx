@@ -1,5 +1,8 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
+import { confirmAction } from "@/lib/confirm";
+import { toast } from "@/lib/toast";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
@@ -12,6 +15,7 @@ import Badge from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
 import { ShieldCheck, ImageOff, ExternalLink, Trash2, RotateCcw, X } from "lucide-react";
 import HeldRewards from "@/components/HeldRewards";
+import { Stars } from "@/components/Stars";
 
 const reasonLabel = (v) => REPORT_REASONS.find((r) => r.value === v)?.label || v;
 
@@ -37,7 +41,7 @@ async function loadQueue() {
       .order("created_at", { ascending: false })
       .limit(50),
   ]);
-  if (error) return { error: error.message, groups: [], removed: [], reviews: [] };
+  if (error) return { error: friendlyError(error), groups: [], removed: [], reviews: [] };
 
   const byListing = new Map();
   for (const r of reports || []) {
@@ -100,20 +104,31 @@ export default function AdminPage() {
   }, [user, refresh]);
 
   async function deleteReview(id) {
-    if (!window.confirm("Delete this review? This can't be undone.")) return;
+    if (!(await confirmAction({ title: "Delete this review?", body: "This can't be undone.", confirmLabel: "Delete review" }))) return;
     setError("");
     const { error: delError } = await supabase.from("reviews").delete().eq("id", id);
-    if (delError) setError(delError.message);
-    else refresh();
+    if (delError) setError(friendlyError(delError));
+    else {
+      toast("Review deleted");
+      refresh();
+    }
   }
 
   async function act(listingId, action) {
-    if (action === "remove" && !window.confirm("Remove this listing? The lister won't be able to relist it.")) return;
+    if (
+      action === "remove" &&
+      !(await confirmAction({
+        title: "Remove this listing?",
+        body: "The lister won't be able to relist it.",
+        confirmLabel: "Remove listing",
+      }))
+    )
+      return;
     setBusy(listingId);
     setError("");
     const { error: rpcError } = await supabase.rpc("moderate_listing", { p_listing: listingId, p_action: action });
     setBusy(null);
-    if (rpcError) setError(rpcError.message);
+    if (rpcError) setError(friendlyError(rpcError));
     else refresh();
   }
 
@@ -189,9 +204,8 @@ export default function AdminPage() {
             {data.reviews.map((r) => (
               <li key={r.id} className="flex items-start justify-between gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4">
                 <div className="min-w-0 text-sm">
-                  <p className="font-semibold text-ink">
-                    {"★".repeat(r.rating)}
-                    <span className="text-line-strong">{"★".repeat(5 - r.rating)}</span>
+                  <p className="flex flex-wrap items-center font-semibold text-ink">
+                    <Stars value={r.rating} />
                     <span className="ml-2 font-normal text-ink-muted">
                       {r.reviewee_role === "lister" ? "About a lister" : "About a home-seeker"} · {timeAgo(r.created_at)}
                       {r.listings && <> · {r.listings.title}</>}

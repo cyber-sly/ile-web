@@ -1,5 +1,8 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
+import { confirmAction } from "@/lib/confirm";
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -99,13 +102,18 @@ export default function AccountPage() {
 
   // Ends every session for this account, on every phone and computer.
   async function handleLogoutEverywhere() {
-    if (!window.confirm("Log out of Ile on every device, including this one?")) return;
+    const sure = await confirmAction({
+      title: "Log out everywhere?",
+      body: "This logs Ile out on every phone and computer, including this one.",
+      confirmLabel: "Log out everywhere",
+    });
+    if (!sure) return;
     setLoggingOutAll(true);
     setLogoutError("");
     const { error } = await supabase.auth.signOut({ scope: "global" });
     setLoggingOutAll(false);
     if (error) {
-      setLogoutError(error.message);
+      setLogoutError(friendlyError(error));
       return;
     }
     router.push("/login");

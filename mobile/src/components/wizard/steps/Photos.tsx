@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.palm,
     color: colors.white,
     fontFamily: fonts.sansSemi,
-    fontSize: 11,
+    fontSize: 12,
   },
   remove: { position: "absolute", right: 6, top: 6, width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(30,27,22,0.7)" },
   moves: { position: "absolute", left: 6, right: 6, bottom: 6, flexDirection: "row", justifyContent: "space-between" },

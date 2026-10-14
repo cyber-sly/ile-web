@@ -1,5 +1,8 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
+import { confirmAction } from "@/lib/confirm";
+import { toast } from "@/lib/toast";
 import { useState, useEffect } from "react";
 import { listingActions, requestActions, takenStatus } from "@shared/lister.js";
 import Link from "next/link";
@@ -74,7 +77,7 @@ export default function DashboardPage() {
         .order("created_at", { ascending: false });
 
       if (listingsError) {
-        setError(listingsError.message);
+        setError(friendlyError(listingsError));
         setLoading(false);
         return;
       }
@@ -87,7 +90,7 @@ export default function DashboardPage() {
           .select("*, listings(id, title, image_url, location)")
           .in("listing_id", ids)
           .order("created_at", { ascending: false });
-        if (inspectionsError) setError(inspectionsError.message);
+        if (inspectionsError) setError(friendlyError(inspectionsError));
         else {
           setInspections(data);
           const tenantIds = data.map((i) => i.tenant_id);
@@ -122,7 +125,7 @@ export default function DashboardPage() {
     setMutationError("");
     const { error: updateError } = await supabase.from("inspections").update(changes).eq("id", id);
     if (updateError) {
-      setMutationError(updateError.message);
+      setMutationError(friendlyError(updateError));
       return false;
     }
     setInspections((prev) => prev.map((i) => (i.id === id ? { ...i, ...changes } : i)));
@@ -130,21 +133,22 @@ export default function DashboardPage() {
   }
 
   async function deleteListing(id) {
-    if (!window.confirm("Delete this listing? This can't be undone.")) return;
+    if (!(await confirmAction({ title: "Delete this listing?", body: "This can't be undone.", confirmLabel: "Delete listing" }))) return;
     setMutationError("");
     const { error: deleteError } = await supabase.from("listings").delete().eq("id", id);
     if (deleteError) {
-      setMutationError(deleteError.message);
+      setMutationError(friendlyError(deleteError));
       return;
     }
     setListings((prev) => prev.filter((l) => l.id !== id));
+    toast("Listing deleted");
   }
 
   async function updateListing(listing, changes) {
     setMutationError("");
     const { error: updateError } = await supabase.from("listings").update(changes).eq("id", listing.id);
     if (updateError) {
-      setMutationError(updateError.message);
+      setMutationError(friendlyError(updateError));
       return;
     }
     setListings((prev) => prev.map((l) => (l.id === listing.id ? { ...l, ...changes } : l)));
@@ -447,17 +451,21 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
   const [busy, setBusy] = useState(false);
   const l = inspection.listings;
 
-  async function act(changes, confirmText) {
-    if (confirmText && !window.confirm(confirmText)) return;
+  // `confirm` = confirmAction() options, for actions that close the request.
+  async function act(changes, confirm, done) {
+    if (confirm && !(await confirmAction(confirm))) return;
     setBusy(true);
     const ok = await onUpdate(inspection.id, changes);
     setBusy(false);
-    if (ok) setProposing(false);
+    if (ok) {
+      setProposing(false);
+      if (done) toast(done);
+    }
   }
 
   function sendProposal(e) {
     e.preventDefault();
-    act({ status: "countered", proposed_date: date, proposed_time: time || null, landlord_note: note || null });
+    act({ status: "countered", proposed_date: date, proposed_time: time || null, landlord_note: note || null }, null, "New time sent");
   }
 
   return (
@@ -499,7 +507,7 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
 
       {requestActions(inspection).confirm && !proposing && (
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" disabled={busy} onClick={() => act({ status: "confirmed" })} className={button({ size: "sm" })}>
+          <button type="button" disabled={busy} onClick={() => act({ status: "confirmed" }, null, "Viewing confirmed")} className={button({ size: "sm" })}>
             Confirm
           </button>
           <button type="button" disabled={busy} onClick={() => setProposing(true)} className={button({ variant: "neutral", size: "sm" })}>
@@ -508,7 +516,7 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
           <button
             type="button"
             disabled={busy}
-            onClick={() => act({ status: "declined" }, "Decline this viewing request?")}
+            onClick={() => act({ status: "declined" }, { title: "Decline this viewing request?", confirmLabel: "Decline" }, "Request declined")}
             className={button({ variant: "danger-ghost", size: "sm" })}
           >
             Decline
@@ -519,14 +527,20 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
       {(requestActions(inspection).done || requestActions(inspection).cancel) && (
         <div className="mt-4 flex flex-wrap gap-2">
           {requestActions(inspection).done ? (
-            <button type="button" disabled={busy} onClick={() => act({ status: "done" })} className={button({ variant: "neutral", size: "sm" })}>
+            <button type="button" disabled={busy} onClick={() => act({ status: "done" }, null, "Marked as done")} className={button({ variant: "neutral", size: "sm" })}>
               Mark as viewed
             </button>
           ) : (
             <button
               type="button"
               disabled={busy}
-              onClick={() => act({ status: "declined" }, "Cancel this viewing? The home-seeker will see it's been cancelled.")}
+              onClick={() =>
+                act(
+                  { status: "declined" },
+                  { title: "Cancel this viewing?", body: "The home-seeker will see it's been cancelled.", confirmLabel: "Cancel viewing", cancelLabel: "Keep it" },
+                  "Viewing cancelled"
+                )
+              }
               className={button({ variant: "danger-ghost", size: "sm" })}
             >
               Cancel viewing
@@ -540,7 +554,13 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
           <button
             type="button"
             disabled={busy}
-            onClick={() => act({ status: "declined" }, "Withdraw your suggested time and close this request?")}
+            onClick={() =>
+              act(
+                { status: "declined" },
+                { title: "Withdraw your suggested time?", body: "This closes the request.", confirmLabel: "Withdraw" },
+                "Request closed"
+              )
+            }
             className={button({ variant: "ghost", size: "sm" })}
           >
             Withdraw

@@ -1,5 +1,8 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
+import { confirmAction } from "@/lib/confirm";
+import { toast } from "@/lib/toast";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -73,10 +76,13 @@ export default function ListingDetail({ initialListing }) {
   }
 
   async function handleDelete() {
-    if (!window.confirm("Delete this listing? This can't be undone.")) return;
+    if (!(await confirmAction({ title: "Delete this listing?", body: "This can't be undone.", confirmLabel: "Delete listing" }))) return;
     const { error } = await supabase.from("listings").delete().eq("id", id);
-    if (error) setDeleteError(error.message);
-    else router.push("/dashboard");
+    if (error) setDeleteError(friendlyError(error));
+    else {
+      toast("Listing deleted");
+      router.push("/dashboard");
+    }
   }
 
   function scrollToBooking() {

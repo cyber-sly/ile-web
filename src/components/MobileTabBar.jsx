@@ -47,14 +47,14 @@ export default function MobileTabBar() {
               <Link
                 href={t.href}
                 aria-current={on ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors ${
+                className={`flex h-16 flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors ${
                   on ? "text-palm" : "text-ink-muted"
                 }`}
               >
                 <span className="relative">
                   <Icon size={22} strokeWidth={on ? 2.4 : 1.9} aria-hidden="true" />
                   {t.badge > 0 && (
-                    <span className="absolute -right-2.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-clay px-1 text-[10px] font-bold text-white">
+                    <span className="absolute -right-2.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-clay px-1 text-xs font-bold text-white">
                       {t.badge > 9 ? "9+" : t.badge}
                       <span className="sr-only"> unread</span>
                     </span>

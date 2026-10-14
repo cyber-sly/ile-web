@@ -1,5 +1,8 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
+import { confirmAction } from "@/lib/confirm";
+import { toast } from "@/lib/toast";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
@@ -33,7 +36,7 @@ export default function MyBookingsPage() {
     fetchMyViewings(supabase, user.id)
       .then((data) => ({ data }), (e) => ({ fetchError: e }))
       .then(({ data, fetchError }) => {
-        if (fetchError) setError(fetchError.message);
+        if (fetchError) setError(friendlyError(fetchError));
         else {
           setBookings(data);
           fetchNames(data.map((b) => b.listings?.landlord_id)).then(setNames);
@@ -43,15 +46,17 @@ export default function MyBookingsPage() {
       });
   }, [user]);
 
-  async function update(booking, changes, confirmText) {
-    if (confirmText && !window.confirm(confirmText)) return;
+  // `confirm` = confirmAction() options, for actions that close the request.
+  async function update(booking, changes, confirm, done) {
+    if (confirm && !(await confirmAction(confirm))) return;
     setMutationError("");
     const { error: updateError } = await supabase.from("inspections").update(changes).eq("id", booking.id);
     if (updateError) {
-      setMutationError(updateError.message);
+      setMutationError(friendlyError(updateError));
       return;
     }
     setBookings((prev) => prev.map((b) => (b.id === booking.id ? { ...b, ...changes } : b)));
+    if (done) toast(done);
   }
 
   if (user === undefined || (user && loading)) return <PageSkeleton />;
@@ -149,7 +154,7 @@ export default function MyBookingsPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            update(b, acceptChanges(b))
+                            update(b, acceptChanges(b), null, "New time accepted")
                           }
                           className={button({ size: "sm" })}
                         >
@@ -157,7 +162,14 @@ export default function MyBookingsPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => update(b, { status: "declined" }, "Decline the suggested time? This closes the request.")}
+                          onClick={() =>
+                            update(
+                              b,
+                              { status: "declined" },
+                              { title: "Decline the suggested time?", body: "This closes the request.", confirmLabel: "Decline" },
+                              "Request closed"
+                            )
+                          }
                           className={button({ variant: "neutral", size: "sm" })}
                         >
                           Decline
@@ -195,7 +207,14 @@ export default function MyBookingsPage() {
                       <p className="text-sm text-ink-muted">Can&apos;t make it? Cancel so the slot opens for someone else.</p>
                       <button
                         type="button"
-                        onClick={() => update(b, { status: "cancelled" }, "Cancel this viewing? The lister will see it's cancelled.")}
+                        onClick={() =>
+                          update(
+                            b,
+                            { status: "cancelled" },
+                            { title: "Cancel this viewing?", body: "The lister will see it's cancelled.", confirmLabel: "Cancel viewing", cancelLabel: "Keep it" },
+                            "Viewing cancelled"
+                          )
+                        }
                         className={button({ variant: "danger-ghost", size: "sm" })}
                       >
                         Cancel viewing
@@ -208,7 +227,14 @@ export default function MyBookingsPage() {
                       <p className="text-sm text-ink-muted">Waiting for the lister to confirm.</p>
                       <button
                         type="button"
-                        onClick={() => update(b, { status: "cancelled" }, "Cancel this viewing request?")}
+                        onClick={() =>
+                          update(
+                            b,
+                            { status: "cancelled" },
+                            { title: "Cancel this viewing request?", confirmLabel: "Cancel request", cancelLabel: "Keep it" },
+                            "Request cancelled"
+                          )
+                        }
                         className={button({ variant: "danger-ghost", size: "sm" })}
                       >
                         Cancel request

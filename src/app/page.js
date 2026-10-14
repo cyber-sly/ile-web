@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import { fetchLatestListings } from "@shared/search.js";
 import Link from "next/link";
+import Image from "next/image";
+import rentPhoto from "@/assets/home/rent.webp";
+import salePhoto from "@/assets/home/sale.webp";
+import landPhoto from "@/assets/home/land.webp";
+import commercialPhoto from "@/assets/home/commercial.webp";
+import listerPhoto from "@/assets/home/lister.webp";
 import { supabase } from "@/lib/supabaseClient";
 import HomeHero from "@/components/HomeHero";
 import AccountDeletedNotice from "@/components/AccountDeletedNotice";
@@ -21,25 +27,25 @@ const CATEGORIES = [
     href: "/listings",
     title: "Homes for rent",
     blurb: "Flats, self-contains and duplexes.",
-    image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=900&q=70",
+    image: rentPhoto,
   },
   {
     href: "/listings?tab=sale",
     title: "Homes for sale",
     blurb: "Own your home, with the asking price upfront.",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=900&q=70",
+    image: salePhoto,
   },
   {
     href: "/listings?tab=land",
     title: "Land",
     blurb: "Plots and farmland, with the title document shown.",
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=70",
+    image: landPhoto,
   },
   {
     href: "/listings?tab=commercial",
     title: "Shops and offices",
     blurb: "Space to run your business.",
-    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=70",
+    image: commercialPhoto,
   },
 ];
 
@@ -115,7 +121,7 @@ export default function Home() {
             Be the first to list a property on Ile. It&apos;s free.
           </EmptyState>
         ) : (
-          <div className={GRID}>
+          <div className={`${GRID} stagger-in`}>
             {latest.map((listing, i) => (
               <PropertyCard key={listing.id} listing={listing} priority={i < 4} />
             ))}
@@ -137,11 +143,13 @@ export default function Home() {
               href={c.href}
               className="group relative isolate flex min-h-[240px] flex-col justify-end overflow-hidden rounded-[var(--radius-hero)] p-5 text-white"
             >
-              <img
+              <Image
                 src={c.image}
                 alt=""
-                loading="lazy"
-                className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                fill
+                placeholder="blur"
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                className="-z-20 object-cover transition-transform duration-700 group-hover:scale-[1.04]"
               />
               <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0F1C15]/85 via-[#0F1C15]/30 to-transparent" />
               <h3 className="font-serif text-2xl font-semibold">{c.title}</h3>
@@ -196,12 +204,9 @@ export default function Home() {
               List your property free <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>
-          <img
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=70"
-            alt=""
-            loading="lazy"
-            className="hidden h-full min-h-[340px] w-full object-cover md:block"
-          />
+          <div className="relative hidden h-full min-h-[340px] md:block">
+            <Image src={listerPhoto} alt="" fill placeholder="blur" sizes="(min-width: 1280px) 640px, 50vw" className="object-cover" />
+          </div>
         </div>
       </section>
     </div>

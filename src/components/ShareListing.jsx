@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Image as ImageIcon, Link2, X } from "lucide-react";
+import { Check, Image as ImageIcon, Link2 } from "lucide-react";
 import { SITE_URL } from "@/lib/site";
 import { cardUrl, fetchReferralSummary, shareMessage } from "@/lib/referrals";
 import { button } from "@/components/ui/Button";
+import Dialog from "@/components/ui/Dialog";
 
 // Share a listing: a tracked link for chats, or a ready-made picture for
 // WhatsApp Status and Instagram Stories. Logged-in sharers' links carry their
@@ -25,12 +26,6 @@ export default function ShareListing({ listing, user, onClose }) {
       live = false;
     };
   }, [user]);
-
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   const message = shareMessage({ listing, site: SITE_URL, code });
   const image = cardUrl({ site: SITE_URL, listingId: listing.id, code });
@@ -76,22 +71,7 @@ export default function ShareListing({ listing, user, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-6" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="share-title"
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-t-[var(--radius-hero)] bg-surface p-6 shadow-[var(--shadow-float)] sm:rounded-[var(--radius-hero)]"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <h2 id="share-title" className="font-serif text-2xl font-semibold text-ink">
-            Share this listing
-          </h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="rounded-full p-1.5 text-ink-muted hover:bg-ink/5 hover:text-ink">
-            <X size={20} aria-hidden="true" />
-          </button>
-        </div>
+    <Dialog title="Share this listing" onClose={onClose}>
         {code && <p className="mt-1 text-sm text-ink-muted">Your link includes your code {code}, so people who join count for you.</p>}
         <div className="mt-5 flex flex-col gap-3">
           <button type="button" onClick={sendLink} className={button({ size: "lg", full: true })}>
@@ -111,7 +91,6 @@ export default function ShareListing({ listing, user, onClose }) {
             </>
           )}
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

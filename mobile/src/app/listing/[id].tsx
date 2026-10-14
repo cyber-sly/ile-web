@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   fact: { flexGrow: 1, flexBasis: "45%", padding: 16, backgroundColor: colors.surface },
   factWide: { flexBasis: "100%" },
   factLabelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  factLabel: { fontFamily: fonts.sansSemi, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase", color: colors.inkMuted },
+  factLabel: { fontFamily: fonts.sansSemi, fontSize: 12, letterSpacing: 0.8, textTransform: "uppercase", color: colors.inkMuted },
   factValue: { fontFamily: fonts.sansBold, fontSize: 15, lineHeight: 20, color: colors.ink, marginTop: 6 },
   card: { padding: 16, borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   notice: { flexDirection: "row", alignItems: "flex-start", gap: 8 },

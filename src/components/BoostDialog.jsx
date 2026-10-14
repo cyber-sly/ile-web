@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Minus, Plus, Rocket, X } from "lucide-react";
+import { useState } from "react";
+import { Minus, Plus, Rocket } from "lucide-react";
 import { friendlyError } from "@shared/errors.js";
 import { formatDate } from "@/lib/format";
 import { spendBoostDays } from "@/lib/referrals";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
+import Dialog from "@/components/ui/Dialog";
+import { toast } from "@/lib/toast";
 
 // Spend boost days to put a listing first in search and "Fresh on Ile".
 export default function BoostDialog({ listing, balance, onDone, onClose }) {
@@ -16,18 +18,13 @@ export default function BoostDialog({ listing, balance, onDone, onClose }) {
   const [error, setError] = useState("");
   const [until, setUntil] = useState(null);
 
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   async function boost() {
     setBusy(true);
     setError("");
     try {
       const newUntil = await spendBoostDays(listing.id, days);
       setUntil(newUntil);
+      toast("Listing boosted");
       onDone(listing.id, newUntil);
     } catch (e) {
       setError(friendlyError(e));
@@ -38,22 +35,7 @@ export default function BoostDialog({ listing, balance, onDone, onClose }) {
   const dayWord = (n) => (n === 1 ? "day" : "days");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 sm:items-center sm:p-6" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="boost-title"
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-t-[var(--radius-hero)] bg-surface p-6 shadow-[var(--shadow-float)] sm:rounded-[var(--radius-hero)]"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <h2 id="boost-title" className="font-serif text-2xl font-semibold text-ink">
-            Boost this listing
-          </h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="rounded-full p-1.5 text-ink-muted hover:bg-ink/5 hover:text-ink">
-            <X size={20} aria-hidden="true" />
-          </button>
-        </div>
+    <Dialog title="Boost this listing" onClose={onClose}>
         <p className="mt-1 line-clamp-1 text-sm text-ink-muted">{listing.title}</p>
 
         {until ? (
@@ -98,7 +80,6 @@ export default function BoostDialog({ listing, balance, onDone, onClose }) {
             </button>
           </>
         )}
-      </div>
-    </div>
+    </Dialog>
   );
 }

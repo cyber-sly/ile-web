@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
@@ -10,6 +11,7 @@ import { fetchPeople, fetchResponseTimes, formatResponseTime } from "@/lib/profi
 import Avatar from "@/components/Avatar";
 import { fetchRatings } from "@/lib/reviews";
 import { RatingSummary } from "@/components/Stars";
+import { toast } from "@/lib/toast";
 import MessageButton from "@/components/MessageButton";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SlotPicker from "@/components/SlotPicker";
@@ -152,7 +154,7 @@ function OwnerActions({ listing, onDelete, onStatusChange }) {
     setError("");
     const { error: updateError } = await supabase.from("listings").update(changes).eq("id", listing.id);
     setBusy(false);
-    if (updateError) setError(updateError.message);
+    if (updateError) setError(friendlyError(updateError));
     else onStatusChange?.(changes);
   }
   const confirmNow = { last_confirmed_at: new Date().toISOString() };
@@ -317,10 +319,11 @@ function RequestForm({ listing, user, onBooked }) {
       const data = await requestViewing(supabase, listing.id, user.id, date, time);
       recordBookingRef(data?.id, readRefHere());
       setBooking(false);
+      toast("Viewing requested");
       onBooked(data);
     } catch (err) {
       setBooking(false);
-      setError(err.message);
+      setError(friendlyError(err));
     }
   }
 

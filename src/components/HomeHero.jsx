@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import SearchBox from "@/components/SearchBox";
 
 // Swap these files in /public/videos to change the hero footage.
@@ -42,12 +43,7 @@ export default function HomeHero() {
   return (
     <section aria-label="Search for property" className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-6">
       <div className="relative isolate overflow-hidden rounded-[var(--radius-hero)] bg-ink">
-        <img
-          src={POSTER_SRC}
-          alt=""
-          fetchPriority="high"
-          className="absolute inset-0 -z-20 h-full w-full object-cover"
-        />
+        <Image src={POSTER_SRC} alt="" fill priority sizes="(min-width: 1280px) 1280px, 100vw" className="-z-20 object-cover" />
         {playVideo && (
           <video
             ref={videoRef}

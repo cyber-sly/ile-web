@@ -103,6 +103,84 @@
   animation: shimmer 1.4s ease-in-out infinite;
 }
 
+/* Leaving is quicker than arriving, so closing never feels sluggish. */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes sheetIn {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes sheetOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(32px); }
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes popOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.97); }
+}
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.32); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.16s ease-in both;
+}
+.animate-pop-in {
+  animation: popIn 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.animate-pop-out {
+  animation: popOut 0.14s ease-in both;
+}
+.animate-heart-pop {
+  animation: heartPop 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Dialogs: a bottom sheet on phones, a centred card on larger screens. */
+.dialog-panel {
+  animation: sheetIn 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.dialog-panel[data-closing] {
+  animation: sheetOut 0.16s ease-in both;
+}
+@media (min-width: 640px) {
+  .dialog-panel {
+    animation-name: popIn;
+    animation-duration: 0.2s;
+  }
+  .dialog-panel[data-closing] {
+    animation-name: popOut;
+  }
+}
+
+/* Toasts rise from the bottom edge. */
+.toast-in {
+  animation: sheetIn 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.toast-out {
+  animation: fadeOut 0.18s ease-in both;
+}
+
+/* Listing grids: cards fade up one after another (delay set inline, capped). */
+.stagger-in > * {
+  animation: fadeUp 0.4s ease-out both;
+}
+.stagger-in > :nth-child(2) { animation-delay: 45ms; }
+.stagger-in > :nth-child(3) { animation-delay: 90ms; }
+.stagger-in > :nth-child(4) { animation-delay: 135ms; }
+.stagger-in > :nth-child(5) { animation-delay: 180ms; }
+.stagger-in > :nth-child(6) { animation-delay: 225ms; }
+.stagger-in > :nth-child(7) { animation-delay: 270ms; }
+.stagger-in > :nth-child(8) { animation-delay: 315ms; }
+.stagger-in > :nth-child(n + 9) { animation-delay: 360ms; }
+
 /* Hide the scrollbar on horizontal chip/photo strips while keeping them scrollable. */
 .no-scrollbar {
   scrollbar-width: none;

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useClosing } from "@/lib/useClosing";
 
 // Fullscreen photo viewer. Rendered in a portal on <body>: an animated ancestor's
 // transform would otherwise trap position:fixed inside that ancestor.
@@ -10,7 +11,8 @@ export default function Lightbox(props) {
   return createPortal(<LightboxInner {...props} />, document.body);
 }
 
-function LightboxInner({ images, title, start, onClose }) {
+function LightboxInner({ images, title, start, onClose: done }) {
+  const [closing, onClose] = useClosing(done);
   const [index, setIndex] = useState(start);
   const closeRef = useRef(null);
   const touchX = useRef(null);
@@ -46,7 +48,7 @@ function LightboxInner({ images, title, start, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-label={`${title} photo gallery`}
-      className="animate-fade-in fixed inset-0 z-[70] flex flex-col bg-ink/95 backdrop-blur-sm"
+      className={`${closing ? "animate-fade-out" : "animate-fade-in"} fixed inset-0 z-[70] flex flex-col bg-ink/95 backdrop-blur-sm`}
       onClick={onClose}
     >
       <div className="flex items-center justify-between px-4 py-3 text-white sm:px-6">
@@ -60,7 +62,7 @@ function LightboxInner({ images, title, start, onClose }) {
           aria-label="Close gallery"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
         >
-          <X size={20} />
+          <X size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -79,7 +81,7 @@ function LightboxInner({ images, title, start, onClose }) {
             }}
             className="absolute left-3 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:scale-105 hover:bg-white/25 sm:flex"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={24} aria-hidden="true" />
           </button>
         )}
         <img
@@ -99,7 +101,7 @@ function LightboxInner({ images, title, start, onClose }) {
             }}
             className="absolute right-3 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:scale-105 hover:bg-white/25 sm:flex"
           >
-            <ChevronRight size={24} />
+            <ChevronRight size={24} aria-hidden="true" />
           </button>
         )}
       </div>

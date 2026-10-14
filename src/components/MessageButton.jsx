@@ -1,5 +1,6 @@
 "use client";
 
+import { friendlyError } from "@shared/errors.js";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { startConversation } from "@/lib/messaging";
@@ -33,7 +34,7 @@ export default function MessageButton({
       const id = await startConversation(listingId, tenantId);
       router.push(`/messages/${id}`);
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err));
       setBusy(false);
     }
   }
