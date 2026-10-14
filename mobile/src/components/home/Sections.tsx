@@ -1,10 +1,11 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { ArrowRight, CalendarCheck, Eye, Home as HomeIcon, KeyRound, Search, ShieldCheck, Wallet, WifiOff } from "lucide-react-native";
 import PropertyCard, { type ListingRow } from "@/components/PropertyCard";
 import { Button, CardSkeleton, EmptyState, SectionHeading, Shade } from "@/components/kit";
 import { HOME_CATEGORIES, HOME_PROMISES, HOME_STEPS, freshSectionState } from "@/lib/ui/home";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 const PROMISE_ICONS = [Wallet, ShieldCheck, Eye];
 const STEP_ICONS = [Search, CalendarCheck, KeyRound];
@@ -105,7 +106,7 @@ export function Categories({ onPick }: { onPick: (tab: string) => void }) {
       <SectionHeading title="What are you looking for?" />
       <View style={styles.grid}>
         {HOME_CATEGORIES.map((c) => (
-          <Pressable key={c.tab} accessibilityRole="button" accessibilityLabel={c.title} onPress={() => onPick(c.tab)} style={styles.tile}>
+          <Tap key={c.tab} accessibilityRole="button" accessibilityLabel={c.title} onPress={() => onPick(c.tab)} style={styles.tile}>
             <Image source={{ uri: c.image }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" alt="" />
             <Shade colors={["transparent", "rgba(15,28,21,0.3)", "rgba(15,28,21,0.85)"]} />
             <View style={styles.tileText}>
@@ -118,7 +119,7 @@ export function Categories({ onPick }: { onPick: (tab: string) => void }) {
                 <ArrowRight size={14} color={colors.white} />
               </View>
             </View>
-          </Pressable>
+          </Tap>
         ))}
       </View>
     </View>

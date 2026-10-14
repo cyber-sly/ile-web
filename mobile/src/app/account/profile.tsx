@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import SelectField from "@/components/SelectField";
 import Button from "@/components/Button";
 import Screen from "@/components/Screen";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 type Form = Record<string, any>;
 type Option = { value: string; label: string };
@@ -173,10 +174,10 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
             <Text style={styles.label}>Areas you cover</Text>
             <View style={styles.chips}>
               {v.areas_covered.map((a: string) => (
-                <Pressable key={a} accessibilityRole="button" accessibilityLabel={`Remove ${a}`} onPress={() => toggleIn("areas_covered", a)} style={styles.areaChip}>
+                <Tap key={a} accessibilityRole="button" accessibilityLabel={`Remove ${a}`} onPress={() => toggleIn("areas_covered", a)} style={styles.areaChip}>
                   <Text style={styles.areaText}>{a}</Text>
                   <X color={colors.palm} size={14} />
-                </Pressable>
+                </Tap>
               ))}
             </View>
             <View style={styles.addRow}>
@@ -227,10 +228,10 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
 
 function PhotoButton({ Icon, label, onPress, disabled }: { Icon: typeof Camera; label: string; onPress: () => void; disabled?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={[styles.photoButton, disabled && styles.dim]}>
+    <Tap accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={[styles.photoButton, disabled && styles.dim]}>
       <Icon color={colors.palm} size={16} />
       <Text style={styles.photoButtonText}>{label}</Text>
-    </Pressable>
+    </Tap>
   );
 }
 

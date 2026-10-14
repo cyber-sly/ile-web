@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { friendlyError } from "@shared/errors.js";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, ShieldCheck, Zap } from "lucide-react-native";
@@ -13,6 +13,8 @@ import DayTimePicker from "@/components/DayTimePicker";
 import Button from "@/components/Button";
 import { StatusBadge } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import { errorHaptic, successHaptic } from "@/lib/haptics";
 
 type Viewing = { id: string; status: string; preferred_date: string; preferred_time: string | null; proposed_date?: string; proposed_time?: string };
 type Slot = { slot_date: string; slot_time: string };
@@ -77,9 +79,9 @@ export default function BookSheet() {
     body = (
       <>
         <SlotBooking listingId={id} slots={slots.data || []} onBooked={booked} onTaken={() => slots.refetch()} />
-        <Pressable accessibilityRole="button" onPress={() => setRequestMode(true)} style={styles.switch}>
+        <Tap accessibilityRole="button" onPress={() => setRequestMode(true)} style={styles.switch}>
           <Text style={styles.link}>None of these work? Request another time</Text>
-        </Pressable>
+        </Tap>
       </>
     );
   } else {
@@ -87,9 +89,9 @@ export default function BookSheet() {
       <>
         <RequestBooking listingId={id} userId={userId} onBooked={booked} />
         {(slots.data || []).length > 0 && (
-          <Pressable accessibilityRole="button" onPress={() => setRequestMode(false)} style={styles.switch}>
+          <Tap accessibilityRole="button" onPress={() => setRequestMode(false)} style={styles.switch}>
             <Text style={styles.link}>Back to open times</Text>
-          </Pressable>
+          </Tap>
         )}
       </>
     );
@@ -130,8 +132,10 @@ function SlotBooking({
     setError("");
     try {
       const viewingId = await bookSlot(supabase, listingId, day, time);
+      successHaptic();
       onBooked({ id: viewingId, status: "confirmed", preferred_date: day, preferred_time: time });
     } catch (e) {
+      errorHaptic();
       setError(friendlyError(e));
       setTime(null);
       onTaken(); // someone may have just taken it: reload the open times
@@ -177,7 +181,9 @@ function RequestBooking({ listingId, userId, onBooked }: { listingId: string; us
     setBusy(true);
     setError("");
     try {
-      onBooked(await requestViewing(supabase, listingId, userId, day, time || null));
+      const request = await requestViewing(supabase, listingId, userId, day, time || null);
+      successHaptic();
+      onBooked(request);
     } catch (e) {
       setError(friendlyError(e));
     } finally {

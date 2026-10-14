@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { Image } from "expo-image";
@@ -10,6 +10,7 @@ import { listerLabel } from "@shared/property.js";
 import { supabase } from "@/lib/supabase";
 import type { ListingRow } from "@/components/PropertyCard";
 import { colors, fonts } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 async function fetchLister(id: string) {
   const [people, ratings, replies] = await Promise.all([
@@ -30,7 +31,7 @@ export default function ListerLine({ listing }: { listing: ListingRow }) {
   const rating = data?.rating;
 
   return (
-    <Pressable
+    <Tap
       accessibilityRole="button"
       accessibilityLabel={`See ${name || role}'s profile`}
       disabled={!id}
@@ -66,7 +67,7 @@ export default function ListerLine({ listing }: { listing: ListingRow }) {
         {data?.reply ? <Text style={styles.reply}>{data.reply}</Text> : null}
       </View>
       {id ? <ChevronRight color={colors.inkMuted} size={18} /> : null}
-    </Pressable>
+    </Tap>
   );
 }
 

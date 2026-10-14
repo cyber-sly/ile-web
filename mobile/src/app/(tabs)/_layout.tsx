@@ -3,6 +3,7 @@ import { House, Heart, MessageCircle, CalendarDays, LayoutDashboard, UserRound }
 import { isLister, useSession } from "@/lib/useSession";
 import { useUnreadCount } from "@/lib/unread";
 import { accountTabTitle } from "@/lib/ui/home";
+import { tapHaptic } from "@/lib/haptics";
 import { colors, fonts } from "@/theme";
 
 // Home first, like the website; the last tab says "Log in" when logged out.
@@ -13,6 +14,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      screenListeners={{ tabPress: () => tapHaptic() }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.palm,

@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Modal, StyleSheet, Text, TextInput, View } from "react-native";
 import { ChevronDown, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 export type Option = { value: string; label: string };
 
@@ -39,7 +40,7 @@ export default function SelectField({
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>{label}</Text>
-      <Pressable
+      <Tap
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${current || placeholder}`}
         disabled={disabled}
@@ -50,14 +51,14 @@ export default function SelectField({
           {current || placeholder}
         </Text>
         <ChevronDown color={colors.inkMuted} size={18} />
-      </Pressable>
+      </Tap>
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
         <SafeAreaView style={styles.modal}>
           <View style={styles.header}>
             <Text style={styles.title}>{label}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={() => setOpen(false)}>
+            <Tap accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={() => setOpen(false)}>
               <X color={colors.ink} size={24} />
-            </Pressable>
+            </Tap>
           </View>
           {options.length > 8 && (
             <TextInput
@@ -74,9 +75,9 @@ export default function SelectField({
             keyExtractor={(o) => o.value || "any"}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
-              <Pressable accessibilityRole="button" onPress={() => pick(item.value)} style={styles.option}>
+              <Tap accessibilityRole="button" onPress={() => pick(item.value)} style={styles.option}>
                 <Text style={[styles.optionText, item.value === value && styles.selected]}>{item.label}</Text>
-              </Pressable>
+              </Tap>
             )}
           />
         </SafeAreaView>

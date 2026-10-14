@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Minus, Plus } from "lucide-react-native";
 import { formatTime } from "@shared/format.js";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 const toMinutes = (t: string) => {
   const [h, m] = t.split(":").map(Number);
@@ -32,7 +33,7 @@ export default function TimeStepper({
     <View style={styles.wrap}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.row}>
-        <Pressable
+        <Tap
           accessibilityRole="button"
           accessibilityLabel={`${label} earlier`}
           disabled={!earlier}
@@ -40,9 +41,9 @@ export default function TimeStepper({
           style={[styles.button, !earlier && styles.dim]}
         >
           <Minus color={colors.palm} size={16} />
-        </Pressable>
+        </Tap>
         <Text style={styles.value}>{formatTime(value)}</Text>
-        <Pressable
+        <Tap
           accessibilityRole="button"
           accessibilityLabel={`${label} later`}
           disabled={!later}
@@ -50,7 +51,7 @@ export default function TimeStepper({
           style={[styles.button, !later && styles.dim]}
         >
           <Plus color={colors.palm} size={16} />
-        </Pressable>
+        </Tap>
       </View>
     </View>
   );

@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { router } from "expo-router";
 import { ImageOff, MapPin } from "lucide-react-native";
 import { keyFacts, listerLabel, placeLabel, priceParts } from "@shared/property.js";
@@ -25,11 +26,12 @@ export default function PropertyCard({ listing, width }: { listing: ListingRow; 
   const facts: string[] = keyFacts(listing);
   const gold = categoryLine(listing);
   return (
+    <Animated.View entering={FadeInDown.duration(260)} style={width ? { width } : null}>
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${listing.title}, ${amount}${suffix}, ${placeLabel(listing)}`}
       onPress={() => router.push({ pathname: "/listing/[id]", params: { id: String(listing.id) } })}
-      style={({ pressed }) => [styles.card, width ? { width } : null, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.photoWrap}>
         {cover ? (
@@ -70,6 +72,7 @@ export default function PropertyCard({ listing, width }: { listing: ListingRow; 
         ) : null}
       </View>
     </Pressable>
+    </Animated.View>
   );
 }
 

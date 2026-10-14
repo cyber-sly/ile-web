@@ -1,17 +1,24 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
+import Tap from "@/components/kit/Tap";
+import { tapHaptic } from "@/lib/haptics";
 import { colors, fonts } from "@/theme";
 
-// Pill used for search tabs and filter choices.
+// Pill used for search tabs and filter choices. The pill is 36pt tall; the
+// extra hitSlop makes the touch target 48pt.
 export default function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
-    <Pressable
+    <Tap
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      onPress={onPress}
+      hitSlop={{ top: 6, bottom: 6, left: 2, right: 2 }}
+      onPress={() => {
+        tapHaptic();
+        onPress();
+      }}
       style={[styles.chip, selected && styles.on]}
     >
       <Text style={[styles.text, selected && styles.textOn]}>{label}</Text>
-    </Pressable>
+    </Tap>
   );
 }
 

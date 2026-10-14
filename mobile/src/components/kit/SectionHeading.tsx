@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { ArrowRight } from "lucide-react-native";
 import { colors, fonts } from "@/theme";
+import Tap from "./Tap";
 
 // Website section heading: large serif title, optional line under it, and an
 // optional "See all"-style link on the right.
@@ -22,10 +23,10 @@ export default function SectionHeading({
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
       {action ? (
-        <Pressable accessibilityRole="button" accessibilityLabel={action.label} onPress={action.onPress} hitSlop={8} style={styles.action}>
+        <Tap accessibilityRole="button" accessibilityLabel={action.label} onPress={action.onPress} hitSlop={8} style={styles.action}>
           <Text style={styles.actionText}>{action.label}</Text>
           <ArrowRight size={16} color={colors.palm} />
-        </Pressable>
+        </Tap>
       ) : null}
     </View>
   );

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { friendlyError } from "@shared/errors.js";
 import { signInWithApple, signInWithGoogle, useSocialProviders } from "@/lib/oauth";
 import type { Role } from "@/lib/oauthRules";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 // "Continue with Google" and (on iPhone) "Sign in with Apple". Shown only for
 // providers switched on in Supabase. Cancelling shows nothing. On top (as on
@@ -63,10 +64,10 @@ export default function SocialButtons({
     <View style={styles.wrap}>
       {placement === "bottom" && divider}
       {providers.google && (
-        <Pressable accessibilityRole="button" accessibilityLabel={googleLabel} disabled={busy} onPress={() => run(signInWithGoogle)} style={[styles.google, busy && styles.dim]}>
+        <Tap accessibilityRole="button" accessibilityLabel={googleLabel} disabled={busy} onPress={() => run(signInWithGoogle)} style={[styles.google, busy && styles.dim]}>
           <Text style={styles.g}>G</Text>
           <Text style={styles.googleText}>{googleLabel}</Text>
-        </Pressable>
+        </Tap>
       )}
       {providers.apple && (
         <AppleAuthentication.AppleAuthenticationButton

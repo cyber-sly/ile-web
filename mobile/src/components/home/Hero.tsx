@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MapPin, Plus, Search } from "lucide-react-native";
@@ -7,6 +7,7 @@ import { SEARCH_TABS } from "@shared/search.js";
 import { Button, Em, Logo, Shade } from "@/components/kit";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius, shadows } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 // The website's top bar and hero (Navbar + HomeHero + SearchBox): photo,
 // headline, and the search box floating over the bottom edge of the photo.
@@ -37,11 +38,11 @@ export default function Hero({ onSearch, onList }: { onSearch: (tab: string, q: 
           {(SEARCH_TABS as { value: string; label: string }[]).map((t) => {
             const on = t.value === tab;
             return (
-              <Pressable key={t.value} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setTab(t.value)} style={[styles.tab, on && styles.tabOn]}>
+              <Tap key={t.value} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setTab(t.value)} style={[styles.tab, on && styles.tabOn]}>
                 <Text style={[styles.tabText, on && styles.tabTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
                   {t.label}
                 </Text>
-              </Pressable>
+              </Tap>
             );
           })}
         </View>

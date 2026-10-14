@@ -1,10 +1,11 @@
 import { ReactNode } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { PhotoHeader } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
 import { keyboardBehavior } from "./keyboardBehavior";
+import Tap from "@/components/kit/Tap";
 
 export const LOGIN_PHOTO = "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=70";
 export const SIGNUP_PHOTO = "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1000&q=70";
@@ -52,9 +53,9 @@ export function FooterLink({ prompt, label, href }: { prompt: string; label: str
   return (
     <View style={styles.footer}>
       <Text style={styles.footerText}>{prompt}</Text>
-      <Pressable accessibilityRole="link" accessibilityLabel={label} hitSlop={12} onPress={() => router.push(href)} style={styles.footerLink}>
+      <Tap accessibilityRole="link" accessibilityLabel={label} hitSlop={12} onPress={() => router.push(href)} style={styles.footerLink}>
         <Text style={styles.footerLinkText}>{label}</Text>
-      </Pressable>
+      </Tap>
     </View>
   );
 }

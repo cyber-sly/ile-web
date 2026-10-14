@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, StyleSheet, Text, View } from "react-native";
 import { Minus, Plus, Rocket, X } from "lucide-react-native";
 import { friendlyError } from "@shared/errors.js";
 import { formatDate } from "@shared/format.js";
 import { spendBoostDays } from "@/lib/referrals";
 import { Button } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import Animated, { SlideInDown } from "react-native-reanimated";
+import { successHaptic } from "@/lib/haptics";
 
 const dayWord = (n: number) => (n === 1 ? "day" : "days");
 
@@ -40,6 +43,7 @@ export default function BoostSheet({
     try {
       const newUntil = await spendBoostDays(String(listing.id), days);
       setUntil(newUntil);
+      successHaptic();
       onDone(String(listing.id), newUntil);
     } catch (e) {
       setError(friendlyError(e));
@@ -48,16 +52,16 @@ export default function BoostSheet({
   }
 
   return (
-    <Modal visible={listing !== null} transparent animationType="slide" onRequestClose={close}>
-      <Pressable style={styles.backdrop} onPress={close} accessibilityLabel="Close" />
-      <View style={styles.sheet}>
+    <Modal visible={listing !== null} transparent animationType="fade" statusBarTranslucent onRequestClose={close}>
+      <Tap feedback={false} style={styles.backdrop} onPress={close} accessibilityLabel="Close" />
+      <Animated.View entering={SlideInDown.duration(260)} style={styles.sheet}>
         <View style={styles.head}>
           <Text style={styles.title} accessibilityRole="header">
             Boost this listing
           </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={close}>
+          <Tap accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={close}>
             <X color={colors.inkMuted} size={22} />
-          </Pressable>
+          </Tap>
         </View>
         <Text style={styles.muted} numberOfLines={1}>
           {listing?.title}
@@ -72,7 +76,7 @@ export default function BoostSheet({
               Boosted listings show first in search and on the home page. You have {balance} boost {dayWord(balance)}.
             </Text>
             <View style={styles.stepper}>
-              <Pressable
+              <Tap
                 accessibilityRole="button"
                 accessibilityLabel="Fewer days"
                 disabled={days <= 1}
@@ -80,11 +84,11 @@ export default function BoostSheet({
                 style={[styles.step, days <= 1 && styles.dim]}
               >
                 <Minus color={colors.ink} size={18} />
-              </Pressable>
+              </Tap>
               <Text style={styles.days} accessibilityLiveRegion="polite">
                 {days} {dayWord(days)}
               </Text>
-              <Pressable
+              <Tap
                 accessibilityRole="button"
                 accessibilityLabel="More days"
                 disabled={days >= max}
@@ -92,13 +96,13 @@ export default function BoostSheet({
                 style={[styles.step, days >= max && styles.dim]}
               >
                 <Plus color={colors.ink} size={18} />
-              </Pressable>
+              </Tap>
             </View>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button label={busy ? "Boosting…" : `Boost for ${days} ${dayWord(days)}`} icon={Rocket} loading={busy} onPress={boost} />
           </>
         )}
-      </View>
+      </Animated.View>
     </Modal>
   );
 }

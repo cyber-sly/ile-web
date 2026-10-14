@@ -21,6 +21,7 @@ import Price from "./steps/Price";
 import Photos from "./steps/Photos";
 import Review from "./steps/Review";
 import { colors, fonts } from "@/theme";
+import { successHaptic } from "@/lib/haptics";
 
 
 type Listing = Record<string, any>;
@@ -163,6 +164,7 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
       await drafts.clear(key);
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["listing", String(id)] });
+      successHaptic();
       router.replace({ pathname: "/listing/[id]", params: { id: String(id) } });
     } catch (e) {
       setFormError(friendlyError(e));

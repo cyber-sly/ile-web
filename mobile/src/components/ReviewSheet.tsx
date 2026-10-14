@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { leaveReview } from "@shared/account.js";
@@ -10,6 +10,8 @@ import Chip from "@/components/Chip";
 import Field from "@/components/Field";
 import Button from "@/components/Button";
 import { colors, fonts } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import { successHaptic } from "@/lib/haptics";
 
 // Review the lister after a viewing (home-seekers), or rate the home-seeker (listers).
 export default function ReviewSheet({
@@ -40,6 +42,7 @@ export default function ReviewSheet({
     setError("");
     try {
       await leaveReview(supabase, { inspectionId, rating, comment: comment.trim(), accurate: isLister ? accurate : null });
+      successHaptic();
       onDone();
       onClose();
     } catch (e) {
@@ -54,9 +57,9 @@ export default function ReviewSheet({
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <Text style={styles.title}>{isLister ? `Review ${who}` : `Rate ${who}`}</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
+          <Tap accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
             <X color={colors.ink} size={24} />
-          </Pressable>
+          </Tap>
         </View>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.muted}>

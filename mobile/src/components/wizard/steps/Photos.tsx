@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { ArrowLeft, ArrowRight, Camera, ImagePlus, Video, X } from "lucide-react-native";
 import { MAX_PHOTOS, MAX_VIDEOS } from "@shared/lister.js";
@@ -9,6 +9,7 @@ import type { PhotoItem } from "@/lib/draftStore";
 import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
 import { ErrorText, Hint } from "../parts";
+import Tap from "@/components/kit/Tap";
 
 type Props = {
   photos: PhotoItem[];
@@ -92,27 +93,27 @@ export default function Photos({ photos, videos, setPhotos, setVideos, error }: 
             <View key={uriOf(p)} style={styles.tile}>
               <Image source={{ uri: uriOf(p) }} style={styles.photo} contentFit="cover" alt={`Photo ${i + 1}`} />
               {i === 0 && <Text style={styles.cover}>Cover</Text>}
-              <Pressable accessibilityRole="button" accessibilityLabel={`Remove photo ${i + 1}`} hitSlop={6} onPress={() => setPhotos(photos.filter((_, j) => j !== i))} style={styles.remove}>
+              <Tap accessibilityRole="button" accessibilityLabel={`Remove photo ${i + 1}`} hitSlop={6} onPress={() => setPhotos(photos.filter((_, j) => j !== i))} style={styles.remove}>
                 <X color={colors.white} size={14} />
-              </Pressable>
+              </Tap>
               <View style={styles.moves}>
                 {i > 0 && (
-                  <Pressable accessibilityRole="button" accessibilityLabel={`Move photo ${i + 1} earlier`} hitSlop={6} onPress={() => move(i, -1)} style={styles.moveButton}>
+                  <Tap accessibilityRole="button" accessibilityLabel={`Move photo ${i + 1} earlier`} hitSlop={6} onPress={() => move(i, -1)} style={styles.moveButton}>
                     <ArrowLeft color={colors.white} size={14} />
-                  </Pressable>
+                  </Tap>
                 )}
                 {i < photos.length - 1 && (
-                  <Pressable accessibilityRole="button" accessibilityLabel={`Move photo ${i + 1} later`} hitSlop={6} onPress={() => move(i, 1)} style={styles.moveButton}>
+                  <Tap accessibilityRole="button" accessibilityLabel={`Move photo ${i + 1} later`} hitSlop={6} onPress={() => move(i, 1)} style={styles.moveButton}>
                     <ArrowRight color={colors.white} size={14} />
-                  </Pressable>
+                  </Tap>
                 )}
               </View>
             </View>
           ))}
           {photos.length < MAX_PHOTOS && (
-            <Pressable accessibilityRole="button" accessibilityLabel="Add more photos" onPress={gallery} style={[styles.tile, styles.add]}>
+            <Tap accessibilityRole="button" accessibilityLabel="Add more photos" onPress={gallery} style={[styles.tile, styles.add]}>
               <ImagePlus color={colors.palm} size={24} />
-            </Pressable>
+            </Tap>
           )}
         </View>
       )}
@@ -123,9 +124,9 @@ export default function Photos({ photos, videos, setPhotos, setVideos, error }: 
         <View key={uriOf(v)} style={styles.videoRow}>
           <Video color={colors.palm} size={18} />
           <Text style={styles.videoText}>Video {i + 1}</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel={`Remove video ${i + 1}`} onPress={() => setVideos(videos.filter((_, j) => j !== i))}>
+          <Tap accessibilityRole="button" accessibilityLabel={`Remove video ${i + 1}`} onPress={() => setVideos(videos.filter((_, j) => j !== i))}>
             <Text style={styles.removeText}>Remove</Text>
-          </Pressable>
+          </Tap>
         </View>
       ))}
       {videos.length < MAX_VIDEOS && <Button label="Add a video" variant="ghost" disabled={busy} onPress={addVideos} />}

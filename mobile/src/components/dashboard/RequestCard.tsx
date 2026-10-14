@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { reviewState } from "@/lib/reviews";
 import ReviewSheet from "@/components/ReviewSheet";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { CalendarDays, Clock, MessageCircle, Star } from "lucide-react-native";
@@ -12,6 +12,8 @@ import { friendlyError } from "@shared/errors.js";
 import { openChat } from "@/lib/messagingApp";
 import { StatusBadge } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import { successHaptic } from "@/lib/haptics";
 
 export type RequestRow = Record<string, any>;
 type Person = { name: string; avatar: string | null } | null;
@@ -54,6 +56,7 @@ export default function RequestCard({ request: r, person, details, rating, onlin
     setError("");
     try {
       await onUpdate(changes);
+      successHaptic();
     } catch (e) {
       setError(friendlyError(e));
     } finally {
@@ -98,11 +101,11 @@ export default function RequestCard({ request: r, person, details, rating, onlin
             </View>
           ) : null}
           {about ? <Text style={styles.muted}>{about}</Text> : null}
-          <Pressable onPress={() => router.push({ pathname: "/listing/[id]", params: { id: String(r.listing_id) } })}>
+          <Tap onPress={() => router.push({ pathname: "/listing/[id]", params: { id: String(r.listing_id) } })}>
             <Text style={styles.listing} numberOfLines={1}>
               {r.listings?.title || "Listing removed"}
             </Text>
-          </Pressable>
+          </Tap>
         </View>
       </View>
 
@@ -154,10 +157,10 @@ export default function RequestCard({ request: r, person, details, rating, onlin
           />
         )}
         {r.tenant_id && ["pending", "countered", "confirmed"].includes(r.status) && (
-          <Pressable accessibilityRole="button" accessibilityLabel="Message" disabled={!online} onPress={message} style={[styles.message, !online && styles.dim]}>
+          <Tap accessibilityRole="button" accessibilityLabel="Message" disabled={!online} onPress={message} style={[styles.message, !online && styles.dim]}>
             <MessageCircle color={colors.palm} size={16} />
             <Text style={styles.link}>Message</Text>
-          </Pressable>
+          </Tap>
         )}
       </View>
     </View>
@@ -166,7 +169,7 @@ export default function RequestCard({ request: r, person, details, rating, onlin
 
 function Action({ label, onPress, disabled, primary, danger }: { label: string; onPress: () => void; disabled?: boolean; primary?: boolean; danger?: boolean }) {
   return (
-    <Pressable
+    <Tap
       accessibilityRole="button"
       accessibilityLabel={label}
       disabled={disabled}
@@ -174,7 +177,7 @@ function Action({ label, onPress, disabled, primary, danger }: { label: string; 
       style={[styles.action, primary && styles.primary, danger && styles.danger, disabled && styles.dim]}
     >
       <Text style={[styles.actionText, primary && styles.primaryText, danger && styles.dangerText]}>{label}</Text>
-    </Pressable>
+    </Tap>
   );
 }
 

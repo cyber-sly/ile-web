@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MIN_PASSWORD } from "@shared/account.js";
 import { friendlyError } from "@shared/errors.js";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { Building2, Gift, Lock, Mail, MailCheck, Search, UserRound } from "lucide-react-native";
@@ -15,6 +15,7 @@ import { inviteCodeExists, signupInviteCode } from "@/lib/referrals";
 
 const UNKNOWN_CODE = "We couldn't find that invite code, so it wasn't added.";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 const SITE = process.env.EXPO_PUBLIC_SITE_URL;
 
@@ -110,7 +111,7 @@ export default function SignupScreen() {
           {ROLES.map(({ value, Icon, title, body }) => {
             const on = role === value;
             return (
-              <Pressable
+              <Tap
                 key={value}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: on }}
@@ -120,7 +121,7 @@ export default function SignupScreen() {
                 <Icon color={on ? colors.palm : colors.inkMuted} size={22} />
                 <Text style={styles.roleTitle}>{title}</Text>
                 <Text style={styles.roleBody}>{body}</Text>
-              </Pressable>
+              </Tap>
             );
           })}
         </View>

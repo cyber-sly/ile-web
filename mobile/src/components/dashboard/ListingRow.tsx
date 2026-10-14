@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ImageOff } from "lucide-react-native";
@@ -7,6 +7,7 @@ import { listingActions, takenStatus } from "@shared/lister.js";
 import { isAvailable, isBoosted, isExpired, isModerated, placeLabel, priceParts, STATUS_LABELS } from "@shared/property.js";
 import { friendlyError } from "@shared/errors.js";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 export type ListingRowData = Record<string, any>;
 
@@ -56,7 +57,7 @@ export default function ListingRow({ listing: l, online, onUpdate, onDelete, onS
 
   return (
     <View style={styles.card}>
-      <Pressable
+      <Tap
         accessibilityRole="button"
         onPress={() => router.push({ pathname: "/listing/[id]", params: { id: String(l.id) } })}
         style={styles.top}
@@ -81,17 +82,17 @@ export default function ListingRow({ listing: l, online, onUpdate, onDelete, onS
           </Text>
           <Text style={[styles.status, styles[statusTone]]}>{statusLine}</Text>
         </View>
-      </Pressable>
+      </Tap>
 
       {actions.confirm && (
         <View style={styles.confirm}>
           <Text style={styles.confirmText}>Still available?</Text>
-          <Pressable accessibilityRole="button" disabled={disabled} onPress={() => run(() => onUpdate(confirmNow()))}>
+          <Tap accessibilityRole="button" disabled={disabled} onPress={() => run(() => onUpdate(confirmNow()))}>
             <Text style={styles.link}>Yes</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" disabled={disabled} onPress={() => run(() => onUpdate({ status: taken }))}>
+          </Tap>
+          <Tap accessibilityRole="button" disabled={disabled} onPress={() => run(() => onUpdate({ status: taken }))}>
             <Text style={styles.mutedLink}>No, it&apos;s {taken}</Text>
-          </Pressable>
+          </Tap>
         </View>
       )}
 
@@ -124,9 +125,9 @@ export default function ListingRow({ listing: l, online, onUpdate, onDelete, onS
 
 function Small({ label, onPress, disabled, danger }: { label: string; onPress: () => void; disabled?: boolean; danger?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={[styles.small, disabled && styles.dim]}>
+    <Tap accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={[styles.small, disabled && styles.dim]}>
       <Text style={[styles.smallText, danger && styles.dangerText]}>{label}</Text>
-    </Pressable>
+    </Tap>
   );
 }
 

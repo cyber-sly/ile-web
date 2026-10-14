@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { Button, CardSkeleton, EmptyState } from "@/components/kit";
 import PropertyCard, { type ListingRow } from "@/components/PropertyCard";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 type Page = { rows: ListingRow[]; count: number };
 
@@ -49,7 +50,7 @@ export default function SearchScreen() {
   const header = (
     <View style={styles.header}>
       <View style={styles.titleRow}>
-        <Pressable
+        <Tap
           accessibilityRole="button"
           accessibilityLabel="Back"
           hitSlop={10}
@@ -57,7 +58,7 @@ export default function SearchScreen() {
           style={styles.back}
         >
           <ArrowLeft color={colors.ink} size={20} />
-        </Pressable>
+        </Tap>
         <Text style={[styles.title, styles.flex]} accessibilityRole="header">
           {heading}
         </Text>
@@ -79,7 +80,7 @@ export default function SearchScreen() {
         {SEARCH_TABS.map((t: { value: string; label: string }) => {
           const on = filters.tab === t.value;
           return (
-            <Pressable
+            <Tap
               key={t.value}
               accessibilityRole="tab"
               accessibilityState={{ selected: on }}
@@ -87,12 +88,12 @@ export default function SearchScreen() {
               style={[styles.tab, on && styles.tabOn]}
             >
               <Text style={[styles.tabText, on && styles.tabTextOn]}>{t.label}</Text>
-            </Pressable>
+            </Tap>
           );
         })}
       </View>
       <View style={styles.row}>
-        <Pressable
+        <Tap
           accessibilityRole="button"
           accessibilityLabel={filterCount ? `Filters, ${filterCount} applied` : "Filters"}
           onPress={() => router.push("/filters")}
@@ -105,10 +106,10 @@ export default function SearchScreen() {
               <Text style={styles.badgeText}>{filterCount}</Text>
             </View>
           )}
-        </Pressable>
+        </Tap>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.flex}>
           {chips.map((c) => (
-            <Pressable
+            <Tap
               key={c.key}
               accessibilityRole="button"
               accessibilityLabel={`Remove filter ${c.label}`}
@@ -117,7 +118,7 @@ export default function SearchScreen() {
             >
               <Text style={styles.appliedText}>{c.label}</Text>
               <X color={colors.palm} size={14} />
-            </Pressable>
+            </Tap>
           ))}
         </ScrollView>
       </View>

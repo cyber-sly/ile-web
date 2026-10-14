@@ -2,7 +2,7 @@ import { useState } from "react";
 import { reviewState } from "@/lib/reviews";
 import ReviewSheet from "@/components/ReviewSheet";
 import { friendlyError } from "@shared/errors.js";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { CalendarDays, Clock, ImageOff, MessageCircle } from "lucide-react-native";
@@ -13,6 +13,8 @@ import { openChat } from "@/lib/messagingApp";
 import { StatusBadge } from "@/components/kit";
 import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import { successHaptic } from "@/lib/haptics";
 
 export type ViewingRow = Record<string, any>;
 
@@ -46,6 +48,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
     setError("");
     try {
       await task();
+      successHaptic();
     } catch (e) {
       setError(friendlyError(e));
     } finally {
@@ -55,7 +58,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
 
   return (
     <View style={[styles.card, v.status === "countered" && styles.countered]}>
-      <Pressable
+      <Tap
         accessibilityRole="button"
         disabled={!l}
         onPress={() => l && router.push({ pathname: "/listing/[id]", params: { id: String(l.id) } })}
@@ -85,7 +88,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
             <Text style={styles.date}>{formatDateTime(v.preferred_date, v.preferred_time)}</Text>
           </View>
         </View>
-      </Pressable>
+      </Tap>
 
       {v.status === "countered" && (
         <View style={styles.counter}>
@@ -134,7 +137,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
             </View>
           )}
           {actions.message && l && !actions.accept && (
-            <Pressable
+            <Tap
               accessibilityRole="button"
               disabled={!online}
               onPress={() => run(() => openChat(String(l.id)))}
@@ -142,10 +145,10 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
             >
               <MessageCircle color={colors.palm} size={16} />
               <Text style={styles.link}>Message</Text>
-            </Pressable>
+            </Tap>
           )}
           {actions.cancel && (
-            <Pressable
+            <Tap
               accessibilityRole="button"
               disabled={!online || busy}
               onPress={() =>
@@ -159,7 +162,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
               style={[styles.cancelButton, (!online || busy) && styles.dim]}
             >
               <Text style={styles.cancel}>{v.status === "pending" ? "Cancel request" : "Cancel viewing"}</Text>
-            </Pressable>
+            </Tap>
           )}
         </View>
       )}

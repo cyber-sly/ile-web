@@ -1,5 +1,6 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 function dayParts(isoDate: string) {
   const [y, m, d] = isoDate.split("-").map(Number);
@@ -37,7 +38,7 @@ export default function DayTimePicker({
           const p = dayParts(d);
           const on = d === day;
           return (
-            <Pressable
+            <Tap
               key={d}
               accessibilityRole="radio"
               accessibilityState={{ checked: on }}
@@ -48,7 +49,7 @@ export default function DayTimePicker({
               <Text style={[styles.weekday, on && styles.textOnMuted]}>{p.weekday}</Text>
               <Text style={[styles.dayNum, on && styles.textOn]}>{p.day}</Text>
               <Text style={[styles.month, on && styles.textOnMuted]}>{p.month}</Text>
-            </Pressable>
+            </Tap>
           );
         })}
       </ScrollView>
@@ -56,7 +57,7 @@ export default function DayTimePicker({
         {times.map((t) => {
           const on = t === time;
           return (
-            <Pressable
+            <Tap
               key={t || "any"}
               accessibilityRole="radio"
               accessibilityState={{ checked: on }}
@@ -64,7 +65,7 @@ export default function DayTimePicker({
               style={[styles.time, on && styles.timeOn]}
             >
               <Text style={[styles.timeText, on && styles.timeTextOn]}>{timeLabel(t)}</Text>
-            </Pressable>
+            </Tap>
           );
         })}
       </View>

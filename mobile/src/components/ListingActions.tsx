@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { friendlyError } from "@shared/errors.js";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalendarClock, CalendarDays, MessageCircle, Pencil } from "lucide-react-native";
@@ -11,6 +11,7 @@ import { listingState } from "@/lib/listing";
 import { useOnline } from "@/components/OfflineBanner";
 import type { ListingRow } from "@/components/PropertyCard";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 // Sticky bar on the listing screen: book a viewing or message the lister.
 // The lister sees "Edit listing" and "Viewing times" on their own listing.
@@ -27,7 +28,7 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
     return (
       <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <View style={styles.row}>
-          <Pressable
+          <Tap
             accessibilityRole="button"
             accessibilityLabel="Viewing times"
             onPress={() => router.push({ pathname: "/list/[id]/times", params: { id: String(listing.id) } })}
@@ -35,8 +36,8 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
           >
             <CalendarClock color={colors.palm} size={18} />
             <Text style={[styles.label, styles.secondaryLabel]}>Viewing times</Text>
-          </Pressable>
-          <Pressable
+          </Tap>
+          <Tap
             accessibilityRole="button"
             accessibilityLabel="Edit listing"
             onPress={() => router.push({ pathname: "/list/[id]/edit", params: { id: String(listing.id) } })}
@@ -44,7 +45,7 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
           >
             <Pencil color={colors.white} size={18} />
             <Text style={[styles.label, styles.primaryLabel]}>Edit listing</Text>
-          </Pressable>
+          </Tap>
         </View>
       </View>
     );
@@ -74,7 +75,7 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
       {!online && <Text style={styles.note}>Booking and messages need a connection.</Text>}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <View style={styles.row}>
-        <Pressable
+        <Tap
           accessibilityRole="button"
           accessibilityLabel="Message the lister"
           disabled={!online || opening}
@@ -83,8 +84,8 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
         >
           <MessageCircle color={colors.palm} size={18} />
           <Text style={[styles.label, styles.secondaryLabel]}>{opening ? "Opening…" : "Message"}</Text>
-        </Pressable>
-        <Pressable
+        </Tap>
+        <Tap
           accessibilityRole="button"
           accessibilityLabel="Book a viewing"
           disabled={!online}
@@ -93,7 +94,7 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
         >
           <CalendarDays color={colors.white} size={18} />
           <Text style={[styles.label, styles.primaryLabel]}>Book a viewing</Text>
-        </Pressable>
+        </Tap>
       </View>
     </View>
   );

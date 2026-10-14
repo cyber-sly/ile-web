@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { MAX_NOTE, validateCounter } from "@shared/lister.js";
@@ -10,6 +10,8 @@ import DayTimePicker from "@/components/DayTimePicker";
 import Field from "@/components/Field";
 import Button from "@/components/Button";
 import { colors, fonts } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import { successHaptic } from "@/lib/haptics";
 
 // "Suggest another time" for a viewing request.
 export default function CounterSheet({
@@ -39,6 +41,7 @@ export default function CounterSheet({
     setError("");
     try {
       await onSend({ status: "countered", proposed_date: day, proposed_time: time || null, landlord_note: note.trim() || null });
+      successHaptic();
       setDay(null);
       setTime("");
       setNote("");
@@ -55,9 +58,9 @@ export default function CounterSheet({
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <Text style={styles.title}>Suggest another time</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
+          <Tap accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
             <X color={colors.ink} size={24} />
-          </Pressable>
+          </Tap>
         </View>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.muted}>The home-seeker can accept or decline your suggestion.</Text>

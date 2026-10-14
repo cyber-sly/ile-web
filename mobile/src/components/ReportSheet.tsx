@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ShieldAlert, X } from "lucide-react-native";
 import { reportListing } from "@shared/account.js";
@@ -10,6 +10,8 @@ import Chip from "@/components/Chip";
 import Field from "@/components/Field";
 import Button from "@/components/Button";
 import { colors, fonts } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import { successHaptic } from "@/lib/haptics";
 
 // Report a listing to Ile's team.
 export default function ReportSheet({ visible, listingId, userId, onClose }: { visible: boolean; listingId: string; userId: string; onClose: () => void }) {
@@ -24,6 +26,7 @@ export default function ReportSheet({ visible, listingId, userId, onClose }: { v
     setError("");
     try {
       await reportListing(supabase, { listingId, userId, reason, details });
+      successHaptic();
       setSent(true);
     } catch (e) {
       setError(friendlyError(e));
@@ -37,9 +40,9 @@ export default function ReportSheet({ visible, listingId, userId, onClose }: { v
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <Text style={styles.title}>Report this listing</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
+          <Tap accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
             <X color={colors.ink} size={24} />
-          </Pressable>
+          </Tap>
         </View>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           {sent ? (

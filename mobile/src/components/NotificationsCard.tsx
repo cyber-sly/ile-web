@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, StyleSheet, Text, View } from "react-native";
 import { Bell, BellOff } from "lucide-react-native";
 import { friendlyError } from "@shared/errors.js";
 import { enablePush, usePushPermission } from "@/lib/push";
 import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 // Asks for notification permission only when the person chooses to.
 export default function NotificationsCard() {
@@ -20,9 +21,9 @@ export default function NotificationsCard() {
         <BellOff color={colors.inkMuted} size={20} />
         <View style={styles.text}>
           <Text style={styles.body}>Notifications are off. Turn them on in your phone&apos;s Settings.</Text>
-          <Pressable accessibilityRole="button" onPress={() => Linking.openSettings()}>
+          <Tap accessibilityRole="button" onPress={() => Linking.openSettings()}>
             <Text style={styles.link}>Open Settings</Text>
-          </Pressable>
+          </Tap>
         </View>
       </View>
     );

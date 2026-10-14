@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import type { ChatRow } from "@/lib/chatMessages";
 import { colors, fonts } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 const clock = (iso: string) => new Date(iso).toLocaleTimeString("en-NG", { hour: "numeric", minute: "2-digit" });
 
@@ -19,10 +20,10 @@ export default function MessageBubble({ row, mine, seen, onRetry }: { row: ChatR
   return (
     <View style={[styles.wrap, mine ? styles.right : styles.left]}>
       {row.pending === "failed" ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Not sent. Tap to retry." onPress={onRetry}>
+        <Tap accessibilityRole="button" accessibilityLabel="Not sent. Tap to retry." onPress={onRetry}>
           {bubble}
           <Text style={[styles.status, styles.failed]}>Not sent. Tap to retry.</Text>
-        </Pressable>
+        </Tap>
       ) : (
         <>
           {bubble}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ReportSheet from "@/components/ReportSheet";
 import { useSession } from "@/lib/useSession";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
@@ -23,6 +23,7 @@ import { FACT_ICONS } from "@/lib/ui/factIcons";
 import ListingActions from "@/components/ListingActions";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 type Fact = { key: string; label: string; value: string | number };
 
@@ -32,6 +33,9 @@ export default function ListingScreen() {
   const { user } = useSession();
   const [reporting, setReporting] = useState(false);
   const [sharing, setSharing] = useState(false);
+  // The title moves into the header once the photos scroll out of view.
+  const [titleInHeader, setTitleInHeader] = useState(false);
+  const photoHeight = (useWindowDimensions().width * 3) / 4;
   const summary = useReferralSummary(user?.id);
   const listingQuery = useQuery({ queryKey: ["listing", id], queryFn: () => fetchListing(supabase, id) });
   const listing = listingQuery.data ?? null;
@@ -55,13 +59,13 @@ export default function ListingScreen() {
   const header = (
     <Stack.Screen
       options={{
-        title: "",
+        title: titleInHeader && listing ? listing.title : "",
         headerRight: () =>
           listing ? (
             <View style={styles.headerActions}>
-              <Pressable accessibilityRole="button" accessibilityLabel="Share" hitSlop={8} onPress={share} style={styles.iconButton}>
+              <Tap accessibilityRole="button" accessibilityLabel="Share" hitSlop={8} onPress={share} style={styles.iconButton}>
                 <Share2 color={colors.ink} size={20} />
-              </Pressable>
+              </Tap>
               <SaveButton listingId={String(listing.id)} />
             </View>
           ) : null,
@@ -118,7 +122,15 @@ export default function ListingScreen() {
 
   return (
     <View style={styles.page}>
-    <ScrollView style={styles.page} contentContainerStyle={styles.pageContent}>
+    <ScrollView
+      style={styles.page}
+      contentContainerStyle={styles.pageContent}
+      scrollEventThrottle={32}
+      onScroll={(e) => {
+        const past = e.nativeEvent.contentOffset.y > photoHeight - 40;
+        if (past !== titleInHeader) setTitleInHeader(past);
+      }}
+    >
       {header}
       <PhotoCarousel photos={listingPhotos(listing)} title={listing.title} />
       <View style={styles.body}>
@@ -203,7 +215,7 @@ export default function ListingScreen() {
           <>
             <Text style={styles.sectionTitle}>Video tour</Text>
             {videos.map((url, i) => (
-              <Pressable
+              <Tap
                 key={url}
                 accessibilityRole="button"
                 onPress={() => WebBrowser.openBrowserAsync(url)}
@@ -211,7 +223,7 @@ export default function ListingScreen() {
               >
                 <PlayCircle color={colors.palm} size={22} />
                 <Text style={styles.videoText}>Watch video{videos.length > 1 ? ` ${i + 1}` : ""}</Text>
-              </Pressable>
+              </Tap>
             ))}
           </>
         )}
@@ -230,10 +242,10 @@ export default function ListingScreen() {
           </>
         )}
         {user && user.id !== listing.landlord_id && (
-          <Pressable accessibilityRole="button" onPress={() => setReporting(true)} style={styles.report}>
+          <Tap accessibilityRole="button" onPress={() => setReporting(true)} style={styles.report}>
             <Flag color={colors.inkMuted} size={15} />
             <Text style={styles.reportText}>Report this listing</Text>
-          </Pressable>
+          </Tap>
         )}
       </View>
       {user && (

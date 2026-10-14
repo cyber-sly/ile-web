@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Modal, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Modal, Share, StyleSheet, Text, View } from "react-native";
 import { Image as ImageIcon, Link2, X } from "lucide-react-native";
 import { canShareImages, cardUrl, SITE, shareMessage } from "@/lib/referrals";
 import { useOnline } from "@/components/OfflineBanner";
 import { Button } from "@/components/kit";
 import type { ListingRow } from "@/components/PropertyCard";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
+import Animated, { SlideInDown } from "react-native-reanimated";
 
 // Share a listing: a tracked link for chats, or (on builds with expo-sharing)
 // the ready-made picture for WhatsApp Status and Instagram Stories.
@@ -52,22 +54,22 @@ export default function ShareSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
-      <View style={styles.sheet}>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <Tap feedback={false} style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
+      <Animated.View entering={SlideInDown.duration(260)} style={styles.sheet}>
         <View style={styles.head}>
           <Text style={styles.title} accessibilityRole="header">
             Share this listing
           </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
+          <Tap accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} onPress={onClose}>
             <X color={colors.inkMuted} size={22} />
-          </Pressable>
+          </Tap>
         </View>
         {code ? <Text style={styles.muted}>Your link includes your code {code}, so people who join count for you.</Text> : null}
         <Button label="Send link" icon={Link2} onPress={sendLink} />
         {canShareImages() ? <Button label="Post to Status / Stories" variant="secondary" icon={ImageIcon} loading={busy} onPress={postImage} /> : null}
         {note ? <Text style={styles.note}>{note}</Text> : null}
-      </View>
+      </Animated.View>
     </Modal>
   );
 }

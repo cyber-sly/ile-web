@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { fetchReviewedIds } from "@/lib/reviews";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +22,7 @@ import { Button, EmptyState, PageTitle, RowSkeleton, Skeleton } from "@/componen
 import NotificationsCard from "@/components/NotificationsCard";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius, shadows } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 type DashboardData = {
   listings: ListingRowData[];
@@ -153,10 +154,10 @@ export default function Dashboard() {
         </View>
 
         {(d?.myBookings || 0) > 0 && (
-          <Pressable accessibilityRole="button" onPress={() => router.push("/my-viewings")} style={styles.linkRow}>
+          <Tap accessibilityRole="button" onPress={() => router.push("/my-viewings")} style={styles.linkRow}>
             <Text style={styles.linkText}>Viewings you&apos;ve booked ({d?.myBookings})</Text>
             <ChevronRight color={colors.palm} size={18} />
-          </Pressable>
+          </Tap>
         )}
 
         <Text style={styles.section}>Viewing requests</Text>

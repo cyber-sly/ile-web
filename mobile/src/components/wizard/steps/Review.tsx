@@ -1,8 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { draftToRow } from "@shared/lister.js";
 import { fullPlace, keyFacts, priceParts, typeLabel } from "@shared/property.js";
 import { STEPS, STEP_TITLES, type Step } from "@/lib/wizardSteps";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 type Props = {
   values: Record<string, any>;
@@ -41,9 +42,9 @@ export default function Review({ values, photoCount, videoCount, errors, goTo }:
         <View key={s.step} style={styles.card}>
           <View style={styles.head}>
             <Text style={styles.title}>{STEP_TITLES[s.step]}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel={`Change ${STEP_TITLES[s.step]}`} onPress={() => goTo(STEPS.indexOf(s.step))}>
+            <Tap accessibilityRole="button" accessibilityLabel={`Change ${STEP_TITLES[s.step]}`} onPress={() => goTo(STEPS.indexOf(s.step))}>
               <Text style={styles.change}>Change</Text>
-            </Pressable>
+            </Tap>
           </View>
           {s.lines.map((line) => (
             <Text key={line} style={styles.line}>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, AppState, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, AppState, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useIsFocused, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
@@ -17,6 +17,7 @@ import { keyboardBehavior } from "@/components/keyboardBehavior";
 import MessageBubble from "@/components/MessageBubble";
 import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 type Thread = {
   convo: { id: string; tenant_id: string | null; landlord_id: string | null; listings: { id: string; title: string; image_url: string | null } | null } | null;
@@ -106,9 +107,9 @@ export default function ChatScreen() {
   const t = chat.data;
   const header = (
     <View style={styles.header}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back" hitSlop={10} onPress={() => router.back()} style={styles.back}>
+      <Tap accessibilityRole="button" accessibilityLabel="Back" hitSlop={10} onPress={() => router.back()} style={styles.back}>
         <ArrowLeft color={colors.ink} size={22} />
-      </Pressable>
+      </Tap>
       {t?.other?.avatar ? (
         <Image source={{ uri: t.other.avatar }} style={styles.avatar} cachePolicy="disk" alt="" />
       ) : (
@@ -121,14 +122,14 @@ export default function ChatScreen() {
           {t?.convo ? (t.other ? t.other.name || (t.convo.tenant_id === userId ? "The lister" : "Home-seeker") : "Deleted user") : ""}
         </Text>
         {t?.convo && (
-          <Pressable
+          <Tap
             disabled={!t.convo.listings}
             onPress={() => t.convo?.listings && router.push({ pathname: "/listing/[id]", params: { id: String(t.convo.listings.id) } })}
           >
             <Text style={styles.listing} numberOfLines={1}>
               {t.convo.tenant_id === userId ? "Lister" : "Home-seeker"} · {t.convo.listings?.title || "Listing removed"}
             </Text>
-          </Pressable>
+          </Tap>
         )}
       </View>
     </View>
@@ -197,7 +198,7 @@ export default function ChatScreen() {
             style={styles.input}
             accessibilityLabel="Message"
           />
-          <Pressable
+          <Tap
             accessibilityRole="button"
             accessibilityLabel="Send"
             disabled={!canSend}
@@ -205,7 +206,7 @@ export default function ChatScreen() {
             style={[styles.send, !canSend && styles.sendOff]}
           >
             <Send color={colors.white} size={18} />
-          </Pressable>
+          </Tap>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

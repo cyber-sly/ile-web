@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { availabilityRows, DEFAULT_WINDOW, fetchAvailability, saveAvailability, SLOT_LENGTHS, WEEKDAYS } from "@shared/lister.js";
@@ -12,6 +12,7 @@ import Chip from "@/components/Chip";
 import TimeStepper from "@/components/TimeStepper";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "@/components/kit/Tap";
 
 type Day = { on: boolean; start: string; end: string };
 const hhmm = (t: string | null) => (t || "").slice(0, 5);
@@ -116,9 +117,9 @@ function TimesEditor({ id, listing, windows, online }: { id: string; listing: Re
                   <TimeStepper label="To" value={d.end} onChange={(end) => setDay(w.value, { end })} />
                 </View>
                 {w.value === firstOn && (
-                  <Pressable accessibilityRole="button" onPress={() => copyToAll(w.value)}>
+                  <Tap accessibilityRole="button" onPress={() => copyToAll(w.value)}>
                     <Text style={styles.link}>Copy these times to all chosen days</Text>
-                  </Pressable>
+                  </Tap>
                 )}
               </>
             )}

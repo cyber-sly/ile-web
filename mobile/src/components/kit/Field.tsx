@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
+import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
 import { Eye, EyeOff, type LucideIcon } from "lucide-react-native";
 import { colors, fonts, radius } from "@/theme";
+import Tap from "./Tap";
 
 // Website ui/Field.jsx: visible label (with "Optional"), an icon inside the
 // box, a hint or error under it. Password fields get the show/hide eye.
@@ -44,7 +45,7 @@ export default function Field({
           {...props}
         />
         {isPassword && (
-          <Pressable
+          <Tap
             accessibilityRole="button"
             accessibilityLabel={shown ? "Hide password" : "Show password"}
             hitSlop={8}
@@ -52,7 +53,7 @@ export default function Field({
             style={styles.eye}
           >
             {shown ? <EyeOff color={colors.inkMuted} size={20} /> : <Eye color={colors.inkMuted} size={20} />}
-          </Pressable>
+          </Tap>
         )}
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={styles.hint}>{hint}</Text> : null}
