@@ -1,5 +1,6 @@
 // The listing model: what can be listed, and how each kind is described.
-// Values here must match the check constraints in supabase/listings_phase2.sql.
+// Values here must match the check constraints in supabase/listings_phase2.sql
+// and supabase/stays.sql.
 import { formatNaira, pluralize } from "./format.js";
 import { stateLabel } from "./nigeria.js";
 
@@ -7,6 +8,7 @@ export const CATEGORIES = [
   { value: "homes", label: "Homes", blurb: "Flats, self-contains, duplexes" },
   { value: "land", label: "Land", blurb: "Plots and farmland" },
   { value: "commercial", label: "Commercial", blurb: "Shops, offices, warehouses" },
+  { value: "stays", label: "Stays", blurb: "Shortlets, hotel rooms and Airbnbs" },
 ];
 
 export const PROPERTY_TYPES = [
@@ -23,6 +25,9 @@ export const PROPERTY_TYPES = [
   { value: "shop", label: "Shop", category: "commercial" },
   { value: "office", label: "Office space", category: "commercial" },
   { value: "warehouse", label: "Warehouse", category: "commercial" },
+  { value: "shortlet", label: "Shortlet apartment", category: "stays" },
+  { value: "hotel_room", label: "Hotel room", category: "stays" },
+  { value: "airbnb", label: "Airbnb / private room", category: "stays" },
 ];
 
 export const FURNISHING = [
@@ -59,10 +64,36 @@ const PERIODS = {
   month: { label: "per month", suffix: "/month", short: "/mo" },
   total: { label: "total price", suffix: "", short: "" },
   plot: { label: "per plot", suffix: "/plot", short: "/plot" },
+  night: { label: "per night", suffix: "/night", short: "/night" },
 };
+
+// Tick-box amenities for each kind of listing (stored in listings.features
+// as these labels, alongside any the lister adds).
+export const AMENITIES = {
+  homes: [
+    "24-hour power", "Prepaid meter", "Generator/inverter", "Borehole/running water", "Air conditioning", "Fitted kitchen",
+    "Wardrobes", "POP ceiling", "Tiled floors", "Parking", "Security", "Fenced compound", "Gated estate", "Swimming pool",
+    "Gym", "Balcony", "Elevator", "CCTV",
+  ],
+  stays: [
+    "Wi-Fi", "24-hour power", "Generator/inverter", "Air conditioning", "Kitchen", "Parking", "Swimming pool", "Gym",
+    "Security", "TV/Netflix", "Washing machine", "Breakfast included", "Hot water", "Smart TV", "Workspace", "Balcony",
+    "Elevator", "CCTV", "Airport pickup",
+  ],
+  commercial: [
+    "24-hour power", "Generator", "Parking", "Security", "Toilet", "Running water", "Elevator", "Reception area",
+    "Air conditioning", "CCTV", "Loading bay",
+  ],
+  land: ["Fenced", "Gated estate", "Good road access", "Electricity nearby", "Dry land (no flooding)", "Corner piece"],
+};
+
+export function amenitiesFor(category) {
+  return AMENITIES[category] || [];
+}
 
 // Which price periods make sense for a listing.
 export function periodOptions(listingType, category) {
+  if (category === "stays") return ["night"];
   if (listingType === "rent") return ["year", "month"];
   return category === "land" ? ["total", "plot"] : ["total"];
 }
@@ -122,7 +153,11 @@ export function fullPlace(listing) {
 export function keyFacts(listing) {
   const category = categoryOf(listing);
   const facts = [];
-  if (category === "homes") {
+  if (category === "stays") {
+    if (listing.property_type === "hotel_room" && listing.hotel_name) facts.push(listing.hotel_name);
+    if (listing.max_guests) facts.push(`${listing.max_guests} ${Number(listing.max_guests) === 1 ? "guest" : "guests"} max`);
+    if (Number(listing.min_nights) > 1) facts.push(`${listing.min_nights}-night minimum`);
+  } else if (category === "homes") {
     const beds = Number(listing.bedrooms) || 0;
     if (beds) facts.push(pluralize(beds, "bed"));
     if (listing.bathrooms) facts.push(pluralize(listing.bathrooms, "bath"));
@@ -214,7 +249,16 @@ export function detailFacts(listing) {
   const category = categoryOf(listing);
   const size = formatSize(listing);
   const facts = [{ key: "type", label: "Type", value: typeLabel(listing.property_type) }];
-  if (category === "homes") {
+  if (category === "stays") {
+    const time = (t) => (t ? String(t).slice(0, 5) : null);
+    if (listing.property_type === "hotel_room" && listing.hotel_name) facts.push({ key: "hotel", label: "Hotel", value: listing.hotel_name });
+    if (listing.bedrooms) facts.push({ key: "bedrooms", label: "Bedrooms", value: listing.bedrooms });
+    if (listing.bathrooms) facts.push({ key: "bathrooms", label: "Bathrooms", value: listing.bathrooms });
+    if (listing.max_guests) facts.push({ key: "guests", label: "Guests", value: `Up to ${listing.max_guests}` });
+    facts.push({ key: "minNights", label: "Minimum stay", value: pluralize(Number(listing.min_nights) || 1, "night") });
+    if (time(listing.check_in_time)) facts.push({ key: "checkIn", label: "Check-in", value: `From ${time(listing.check_in_time)}` });
+    if (time(listing.check_out_time)) facts.push({ key: "checkOut", label: "Check-out", value: `By ${time(listing.check_out_time)}` });
+  } else if (category === "homes") {
     facts.push({ key: "bedrooms", label: "Bedrooms", value: Number(listing.bedrooms) || "Studio" });
     if (listing.bathrooms) facts.push({ key: "bathrooms", label: "Bathrooms", value: listing.bathrooms });
     if (listing.furnishing) facts.push({ key: "furnishing", label: "Furnishing", value: furnishingLabel(listing.furnishing) });
