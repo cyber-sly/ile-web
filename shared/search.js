@@ -132,8 +132,15 @@ export function buildQuery(client, f, page = 0) {
   const run = async (exclude) => {
     const opts = { boostFirst: true, stayFilters: true, exclude };
     let result = await searchQuery(client, f, page, opts);
-    if (missingStayColumn(result.error)) result = await searchQuery(client, f, page, { ...opts, stayFilters: false });
-    if (missingBoostColumn(result.error)) result = await searchQuery(client, f, page, { ...opts, boostFirst: false, stayFilters: false });
+    if (missingStayColumn(result.error)) {
+      opts.stayFilters = false;
+      result = await searchQuery(client, f, page, opts);
+    }
+    if (missingBoostColumn(result.error)) {
+      result = await searchQuery(client, f, page, { ...opts, boostFirst: false });
+      // Both migrations missing: drop the stay filters too.
+      if (missingStayColumn(result.error)) result = await searchQuery(client, f, page, { ...opts, boostFirst: false, stayFilters: false });
+    }
     return result;
   };
   // Only a Shortlets search with dates needs the booked-stays lookup first.

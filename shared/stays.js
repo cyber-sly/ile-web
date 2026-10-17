@@ -157,9 +157,13 @@ export async function fetchStayRequests(client, listingIds) {
 }
 
 // Stay ids this person has already reviewed (so "Review" isn't offered twice).
+// Asked through my_reviewed_stays: reviews.stay_booking_id isn't readable directly.
 export async function fetchReviewedStayIds(client, stayIds, userId) {
   if (!stayIds.length || !userId) return new Set();
-  const { data, error } = await client.from("reviews").select("stay_booking_id").in("stay_booking_id", stayIds).eq("reviewer_id", userId);
-  if (error) return new Set();
-  return new Set((data || []).map((r) => r.stay_booking_id));
+  try {
+    const { data, error } = await client.rpc("my_reviewed_stays", { p_ids: stayIds });
+    return error ? new Set() : new Set((data || []).map(String));
+  } catch {
+    return new Set();
+  }
 }

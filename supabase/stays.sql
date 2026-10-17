@@ -214,7 +214,11 @@ begin
   end if;
 
   if not p_accept then
-    update public.stay_bookings set status = 'declined', decline_reason = v_reason, updated_at = now() where id = p_id;
+    update public.stay_bookings set status = 'declined', decline_reason = v_reason, updated_at = now()
+    where id = p_id and status = 'requested';
+    if not found then
+      raise exception 'This request has already been answered.';
+    end if;
     perform public.ile_notify(b.guest_id, 'stay_declined', 'Stay request declined',
       l.title || ': ' || coalesce(v_reason, 'the host can''t do those dates.'), jsonb_build_object('route', 'viewings'));
     return;
@@ -228,7 +232,11 @@ begin
     raise exception 'Those dates are already booked.';
   end if;
 
-  update public.stay_bookings set status = 'accepted', updated_at = now() where id = p_id;
+  -- The guest may have cancelled since the request was read.
+  update public.stay_bookings set status = 'accepted', updated_at = now() where id = p_id and status = 'requested';
+  if not found then
+    raise exception 'This request has already been answered.';
+  end if;
   perform public.ile_notify(b.guest_id, 'stay_accepted', 'Stay accepted',
     l.title || ', ' || public.ile_stay_dates(b.check_in, b.check_out) || '. Pay the host directly.',
     jsonb_build_object('route', 'viewings'));
@@ -363,11 +371,17 @@ select cron.schedule('ile-stay-reminders', '5 7 * * *', 'select public.ile_stay_
 -- Stay reviews (reuse public.reviews)
 -- ---------------------------------------------------------------------------
 
+-- A review comes from a viewing or a stay, never both. Either can later be
+-- deleted (account_deletion.sql keeps reviews when their viewing goes), so
+-- both may end up empty; reviews outlive the stay they were about.
 alter table public.reviews alter column inspection_id drop not null;
-alter table public.reviews add column if not exists stay_booking_id uuid references public.stay_bookings (id) on delete cascade;
+alter table public.reviews add column if not exists stay_booking_id uuid references public.stay_bookings (id) on delete set null;
+alter table public.reviews drop constraint if exists reviews_stay_booking_id_fkey;
+alter table public.reviews add constraint reviews_stay_booking_id_fkey
+  foreign key (stay_booking_id) references public.stay_bookings (id) on delete set null;
 alter table public.reviews drop constraint if exists reviews_one_source_check;
 alter table public.reviews add constraint reviews_one_source_check
-  check ((inspection_id is null) <> (stay_booking_id is null));
+  check (inspection_id is null or stay_booking_id is null);
 create unique index if not exists reviews_stay_reviewer_key on public.reviews (stay_booking_id, reviewer_id) where stay_booking_id is not null;
 
 create or replace function public.leave_stay_review(p_stay uuid, p_rating integer, p_comment text default null, p_accurate boolean default null)
@@ -420,6 +434,21 @@ end;
 $$;
 
 grant execute on function public.leave_stay_review(uuid, integer, text, boolean) to authenticated;
+
+-- Which of these stays the caller has already reviewed (reviews.stay_booking_id
+-- isn't in the column grants, so clients ask here).
+create or replace function public.my_reviewed_stays(p_ids uuid[])
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select r.stay_booking_id from public.reviews r
+  where r.reviewer_id = auth.uid() and r.stay_booking_id = any (p_ids);
+$$;
+
+grant execute on function public.my_reviewed_stays(uuid[]) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Checks: the column list, then the reminder job.

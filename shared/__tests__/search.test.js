@@ -249,3 +249,32 @@ test("stays tab: type options, heading and breadcrumb", () => {
   assert.equal(listingsHeading(readFilters(new URLSearchParams("tab=stays"))), "Shortlets & hotels in Nigeria");
   assert.equal(browsePath({ category: "stays", listing_type: "rent" }), "/listings?tab=stays");
 });
+
+test("stays filters survive when only the boost column is missing", async () => {
+  const runs = [];
+  const client = {
+    rpc: async () => ({ data: [], error: null }),
+    from: () => {
+      const calls = [];
+      runs.push(calls);
+      const builder = new Proxy({}, {
+        get: (_, method) =>
+          method === "then"
+            ? (resolve) =>
+                resolve(
+                  calls.some((c) => c[0] === "order" && c[1] === "boosted_until")
+                    ? { data: null, count: null, error: { code: "42703", message: "column listings.boosted_until does not exist" } }
+                    : { data: [], count: 0, error: null }
+                )
+            : (...args) => {
+                calls.push([method, ...args]);
+                return builder;
+              },
+      });
+      return builder;
+    },
+  };
+  await buildQuery(client, readFilters(new URLSearchParams("tab=stays&guests=2")));
+  const last = runs.at(-1);
+  assert.ok(last.some((c) => c[0] === "gte" && c[1] === "max_guests" && c[2] === 2));
+});

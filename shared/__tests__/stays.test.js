@@ -108,20 +108,11 @@ test("respondStay and cancelStay pass their arguments", async () => {
   ]);
 });
 
-test("fetchReviewedStayIds returns the stays this person already reviewed", async () => {
-  const calls = [];
-  const builder = new Proxy({}, {
-    get: (_, method) =>
-      method === "then"
-        ? (resolve) => resolve({ data: [{ stay_booking_id: "s1" }], error: null })
-        : (...args) => {
-            calls.push([method, ...args]);
-            return builder;
-          },
-  });
-  const ids = await fetchReviewedStayIds({ from: () => builder }, ["s1", "s2"], "u1");
+test("fetchReviewedStayIds asks the database function which stays this person reviewed", async () => {
+  const c = rpcClient({ data: ["s1"], error: null });
+  const ids = await fetchReviewedStayIds(c, ["s1", "s2"], "u1");
   assert.deepEqual([...ids], ["s1"]);
-  assert.ok(calls.some((c) => c[0] === "in" && c[1] === "stay_booking_id"));
-  assert.ok(calls.some((c) => c[0] === "eq" && c[1] === "reviewer_id" && c[2] === "u1"));
-  assert.equal((await fetchReviewedStayIds({ from: () => builder }, [], "u1")).size, 0);
+  assert.deepEqual(c.calls[0], ["my_reviewed_stays", { p_ids: ["s1", "s2"] }]);
+  assert.equal((await fetchReviewedStayIds(rpcClient(new Error("x")), ["s1"], "u1")).size, 0);
+  assert.equal((await fetchReviewedStayIds(c, [], "u1")).size, 0);
 });

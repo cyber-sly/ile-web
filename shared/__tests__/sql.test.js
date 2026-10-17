@@ -85,3 +85,12 @@ test("stays.sql blocks overlapping accepted stays and locks the listing when acc
   assert.match(request, /Some of those dates are already booked\./);
   assert.match(request, /Stays can be up to 90 nights\./);
 });
+
+test("stay reviews keep viewing reviews deletable and survive their stay", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "stays.sql"), "utf8");
+  assert.match(sql, /check \(inspection_id is null or stay_booking_id is null\)/);
+  assert.match(sql, /stay_booking_id uuid references public\.stay_bookings \(id\) on delete set null/);
+  assert.match(sql, /function public\.my_reviewed_stays/);
+  const respond = sql.match(/function public\.respond_stay[\s\S]*?\n\$\$;/)?.[0] || "";
+  assert.match(respond, /where id = p_id and status = 'requested'/);
+});

@@ -150,13 +150,17 @@ export function draftToRow(v) {
     service_charge: isLand ? null : num(v.serviceCharge),
     description: v.description.trim(),
     features: amenityList(v.features).slice(0, MAX_AMENITIES),
-    max_guests: isStay ? num(v.maxGuests) : null,
-    min_nights: isStay ? num(v.minNights) ?? 1 : null,
-    check_in_time: isStay ? v.checkInTime || null : null,
-    check_out_time: isStay ? v.checkOutTime || null : null,
-    cleaning_fee: isStay ? num(v.cleaningFee) : null,
-    hotel_name: isStay && v.propertyType === "hotel_room" ? (v.hotelName || "").trim() || null : null,
-    house_rules: isStay ? (v.houseRules || "").trim() || null : null,
+    // Stay columns only for stays: they don't exist until supabase/stays.sql
+    // is run, and naming a missing column would make every save fail.
+    ...(isStay && {
+      max_guests: num(v.maxGuests),
+      min_nights: num(v.minNights) ?? 1,
+      check_in_time: v.checkInTime || null,
+      check_out_time: v.checkOutTime || null,
+      cleaning_fee: num(v.cleaningFee),
+      hotel_name: v.propertyType === "hotel_room" ? (v.hotelName || "").trim() || null : null,
+      house_rules: (v.houseRules || "").trim() || null,
+    }),
   };
 }
 
@@ -190,10 +194,9 @@ export function validateDraft(v) {
     if (!isTime(v.checkOutTime)) er.checkOutTime = "Use a time like 11:00.";
     if ((v.houseRules || "").trim().length > MAX_HOUSE_RULES) er.houseRules = `Keep house rules under ${MAX_HOUSE_RULES} characters.`;
   }
-  const amenities = amenityList(v.features);
-  if (amenities.length > MAX_AMENITIES || amenities.some((a) => a.length > MAX_AMENITY)) {
-    er.features = `Up to ${MAX_AMENITIES} amenities, each under ${MAX_AMENITY} characters.`;
-  }
+  // Only the count is checked: older listings may have longer free-text items,
+  // and the pickers already cap new ones at MAX_AMENITY characters.
+  if (amenityList(v.features).length > MAX_AMENITIES) er.features = `Up to ${MAX_AMENITIES} amenities.`;
   return er;
 }
 

@@ -194,10 +194,10 @@ test("stays draft saves stay fields and per-night price", () => {
   assert.deepEqual(row.features, ["Wi-Fi", "Kitchen"]);
 });
 
-test("non-stays drafts save no stay fields", () => {
+test("non-stays drafts leave the stay columns out (they may not exist before stays.sql)", () => {
   const row = draftToRow({ ...homeDraft, maxGuests: "4", hotelName: "X" });
   for (const k of ["max_guests", "min_nights", "check_in_time", "check_out_time", "cleaning_fee", "hotel_name", "house_rules"]) {
-    assert.equal(row[k], null, k);
+    assert.equal(k in row, false, k);
   }
 });
 
@@ -220,7 +220,7 @@ test("features are trimmed, deduped and capped at 30", () => {
   assert.equal(draftToRow({ ...homeDraft, features: many }).features.length, 30);
   assert.deepEqual(draftToRow({ ...homeDraft, features: [" Wi-Fi ", "Wi-Fi", ""] }).features, ["Wi-Fi"]);
   assert.deepEqual(draftToRow({ ...homeDraft, features: "Borehole, POP" }).features, ["Borehole", "POP"]);
-  assert.equal(validateDraft({ ...homeDraft, features: ["x".repeat(41)] }).features, "Up to 30 amenities, each under 40 characters.");
+  assert.equal(validateDraft({ ...homeDraft, features: ["Fenced compound with 24/7 security and gateman"] }).features, undefined);
 });
 
 test("check-in and check-out times must be real times", () => {
