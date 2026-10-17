@@ -83,3 +83,75 @@ export function sortStays(list, today) {
   const closed = list.filter((s) => !live(s)).sort((a, b) => b.check_in.localeCompare(a.check_in));
   return [...upcoming, ...past, ...closed];
 }
+
+// --- Database calls (security-definer functions in supabase/stays.sql) ---
+
+const missing = (error) =>
+  ["PGRST202", "PGRST205", "42P01", "42703"].includes(error?.code) || /could not find|does not exist/i.test(error?.message || "");
+
+async function call(client, name, args) {
+  const { data, error } = await client.rpc(name, args);
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// Returns the new stay booking's id.
+export function requestStay(client, { listingId, checkIn, checkOut, guests, note }) {
+  return call(client, "request_stay", {
+    p_listing: listingId,
+    p_check_in: checkIn,
+    p_check_out: checkOut,
+    p_guests: Number(guests),
+    p_note: (note || "").trim(),
+  });
+}
+
+export function respondStay(client, id, accept, reason) {
+  return call(client, "respond_stay", { p_id: id, p_accept: accept, p_reason: (reason || "").trim() });
+}
+
+export function cancelStay(client, id) {
+  return call(client, "cancel_stay", { p_id: id });
+}
+
+export function leaveStayReview(client, { stayId, rating, comment, accurate }) {
+  return call(client, "leave_stay_review", {
+    p_stay: stayId,
+    p_rating: rating,
+    p_comment: (comment || "").trim() || null,
+    p_accurate: accurate ?? null,
+  });
+}
+
+// Accepted stays still to come: [{ check_in, check_out }]. [] when unknown.
+export async function fetchTakenDates(client, listingId) {
+  try {
+    const { data, error } = await client.rpc("listing_taken_dates", { p_listing: listingId });
+    return error ? [] : data || [];
+  } catch {
+    return [];
+  }
+}
+
+const STAY_LISTING = "listings(id, title, image_url, image_urls, state, lga, area, landlord_id, check_in_time, check_out_time)";
+
+// The guest's own stays, with the listing. [] before the SQL is run.
+export async function fetchMyStays(client, userId) {
+  const { data, error } = await client.from("stay_bookings").select(`*, ${STAY_LISTING}`).eq("guest_id", userId).order("check_in");
+  if (error) {
+    if (missing(error)) return [];
+    throw new Error(error.message);
+  }
+  return data || [];
+}
+
+// Stay requests on the host's listings. [] before the SQL is run.
+export async function fetchStayRequests(client, listingIds) {
+  if (!listingIds.length) return [];
+  const { data, error } = await client.from("stay_bookings").select(`*, ${STAY_LISTING}`).in("listing_id", listingIds).order("check_in");
+  if (error) {
+    if (missing(error)) return [];
+    throw new Error(error.message);
+  }
+  return data || [];
+}

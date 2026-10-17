@@ -74,3 +74,14 @@ test("notifications say booking, and booking_wording.sql matches push_notificati
     assert.equal(fn(wording, name)?.replace(/\r/g, ""), body.replace(/\r/g, ""), `${name} matches`);
   }
 });
+
+test("stays.sql blocks overlapping accepted stays and locks the listing when accepting", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "stays.sql"), "utf8");
+  const respond = sql.match(/function public\.respond_stay[\s\S]*?\n\$\$;/)?.[0] || "";
+  assert.ok(respond, "respond_stay is defined");
+  assert.match(respond, /for update/);
+  assert.match(respond, /check_in < [\s\S]*check_out >/);
+  const request = sql.match(/function public\.request_stay[\s\S]*?\n\$\$;/)?.[0] || "";
+  assert.match(request, /Some of those dates are already booked\./);
+  assert.match(request, /Stays can be up to 90 nights\./);
+});

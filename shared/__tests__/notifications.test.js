@@ -13,7 +13,7 @@ test("categoryOf maps every type", () => {
   }
   assert.equal(categoryOf("viewing_reminder"), "reminders");
   assert.equal(categoryOf("still_available"), "reminders");
-  assert.equal(Object.keys(CATEGORY_BY_TYPE).length, 10);
+  assert.equal(Object.keys(CATEGORY_BY_TYPE).length, 15);
 });
 
 test("buildMessages sends one push per device", () => {
@@ -74,4 +74,10 @@ test("the Edge Function copy matches shared/notifications.js", () => {
   const a = readFileSync(join(root, "shared", "notifications.js"), "utf8").replace(/\r\n/g, "\n");
   const b = readFileSync(join(root, "supabase", "functions", "_shared", "notifications.js"), "utf8").replace(/\r\n/g, "\n");
   assert.equal(b, a);
+});
+
+test("stay notifications follow the bookings and reminders settings", () => {
+  assert.equal(categoryOf("stay_request"), "bookings");
+  assert.equal(categoryOf("stay_accepted"), "bookings");
+  assert.equal(categoryOf("stay_reminder"), "reminders");
 });

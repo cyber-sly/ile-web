@@ -13,6 +13,11 @@ export const CATEGORY_BY_TYPE = {
   review: "bookings",
   viewing_reminder: "reminders",
   still_available: "reminders",
+  stay_request: "bookings",
+  stay_accepted: "bookings",
+  stay_declined: "bookings",
+  stay_cancelled: "bookings",
+  stay_reminder: "reminders",
 };
 
 const DEFAULT_PREFS = { messages: true, bookings: true, reminders: true, hide_message_text: false };

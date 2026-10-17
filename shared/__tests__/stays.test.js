@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { stayNights, stayQuote, rangesOverlap, validateStayRequest, stayActions, sortStays, STAY_STATUS } from "../stays.js";
+import { stayNights, stayQuote, rangesOverlap, validateStayRequest, stayActions, sortStays, STAY_STATUS, fetchTakenDates, requestStay, respondStay, cancelStay } from "../stays.js";
 
 const STAY = { id: "s1", category: "stays", listing_type: "rent", price_period: "night", price: 45000, max_guests: 4, min_nights: 2, status: "active" };
 const TODAY = "2026-11-01";
@@ -68,4 +68,42 @@ test("sortStays puts upcoming first, then past newest first", () => {
 test("STAY_STATUS has a label for every status", () => {
   assert.deepEqual(Object.keys(STAY_STATUS).sort(), ["accepted", "cancelled", "declined", "requested"]);
   assert.equal(STAY_STATUS.requested.label, "Requested");
+});
+
+function rpcClient(result) {
+  const calls = [];
+  return {
+    calls,
+    rpc: async (name, args) => {
+      calls.push([name, args]);
+      if (result instanceof Error) throw result;
+      return result;
+    },
+  };
+}
+
+test("fetchTakenDates returns [] when the function is missing", async () => {
+  assert.deepEqual(await fetchTakenDates(rpcClient({ data: null, error: { code: "PGRST202", message: "Could not find the function" } }), "l1"), []);
+  assert.deepEqual(await fetchTakenDates(rpcClient(new Error("offline")), "l1"), []);
+  const c = rpcClient({ data: [{ check_in: "2026-11-01", check_out: "2026-11-03" }], error: null });
+  assert.deepEqual(await fetchTakenDates(c, "l1"), [{ check_in: "2026-11-01", check_out: "2026-11-03" }]);
+  assert.deepEqual(c.calls[0], ["listing_taken_dates", { p_listing: "l1" }]);
+});
+
+test("requestStay passes dates, guests and note and throws the database message", async () => {
+  const ok = rpcClient({ data: "b1", error: null });
+  assert.equal(await requestStay(ok, { listingId: "l1", checkIn: "2026-11-05", checkOut: "2026-11-08", guests: 2, note: " Hi " }), "b1");
+  assert.deepEqual(ok.calls[0], ["request_stay", { p_listing: "l1", p_check_in: "2026-11-05", p_check_out: "2026-11-08", p_guests: 2, p_note: "Hi" }]);
+  const bad = rpcClient({ data: null, error: { message: "Some of those dates are already booked." } });
+  await assert.rejects(requestStay(bad, { listingId: "l1", checkIn: "2026-11-05", checkOut: "2026-11-08", guests: 2, note: "" }), /already booked/);
+});
+
+test("respondStay and cancelStay pass their arguments", async () => {
+  const c = rpcClient({ data: null, error: null });
+  await respondStay(c, "b1", false, " Not free ");
+  await cancelStay(c, "b1");
+  assert.deepEqual(c.calls, [
+    ["respond_stay", { p_id: "b1", p_accept: false, p_reason: "Not free" }],
+    ["cancel_stay", { p_id: "b1" }],
+  ]);
 });
