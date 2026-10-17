@@ -94,3 +94,15 @@ test("stay reviews keep viewing reviews deletable and survive their stay", () =>
   const respond = sql.match(/function public\.respond_stay[\s\S]*?\n\$\$;/)?.[0] || "";
   assert.match(respond, /where id = p_id and status = 'requested'/);
 });
+
+test("profiles_privacy.sql opens public rows but never grants phone to readers", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "profiles_privacy.sql"), "utf8");
+  assert.match(sql, /on public\.profiles for select to anon, authenticated\s+using \(true\)/);
+  for (const grant of sql.match(/grant select \([\s\S]*?\) on public\.profiles[^;]*;/g) || []) {
+    assert.doesNotMatch(grant, /\bphone\b/, grant);
+  }
+  const contact = sql.match(/function public\.booking_contact[\s\S]*?\n\$\$;/)?.[0] || "";
+  assert.match(contact, /'confirmed'/);
+  assert.match(contact, /'accepted'/);
+  assert.match(contact, /auth\.uid\(\)/);
+});
