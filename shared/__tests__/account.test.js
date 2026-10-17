@@ -182,3 +182,29 @@ test("fetchListerProfile still works before the username columns exist", async (
   assert.equal(data.profile.display_name, "Bayo");
   assert.equal(data.profile.is_lister, true);
 });
+
+test("validateProfileForm refuses show_as username without a username", () => {
+  const v = { ...EMPTY_PROFILE_FORM, full_name: "Ada", show_as: "username", username: "" };
+  assert.equal(validateProfileForm(v).show_as, "Choose a username first.");
+  assert.equal(validateProfileForm({ ...v, username: "ada_o" }).show_as, undefined);
+});
+
+test("validateProfileForm checks username and phone formats", () => {
+  const v = { ...EMPTY_PROFILE_FORM, full_name: "Ada" };
+  assert.equal(validateProfileForm({ ...v, username: "a-b" }).username, "Use 3 to 20 letters, numbers or underscores.");
+  assert.equal(validateProfileForm({ ...v, phone: "12345" }).phone, "Enter a Nigerian number, e.g. 0803 123 4567.");
+  assert.deepEqual(validateProfileForm({ ...v, username: "Ada_O", phone: "0803 123 4567" }), {});
+});
+
+test("profile row saves the normalised username and phone only when supported", () => {
+  const v = { ...EMPTY_PROFILE_FORM, full_name: "Ada", username: " @Ada_O ", show_as: "username", phone: "0803 123 4567" };
+  const row = formToProfileChanges(v, false, 2026, true);
+  assert.equal(row.username, "ada_o");
+  assert.equal(row.show_as, "username");
+  assert.equal(row.phone, "+2348031234567");
+  const cleared = formToProfileChanges({ ...v, username: "", show_as: "name", phone: "" }, false, 2026, true);
+  assert.equal(cleared.username, null);
+  assert.equal(cleared.phone, null);
+  assert.equal("username" in formToProfileChanges(v, false, 2026), false);
+  assert.equal(profileToForm({ full_name: "Ada", phone: "+2348031234567", show_as: "username", username: "ada" }).phone, "0803 123 4567");
+});

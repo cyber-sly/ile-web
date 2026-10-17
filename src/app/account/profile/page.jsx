@@ -2,7 +2,9 @@
 
 import { friendlyError } from "@shared/errors.js";
 import { useEffect, useRef, useState } from "react";
-import { EMPTY_PROFILE_FORM, formToProfileChanges, profileToForm, validateProfileForm } from "@shared/account.js";
+import { EMPTY_PROFILE_FORM, formToProfileChanges, profileFieldsSupported, profileToForm, validateProfileForm } from "@shared/account.js";
+import PrivacyFields from "@/components/PrivacyFields";
+import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { useUser, isLandlord } from "@/lib/useUser";
 import {
@@ -40,7 +42,18 @@ export default function EditProfilePage() {
   const [areaState, setAreaState] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  const [errors, setErrors] = useState({});
+  // Username and phone appear once supabase/profiles_privacy.sql has been run.
+  const [privacy, setPrivacy] = useState(false);
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    let live = true;
+    profileFieldsSupported(supabase).then((ok) => live && setPrivacy(ok));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -94,20 +107,25 @@ export default function EditProfilePage() {
 
   async function submit(e) {
     e.preventDefault();
-    const problems = Object.values(validateProfileForm(v));
+    const found = validateProfileForm(v);
+    if (!privacy) for (const k of ["username", "show_as", "phone"]) delete found[k];
+    setErrors(found);
+    const problems = Object.values(found);
     if (problems.length) {
       setMessage({ tone: "error", text: problems[0] });
       return;
     }
     setSaving(true);
     setMessage(null);
-    const changes = formToProfileChanges(v, showLister);
+    const changes = formToProfileChanges(v, showLister, undefined, privacy);
     try {
       await saveProfile(user.id, changes);
       setProfile((p) => ({ ...p, ...changes, avatar_url: avatar }));
       setMessage({ tone: "success", text: "Profile saved." });
     } catch (err) {
-      setMessage({ tone: "error", text: friendlyError(err) });
+      const taken = /profiles_username_key|duplicate key/i.test(err?.message || "");
+      if (taken) setErrors((e) => ({ ...e, username: "That username is taken." }));
+      setMessage({ tone: "error", text: taken ? "That username is taken." : friendlyError(err) });
     }
     setSaving(false);
   }
@@ -160,6 +178,7 @@ export default function EditProfilePage() {
           </div>
           <p className="-mt-2 text-xs text-ink-muted">A clear photo of your face (or your agency logo) builds trust.</p>
           <Field label="Name" maxLength={80} value={v.full_name} onChange={set("full_name")} required />
+          {privacy && <PrivacyFields v={v} set={set} setValue={(key, value) => setV((prev) => ({ ...prev, [key]: value }))} errors={errors} />}
           <Field
             as="textarea"
             label="Short bio"

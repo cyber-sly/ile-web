@@ -2,7 +2,7 @@
 // reports, public lister profiles and account deletion. Functions that talk
 // to the database take a Supabase client first.
 import { freshCutoff } from "./property.js";
-import { displayName } from "./people.js";
+import { displayName, localPhone, normalizePhone, normalizeUsername, phoneError, usernameError } from "./people.js";
 
 export const MIN_PASSWORD = 8;
 export const MEDIA_BUCKETS = ["listing-images", "listing-videos", "avatars"];
@@ -94,21 +94,35 @@ export const EMPTY_PROFILE_FORM = {
   registration_number: "",
   occupation: "",
   move_in_timeline: "",
+  // Needs supabase/profiles_privacy.sql.
+  username: "",
+  show_as: "name",
+  phone: "",
 };
 
 export function profileToForm(profile) {
-  return Object.fromEntries(
+  const form = Object.fromEntries(
     Object.entries(EMPTY_PROFILE_FORM).map(([k, empty]) => {
       const value = profile?.[k];
-      if (value === null || value === undefined) return [k, Array.isArray(empty) ? [] : ""];
+      if (value === null || value === undefined) return [k, Array.isArray(empty) ? [] : empty];
       return [k, Array.isArray(empty) ? value : String(value)];
     })
   );
+  form.phone = profile?.phone ? localPhone(profile.phone) : "";
+  return form;
 }
 
-export function formToProfileChanges(v, isLister, thisYear = new Date().getFullYear()) {
+// withPrivacy: username, show_as and phone are saved only once
+// supabase/profiles_privacy.sql has added them.
+export function formToProfileChanges(v, isLister, thisYear = new Date().getFullYear(), withPrivacy = false) {
   const year = Number(v.listing_since);
+  const username = normalizeUsername(v.username);
   return {
+    ...(withPrivacy && {
+      username: username || null,
+      show_as: username && v.show_as === "username" ? "username" : "name",
+      phone: normalizePhone(v.phone),
+    }),
     full_name: v.full_name.trim(),
     bio: v.bio.trim() || null,
     languages: v.languages,
@@ -140,7 +154,21 @@ export function validateProfileForm(v) {
   if (v.business_name.trim().length > 100) er.business_name = "Keep the business name under 100 characters.";
   if (v.office_address.trim().length > 200) er.office_address = "Keep the office address under 200 characters.";
   if (v.registration_number.trim().length > 50) er.registration_number = "Keep the registration number under 50 characters.";
+  const username = (v.username || "").trim();
+  if (username && usernameError(username)) er.username = usernameError(username);
+  if (v.show_as === "username" && !username) er.show_as = "Choose a username first.";
+  if (phoneError(v.phone)) er.phone = phoneError(v.phone);
   return er;
+}
+
+// True once supabase/profiles_privacy.sql has added the username columns.
+export async function profileFieldsSupported(client) {
+  try {
+    const { error } = await client.from("profiles").select("username").limit(1);
+    return !error;
+  } catch {
+    return false;
+  }
 }
 
 // --- Reviews and reports -------------------------------------------------------
