@@ -203,10 +203,13 @@ export async function reportListing(client, { listingId, userId, reason, details
 const PUBLIC_PROFILE =
   "id, full_name, role, created_at, avatar_url, bio, languages, lister_type, business_name, office_address, areas_covered, listing_since, registration_body";
 
-// Before supabase/profiles_privacy.sql is run there are no username columns.
+// public_name (aliased to full_name) is the name the person chose to show.
+// Before supabase/profiles_privacy.sql is run, or if its grants were lost,
+// fall back to the plain columns.
 async function fetchPublicProfile(client, id) {
-  const first = await client.from("profiles").select(`${PUBLIC_PROFILE}, username, show_as`).eq("id", id).maybeSingle();
-  if (first.error?.code !== "42703") return first;
+  const cols = PUBLIC_PROFILE.replace("full_name", "full_name:public_name");
+  const first = await client.from("profiles").select(`${cols}, username, show_as`).eq("id", id).maybeSingle();
+  if (!first.error) return first;
   return client.from("profiles").select(PUBLIC_PROFILE).eq("id", id).maybeSingle();
 }
 

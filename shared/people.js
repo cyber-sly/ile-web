@@ -56,8 +56,11 @@ export function localPhone(phone) {
 export async function fetchPeople(client, ids) {
   const unique = uniqueIds(ids);
   if (unique.length === 0) return {};
-  let { data, error } = await client.from("profiles").select("id, full_name, avatar_url, username, show_as").in("id", unique);
-  if (error?.code === "42703") ({ data } = await client.from("profiles").select("id, full_name, avatar_url").in("id", unique));
+  // public_name (aliased to full_name) is "@username" or the name, as the person
+  // chose. Before profiles_privacy.sql is run, or if its grants were lost, fall
+  // back to the plain columns.
+  let { data, error } = await client.from("profiles").select("id, full_name:public_name, avatar_url, username, show_as").in("id", unique);
+  if (error) ({ data } = await client.from("profiles").select("id, full_name, avatar_url").in("id", unique));
   return Object.fromEntries(
     (data || []).map((p) => [p.id, { name: displayName(p), avatar: p.avatar_url, username: p.username || null }])
   );

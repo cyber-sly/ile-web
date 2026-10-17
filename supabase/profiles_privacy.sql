@@ -41,12 +41,31 @@ alter table public.profiles drop constraint if exists profiles_show_as_check;
 alter table public.profiles add constraint profiles_show_as_check
   check (show_as in ('name', 'username') and (show_as <> 'username' or username is not null));
 
+-- Tidy numbers saved earlier in other Nigerian formats (0803..., 234803...)
+-- so the check below doesn't block later updates of those rows.
+update public.profiles
+set phone = '+234' || right(regexp_replace(phone, '[^0-9]', '', 'g'), 10)
+where phone is not null
+  and phone !~ '^\+234[0-9]{10}$'
+  and regexp_replace(phone, '[^0-9]', '', 'g') ~ '^(234|0)?[789][01][0-9]{8}$';
+
 alter table public.profiles drop constraint if exists profiles_phone_check;
 alter table public.profiles add constraint profiles_phone_check
   check (phone is null or phone ~ '^\+234[0-9]{10}$') not valid;
 
+-- The name others see: "@username" for people who chose it, otherwise their
+-- name. Readers get this column, not full_name, so the real name of someone
+-- showing their @username can't be read by anyone else. The owner still sees
+-- full_name through my_profile().
+alter table public.profiles add column if not exists public_name text generated always as (
+  case when show_as = 'username' and username is not null then '@' || username
+       else nullif(trim(full_name), '') end
+) stored;
+
+revoke select (full_name) on public.profiles from anon, authenticated;
+
 -- Readable by everyone (needed to show the chosen name); phone is NOT here.
-grant select (username, show_as) on public.profiles to anon, authenticated;
+grant select (username, show_as, public_name) on public.profiles to anon, authenticated;
 -- The owner can change these on their own row (RLS limits updates to self).
 grant update (username, show_as, phone) on public.profiles to authenticated;
 
@@ -64,6 +83,7 @@ as $$
   select phone from public.profiles where id = auth.uid();
 $$;
 
+revoke execute on function public.my_phone() from public, anon;
 grant execute on function public.my_phone() to authenticated;
 
 -- Is this username free (and allowed)? Your own current username counts as free.
@@ -132,12 +152,29 @@ begin
 end;
 $$;
 
+revoke execute on function public.booking_contact(text, uuid) from public, anon;
 grant execute on function public.booking_contact(text, uuid) to authenticated;
 
+-- Push notifications ("Ada: ...") follow the same rule as the screens:
+-- "@username" for people who chose it, otherwise their first name.
+create or replace function public.ile_first_name(p_user uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    case when show_as = 'username' and username is not null then '@' || username
+         else nullif(split_part(trim(full_name), ' ', 1), '') end,
+    'Someone')
+  from public.profiles where id = p_user;
+$$;
+
 -- ---------------------------------------------------------------------------
--- Checks: the two new columns.
+-- Checks: the three new columns.
 -- ---------------------------------------------------------------------------
 
 select column_name from information_schema.columns
-where table_schema = 'public' and table_name = 'profiles' and column_name in ('username', 'show_as')
+where table_schema = 'public' and table_name = 'profiles' and column_name in ('username', 'show_as', 'public_name')
 order by column_name;

@@ -117,3 +117,31 @@ test("fetchPeople uses the chosen display name", async () => {
   };
   assert.deepEqual((await fetchPeople(client, ["u1"])).u1, { name: "@ada", avatar: "a.png", username: "ada" });
 });
+
+test("fetchPeople reads the public name, never the raw full name", async () => {
+  const client = fakeClient([{ id: "a", full_name: "@ada_lagos", avatar_url: null, username: "ada_lagos", show_as: "username" }]);
+  const people = await fetchPeople(client, ["a"]);
+  assert.match(client.calls[0][2], /full_name:public_name/);
+  assert.equal(people.a.name, "@ada_lagos");
+});
+
+test("fetchPeople falls back when the public name can't be read (permission denied)", async () => {
+  const selects = [];
+  const client = {
+    from() {
+      return {
+        select(cols) {
+          selects.push(cols);
+          return {
+            in: async () =>
+              cols.includes("public_name")
+                ? { data: null, error: { code: "42501", message: "permission denied for table profiles" } }
+                : { data: [{ id: "u1", full_name: "Ada Obi", avatar_url: null }], error: null },
+          };
+        },
+      };
+    },
+  };
+  assert.equal((await fetchPeople(client, ["u1"])).u1.name, "Ada Obi");
+  assert.equal(selects.length, 2);
+});

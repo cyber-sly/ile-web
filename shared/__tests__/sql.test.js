@@ -106,3 +106,20 @@ test("profiles_privacy.sql opens public rows but never grants phone to readers",
   assert.match(contact, /'accepted'/);
   assert.match(contact, /auth\.uid\(\)/);
 });
+
+test("profiles_privacy.sql hides full_name behind a public_name column", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "profiles_privacy.sql"), "utf8");
+  assert.match(sql, /add column if not exists public_name text generated always as/);
+  assert.match(sql, /revoke select \(full_name\) on public\.profiles from anon, authenticated;/);
+  assert.match(sql, /grant select \([^)]*public_name[^)]*\) on public\.profiles to anon, authenticated;/);
+  for (const grant of sql.match(/grant select \([\s\S]*?\) on public\.profiles[^;]*;/g) || []) {
+    assert.doesNotMatch(grant, /\bfull_name\b/, grant);
+  }
+  const first = sql.match(/function public\.ile_first_name[\s\S]*?\n\$\$;/)?.[0] || "";
+  assert.match(first, /show_as/);
+});
+
+test("profiles_privacy.sql tidies old-format phones before the phone check", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "profiles_privacy.sql"), "utf8");
+  assert.ok(sql.indexOf("set phone = '+234'") > 0 && sql.indexOf("set phone = '+234'") < sql.indexOf("add constraint profiles_phone_check"));
+});

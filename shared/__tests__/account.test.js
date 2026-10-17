@@ -208,3 +208,22 @@ test("profile row saves the normalised username and phone only when supported", 
   assert.equal("username" in formToProfileChanges(v, false, 2026), false);
   assert.equal(profileToForm({ full_name: "Ada", phone: "+2348031234567", show_as: "username", username: "ada" }).phone, "0803 123 4567");
 });
+
+test("fetchListerProfile reads the public name and falls back on any error", async () => {
+  const client = profileClient({ id: PROFILE_ID, full_name: "Bayo", role: "landlord" });
+  await fetchListerProfile(client, PROFILE_ID);
+  assert.match(client.selects.find(([t]) => t === "profiles")[1], /full_name:public_name/);
+
+  const denied = profileClient({ id: PROFILE_ID, full_name: "Bayo", role: "landlord" });
+  const from = denied.from;
+  denied.from = (table) => {
+    const q = from(table);
+    return {
+      select: (cols) =>
+        table === "profiles" && cols.includes("public_name")
+          ? { eq: () => ({ maybeSingle: async () => ({ data: null, error: { code: "42501", message: "permission denied" } }) }) }
+          : q.select(cols),
+    };
+  };
+  assert.equal((await fetchListerProfile(denied, PROFILE_ID)).profile.display_name, "Bayo");
+});
