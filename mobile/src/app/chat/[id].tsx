@@ -5,7 +5,8 @@ import { router, useIsFocused, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { onlineManager, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, ShieldCheck } from "lucide-react-native";
-import { cleanMessage, fetchThread, MAX_MESSAGE, markRead } from "@shared/messaging.js";
+import { canEdit, cleanMessage, editMessage, fetchThread, MAX_MESSAGE, markRead } from "@shared/messaging.js";
+import { friendlyError } from "@shared/errors.js";
 import { fetchPeople } from "@shared/people.js";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
@@ -18,6 +19,8 @@ import MessageBubble from "@/components/MessageBubble";
 import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
 import Tap from "@/components/kit/Tap";
+import PresenceLine from "@/components/PresenceLine";
+import { useChatPresence } from "@/lib/presence";
 
 type Thread = {
   convo: { id: string; tenant_id: string | null; landlord_id: string | null; listings: { id: string; title: string; image_url: string | null } | null } | null;
@@ -46,6 +49,7 @@ export default function ChatScreen() {
 
   const chatKey = ["chat", id, userId];
   const chat = useQuery({ queryKey: chatKey, queryFn: () => loadChat(id, userId), enabled: Boolean(userId) });
+  const presence = useChatPresence(chat.data?.other ? [id] : []);
 
   // Live updates for this conversation.
   useEffect(() => {
@@ -96,7 +100,44 @@ export default function ChatScreen() {
   const items = useMemo(() => withDayBreaks(rows).reverse(), [rows]);
   const seenId = lastSeenId(rows, userId);
 
+  // Editing a sent message (within 3 minutes).
+  const [editing, setEditing] = useState<ChatRow | null>(null);
+  const [editError, setEditError] = useState("");
+  const [online, setOnline] = useState(onlineManager.isOnline());
+  useEffect(() => onlineManager.subscribe(setOnline), []);
+  // Re-check every few seconds so Edit disappears when the 3 minutes pass.
+  const [, setTick] = useState(0);
+  const anyEditable = rows.some((r) => canEdit(r, userId));
+  useEffect(() => {
+    if (!anyEditable) return;
+    const timer = setInterval(() => setTick((n) => n + 1), 5000);
+    return () => clearInterval(timer);
+  }, [anyEditable]);
+
+  function startEdit(row: ChatRow) {
+    setEditing(row);
+    setDraft(row.body);
+    setEditError("");
+  }
+
+  function cancelEdit() {
+    setEditing(null);
+    setDraft("");
+    setEditError("");
+  }
+
+  async function saveEdit(row: ChatRow) {
+    try {
+      const updated = (await editMessage(supabase, row.id, draft)) as Message;
+      queryClient.setQueryData<Thread>(chatKey, (t) => (t ? { ...t, messages: t.messages.map((m) => (m.id === updated.id ? { ...m, ...updated } : m)) } : t));
+      cancelEdit();
+    } catch (e) {
+      setEditError(friendlyError(e));
+    }
+  }
+
   async function send() {
+    if (editing) return saveEdit(editing);
     const body = cleanMessage(draft);
     if (!body) return;
     setDraft("");
@@ -127,6 +168,7 @@ export default function ChatScreen() {
         >
           {t?.convo ? (t.other ? t.other.name || (t.convo.tenant_id === userId ? "The lister" : "Home-seeker") : "Deleted user") : ""}
         </Text>
+        {t?.other ? <PresenceLine lastSeenAt={presence[id]} /> : null}
         {t?.convo && (
           <Tap
             disabled={!t.convo.listings}
@@ -162,7 +204,7 @@ export default function ChatScreen() {
     );
   }
 
-  const canSend = cleanMessage(draft) !== null;
+  const canSend = cleanMessage(draft) !== null && (!editing || online);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -183,6 +225,7 @@ export default function ChatScreen() {
                 mine={(item as ChatRow).pending !== undefined || (item as ChatRow).sender_id === userId}
                 seen={item.id === seenId}
                 onRetry={() => (item as ChatRow).localId && outbox.retry((item as ChatRow).localId!)}
+                onEdit={!editing && online && canEdit(item, userId) ? () => startEdit(item as ChatRow) : undefined}
               />
             )
           }
@@ -193,6 +236,15 @@ export default function ChatScreen() {
             </View>
           }
         />
+        {editing ? (
+          <View style={styles.editBar}>
+            <Text style={styles.editTitle}>Editing message</Text>
+            <Tap accessibilityRole="button" onPress={cancelEdit} hitSlop={8}>
+              <Text style={styles.editCancel}>Cancel</Text>
+            </Tap>
+          </View>
+        ) : null}
+        {editError ? <Text style={styles.editError}>{editError}</Text> : null}
         <View style={styles.composer}>
           <TextInput
             value={draft}
@@ -273,4 +325,8 @@ const styles = StyleSheet.create({
   },
   send: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: colors.palm },
   sendOff: { opacity: 0.4 },
+  editBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.palmSoft, borderTopWidth: 1, borderTopColor: colors.line },
+  editTitle: { fontFamily: fonts.sansSemi, fontSize: 13, color: colors.palm },
+  editCancel: { fontFamily: fonts.sansSemi, fontSize: 13, color: colors.ink },
+  editError: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.clay, paddingHorizontal: 16, paddingTop: 6 },
 });

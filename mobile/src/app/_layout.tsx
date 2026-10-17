@@ -18,6 +18,7 @@ import OfflineBanner from "@/components/OfflineBanner";
 // Started here, not from a screen: screens load lazily in release builds.
 import "@/lib/outboxApp";
 import { usePushTaps } from "@/lib/push";
+import { usePresenceCheckIn } from "@/lib/presence";
 import { colors, fonts } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();
@@ -28,7 +29,13 @@ function PushTaps() {
   return null;
 }
 
-const persistOptions = { persister, maxAge: PERSIST_MAX_AGE, dehydrateOptions: { shouldDehydrateQuery: shouldPersist } };
+// Online / last seen check-in while the app is open.
+function PresenceCheckIn() {
+  usePresenceCheckIn();
+  return null;
+}
+
+const persistOptions ={ persister, maxAge: PERSIST_MAX_AGE, dehydrateOptions: { shouldDehydrateQuery: shouldPersist } };
 
 export default function RootLayout() {
   const [loaded, fontError] = useFonts({ Fraunces_600SemiBold, Fraunces_500Medium, Fraunces_400Regular_Italic, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
@@ -48,6 +55,7 @@ export default function RootLayout() {
         <View style={{ flex: 1, backgroundColor: colors.cream }}>
           <OfflineBanner />
           <PushTaps />
+          <PresenceCheckIn />
           <Stack
             screenOptions={{
               contentStyle: { backgroundColor: colors.cream },

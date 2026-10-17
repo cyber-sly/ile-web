@@ -1,6 +1,7 @@
 // In-app messages: conversations about a listing between a home-seeker and
 // a lister. Shared by the website and the app.
 import { fetchPeople } from "./people.js";
+import { serverNow } from "./presence.js";
 
 export const MAX_MESSAGE = 2000;
 
@@ -109,4 +110,31 @@ export function dayLabel(iso, now = new Date()) {
   if (d.toDateString() === now.toDateString()) return "Today";
   if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
   return d.toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
+}
+
+// --- Editing a sent message (needs supabase/presence_edit.sql) ---------------
+
+export const EDIT_WINDOW_MS = 3 * 60 * 1000;
+
+// True while I can still edit this message: mine, saved (not waiting in the
+// outbox), under 3 minutes old, and the edit column exists (SQL has been run).
+// A minute of clock difference the other way is tolerated; the database is
+// the final judge.
+/** @param {any} message @param {string} userId @param {Date} [now] */
+export function canEdit(message, userId, now = serverNow()) {
+  if (!message || !("edited_at" in message) || message.pending) return false;
+  if (!userId || message.sender_id !== userId || String(message.id).startsWith("temp-")) return false;
+  const age = now.getTime() - new Date(message.created_at).getTime();
+  return age >= -60 * 1000 && age < EDIT_WINDOW_MS;
+}
+
+// Saves the new text and returns the updated message. The database's
+// refusals are written for people, so friendlyError shows them as they are.
+/** @param {any} client @param {string} id @param {string} body */
+export async function editMessage(client, id, body) {
+  const text = cleanMessage(body);
+  if (!text) throw new Error("Messages must be 1 to 2000 characters.");
+  const { data, error } = await client.rpc("edit_message", { p_id: id, p_body: text });
+  if (error) throw Object.assign(new Error(error.message), { code: error.code });
+  return data;
 }

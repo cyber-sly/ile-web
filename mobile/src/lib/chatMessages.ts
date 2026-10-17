@@ -1,7 +1,7 @@
 import { dayLabel } from "@shared/messaging.js";
 import type { OutboxItem } from "./outbox";
 
-export type Message = { id: string; created_at: string; sender_id: string | null; read_at: string | null; body: string };
+export type Message = { id: string; created_at: string; sender_id: string | null; read_at: string | null; body: string; edited_at?: string | null };
 // A message on screen: from the server, or still in the outbox.
 export type ChatRow = Message & { pending?: "waiting" | "sending" | "failed"; localId?: string };
 

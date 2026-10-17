@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePresenceCheckIn } from "@/lib/usePresence";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -20,6 +21,7 @@ export default function Navbar() {
   const user = useUser();
   const landlord = isLandlord(user);
   const unread = useUnreadCount(user);
+  usePresenceCheckIn(user);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

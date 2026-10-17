@@ -8,7 +8,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
 import { refreshUnread } from "@/lib/messaging";
 import { fetchPeople } from "@/lib/profile";
-import { dayLabel } from "@shared/messaging.js";
+import { canEdit, dayLabel, editMessage } from "@shared/messaging.js";
+import { presenceLabel } from "@shared/presence.js";
+import { useChatPresence } from "@/lib/usePresence";
 import Avatar from "@/components/Avatar";
 import { priceParts } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
@@ -24,6 +26,8 @@ export default function ConversationPage() {
   const [otherName, setOtherName] = useState("");
   const [otherUserId, setOtherUserId] = useState(null);
   const [otherAvatar, setOtherAvatar] = useState(null);
+  const presence = useChatPresence(otherUserId ? [id] : []);
+  const seen = presenceLabel(presence[id]);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -99,10 +103,48 @@ export default function ConversationPage() {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [messages.length]);
 
+  // Editing a sent message (within 3 minutes). Re-check every few seconds so
+  // the Edit button disappears when the time is up.
+  const [editing, setEditing] = useState(null);
+  const [, setTick] = useState(0);
+  const anyEditable = Boolean(user) && messages.some((m) => canEdit(m, user.id));
+  useEffect(() => {
+    if (!anyEditable) return;
+    const timer = setInterval(() => setTick((n) => n + 1), 5000);
+    return () => clearInterval(timer);
+  }, [anyEditable]);
+
+  function startEdit(m) {
+    setEditing(m);
+    setDraft(m.body);
+    setError("");
+  }
+
+  function cancelEdit() {
+    setEditing(null);
+    setDraft("");
+    setError("");
+  }
+
+  async function saveEdit() {
+    setSending(true);
+    setError("");
+    try {
+      const updated = await editMessage(supabase, editing.id, draft);
+      setMessages((prev) => prev.map((m) => (m.id === updated.id ? { ...m, ...updated } : m)));
+      cancelEdit();
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setSending(false);
+    }
+  }
+
   async function send(e) {
     e?.preventDefault();
     const body = draft.trim();
     if (!body || sending) return;
+    if (editing) return saveEdit();
     setSending(true);
     setError("");
     const { data, error: sendError } = await supabase
@@ -156,7 +198,15 @@ export default function ConversationPage() {
           ) : (
             <p className="truncate font-semibold text-ink">{otherName}</p>
           )}
-          <p className="text-xs text-ink-muted">{isTenant ? "Lister" : "Home-seeker"}</p>
+          <p className="truncate text-xs text-ink-muted">
+            {isTenant ? "Lister" : "Home-seeker"}
+            {seen && (
+              <>
+                {" · "}
+                <span className={seen.online ? "font-semibold text-palm" : undefined}>{seen.text}</span>
+              </>
+            )}
+          </p>
         </div>
         {l && (
           <Link href={`/listings/${l.id}`} className="flex min-w-0 max-w-[45%] items-center gap-2 rounded-[var(--radius-control)] border border-line p-1.5 pr-3 hover:border-line-strong">
@@ -203,7 +253,13 @@ export default function ConversationPage() {
                 >
                   <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{m.body}</p>
                   <p className={`mt-0.5 text-right text-xs ${mine ? "text-white/70" : "text-ink-muted"}`}>
+                    {!editing && canEdit(m, user.id) && (
+                      <button type="button" onClick={() => startEdit(m)} className="mr-2 font-semibold text-white underline-offset-2 hover:underline">
+                        Edit
+                      </button>
+                    )}
                     {clock(m.created_at)}
+                    {m.edited_at && " · edited"}
                     {mine && m.read_at && " · Seen"}
                   </p>
                 </div>
@@ -222,6 +278,14 @@ export default function ConversationPage() {
       ) : (
       <form onSubmit={send} className="border-t border-line bg-surface p-3 sm:rounded-b-[var(--radius-card)] sm:border sm:border-t-0">
         {error && <Alert className="mb-2">{error}</Alert>}
+        {editing && (
+          <div className="mb-2 flex items-center justify-between rounded-[var(--radius-control)] bg-palm-soft px-3 py-1.5 text-sm">
+            <span className="font-semibold text-palm">Editing message</span>
+            <button type="button" onClick={cancelEdit} className="font-semibold text-ink hover:underline">
+              Cancel
+            </button>
+          </div>
+        )}
         <div className="flex items-end gap-2">
           <label className="flex-1">
             <span className="sr-only">Message</span>
