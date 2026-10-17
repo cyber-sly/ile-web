@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { reviewState } from "@/lib/reviews";
 import ReviewSheet from "@/components/ReviewSheet";
+import ContactLine from "@/components/ContactLine";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -125,6 +126,7 @@ export default function RequestCard({ request: r, person, details, rating, onlin
         </View>
       )}
       {r.landlord_note && r.status !== "pending" ? <Text style={styles.muted}>Your note: “{r.landlord_note}”</Text> : null}
+      {r.status === "confirmed" || r.status === "done" ? <ContactLine kind="viewing" id={String(r.id)} name={name} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {review === "can-review" && (
         <Action label={`Rate ${(person?.name || "them").trim().split(/\s+/)[0]}`} disabled={!online} onPress={() => setReviewing(true)} />

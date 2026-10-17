@@ -21,6 +21,7 @@ import { fetchPeople, fetchTenantDetails, occupationLabel, moveInLabel } from "@
 import Avatar from "@/components/Avatar";
 import { canReview, fetchRatings, fetchReviewedIds, viewingDateReached } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
+import ContactLine from "@/components/ContactLine";
 import { RatingSummary } from "@/components/Stars";
 import {
   Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, ChevronRight, Share2, Rocket,
@@ -512,6 +513,10 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
       )}
       {inspection.landlord_note && inspection.status !== "pending" && (
         <p className="mt-1.5 text-sm text-ink-muted">Your note: &ldquo;{inspection.landlord_note}&rdquo;</p>
+      )}
+
+      {["confirmed", "done"].includes(inspection.status) && (
+        <ContactLine kind="viewing" id={inspection.id} name={name || "the home-seeker"} className="mt-3" />
       )}
 
       {requestActions(inspection).confirm && !proposing && (

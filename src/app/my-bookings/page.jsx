@@ -19,6 +19,7 @@ import MessageButton from "@/components/MessageButton";
 import { fetchNames } from "@/lib/messaging";
 import { canReview, fetchReviewedIds } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
+import ContactLine from "@/components/ContactLine";
 import { acceptChanges, fetchMyViewings, sortViewings, viewingActions } from "@shared/viewings.js";
 import { MapPin, CalendarDays, Clock, CalendarX, ImageOff } from "lucide-react";
 
@@ -187,6 +188,12 @@ export default function MyBookingsPage() {
                         Lister: <span className="font-semibold text-ink">{names[l.landlord_id] || "Lister"}</span>
                       </span>
                       <MessageButton listingId={l.id} user={user} label="Message" variant="ghost" size="sm" />
+                    </div>
+                  )}
+
+                  {["confirmed", "done"].includes(b.status) && (
+                    <div className="border-t border-line px-4 py-2.5">
+                      <ContactLine kind="viewing" id={b.id} name={(l && names[l.landlord_id]) || "the lister"} />
                     </div>
                   )}
 

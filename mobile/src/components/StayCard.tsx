@@ -6,6 +6,7 @@ import { formatDate, formatNaira } from "@shared/format.js";
 import { cancelStay, lagosToday, respondStay, STAY_STATUS, stayActions, type StayRow } from "@/lib/stays";
 import { openChat } from "@/lib/messagingApp";
 import ReviewSheet from "@/components/ReviewSheet";
+import ContactLine from "@/components/ContactLine";
 import Tap from "@/components/kit/Tap";
 import { Badge, Button } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
@@ -88,6 +89,9 @@ export default function StayCard({
       </Text>
       {s.note ? <Text style={styles.note}>“{s.note}”</Text> : null}
       {s.status === "declined" && s.decline_reason ? <Text style={styles.muted}>Reason: {s.decline_reason}</Text> : null}
+      {s.status === "accepted" ? (
+        <ContactLine kind="stay" id={String(s.id)} name={name} />
+      ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       {declining ? (
