@@ -45,7 +45,7 @@ export default function NotificationsCard() {
     <View style={styles.card}>
       <Bell color={colors.palm} size={20} />
       <View style={styles.text}>
-        <Text style={styles.title}>Get notified about messages and viewings</Text>
+        <Text style={styles.title}>Get notified about messages and bookings</Text>
         <Text style={styles.body}>Know straight away when someone replies or confirms a time.</Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Button label="Turn on notifications" loading={busy} onPress={turnOn} />

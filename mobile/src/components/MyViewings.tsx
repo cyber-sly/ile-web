@@ -45,8 +45,8 @@ export default function MyViewings() {
 
   if (!user) {
     return (
-      <Screen title="My viewings" subtitle="Viewings you book on Ile are listed here.">
-        <Button label="Log in to see your viewings" onPress={() => router.push("/login")} />
+      <Screen title="My bookings" subtitle="Bookings you make on Ile are listed here.">
+        <Button label="Log in to see your bookings" onPress={() => router.push("/login")} />
       </Screen>
     );
   }
@@ -55,7 +55,7 @@ export default function MyViewings() {
 
   let empty;
   if (viewings.isPending && !online) {
-    empty = <EmptyState icon={WifiOff} title="Connect to load your viewings" />;
+    empty = <EmptyState icon={WifiOff} title="Connect to load your bookings" />;
   } else if (viewings.isPending) {
     empty = (
       <View style={styles.skeletons}>
@@ -69,7 +69,7 @@ export default function MyViewings() {
       <EmptyState
         icon={WifiOff}
         tone="clay"
-        title="Couldn't load your viewings"
+        title="Couldn't load your bookings"
         action={<Button label="Try again" variant="secondary" full={false} onPress={() => viewings.refetch()} />}
       />
     );
@@ -77,10 +77,10 @@ export default function MyViewings() {
     empty = (
       <EmptyState
         icon={CalendarX}
-        title="No viewings booked yet"
+        title="No bookings yet"
         action={<Button label="Find a place to view" full={false} onPress={() => router.navigate("/search")} />}
       >
-        Book a free viewing from any listing page.
+        Fix a booking from any listing page.
       </EmptyState>
     );
   }
@@ -102,8 +102,8 @@ export default function MyViewings() {
         )}
         ListHeaderComponent={
           <View style={styles.header}>
-            <PageTitle>My viewings</PageTitle>
-            <Text style={styles.subtitle}>Track the viewings you&apos;ve requested and respond to new times.</Text>
+            <PageTitle>My bookings</PageTitle>
+            <Text style={styles.subtitle}>Track the bookings you&apos;ve requested and respond to new times.</Text>
             <NotificationsCard />
           </View>
         }

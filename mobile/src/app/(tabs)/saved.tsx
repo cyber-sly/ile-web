@@ -79,7 +79,7 @@ export default function SavedScreen() {
         title="Nothing saved yet"
         action={<Button label="Start browsing" full={false} onPress={() => router.navigate("/search")} />}
       >
-        Save the places you like so you can compare them and book viewings later.
+        Save the places you like so you can compare them and make bookings later.
       </EmptyState>
     );
   }

@@ -1,4 +1,4 @@
-// Viewings (the `inspections` table): booking, requests and the rules for
+// Bookings (the `inspections` table): booking, requests and the rules for
 // what a home-seeker can do with each one. Shared by the website and the app.
 import { viewingDateReached } from "./reviews.js";
 

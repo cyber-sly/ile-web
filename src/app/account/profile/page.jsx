@@ -134,7 +134,7 @@ export default function EditProfilePage() {
       <div className="mt-5 rounded-[var(--radius-card)] border border-line bg-surface p-4">
         <div className="flex items-center justify-between text-sm">
           <span className="font-semibold text-ink">Profile {percent}% complete</span>
-          {showLister && percent < 100 && <span className="text-ink-muted">Complete profiles get more viewing requests</span>}
+          {showLister && percent < 100 && <span className="text-ink-muted">Complete profiles get more booking requests</span>}
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
           <div className="h-full rounded-full bg-palm transition-[width] duration-500" style={{ width: `${percent}%` }} />
@@ -204,8 +204,8 @@ export default function EditProfilePage() {
         </Section>
 
         <Section
-          title="When you book viewings"
-          description="Optional. Only shown to listers you book a viewing with. It can help them say yes faster."
+          title="When you make bookings"
+          description="Optional. Only shown to listers you fix a booking with. It can help them say yes faster."
         >
           <div className="grid gap-5 sm:grid-cols-2">
             <Field as="select" label="Occupation" optional value={v.occupation} onChange={set("occupation")}>

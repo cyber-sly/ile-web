@@ -409,7 +409,7 @@ export default function ListingForm({ listing, userId }) {
               label="Title document"
               value={v.titleDocument}
               onChange={set("titleDocument")}
-              hint="Buyers filter by title. Only choose what you can show at a viewing."
+              hint="Buyers filter by title. Only choose what you can show when people visit."
             >
               <option value="">Not specified</option>
               {TITLE_DOCUMENTS.map((t) => (
@@ -484,7 +484,7 @@ export default function ListingForm({ listing, userId }) {
         )}
       </Section>
 
-      <Section title="Describe it" description="Help people decide before they book a viewing.">
+      <Section title="Describe it" description="Help people decide before they fix a booking.">
         <Field
           label="Title"
           placeholder={isHomes ? "e.g. 3 bedroom flat with BQ" : isLand ? "e.g. Dry 600sqm plot in a gated estate" : "e.g. Ground-floor shop on a busy road"}
@@ -516,7 +516,7 @@ export default function ListingForm({ listing, userId }) {
 
       <Section
         title="Photos and video"
-        description={`Add up to ${MAX_PHOTOS} photos. The first photo is the cover. Bright, recent photos get more viewings.`}
+        description={`Add up to ${MAX_PHOTOS} photos. The first photo is the cover. Bright, recent photos get more bookings.`}
       >
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {keptImages.map((url, i) => (

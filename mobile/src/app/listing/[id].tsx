@@ -181,7 +181,7 @@ export default function ListingScreen() {
 
         <View style={styles.notice}>
           <ShieldCheck color={colors.palm} size={18} />
-          <Text style={styles.noticeText}>Viewings on Ile are free. Never pay an inspection fee to see a property.</Text>
+          <Text style={styles.noticeText}>Booking on Ile is free. Never pay anyone before you&apos;ve seen the property in person.</Text>
         </View>
 
         <Text style={styles.sectionTitle}>About this {listing.category === "land" ? "land" : "place"}</Text>
@@ -192,7 +192,7 @@ export default function ListingScreen() {
             </Text>
           ))
         ) : (
-          <Text style={styles.muted}>The lister hasn&apos;t added a description yet. Book a viewing to see it in person.</Text>
+          <Text style={styles.muted}>The lister hasn&apos;t added a description yet. Fix a booking to see it in person.</Text>
         )}
 
         {features.length > 0 && (

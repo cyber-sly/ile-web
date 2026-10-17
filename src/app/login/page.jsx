@@ -56,7 +56,7 @@ function LoginForm() {
   return (
     <AuthShell
       title="Welcome back"
-      subtitle="Log in to book viewings and manage your listings."
+      subtitle="Log in to make bookings and manage your listings."
       image="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1400&q=70"
       quote={<>Your next place is <em>already listed.</em></>}
     >

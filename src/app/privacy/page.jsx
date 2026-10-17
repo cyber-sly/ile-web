@@ -24,7 +24,7 @@ const sections = [
         <p><strong>Profile details you choose to add</strong> (all optional): a profile photo, a short bio, languages you speak, the state you live in, and, for listers, your business name, office address, areas you cover, when you started listing and a professional registration (body and number). Home-seekers can also add their occupation and when they plan to move.</p>
         <p><strong>If you sign in with Google</strong>, Google shares your name, email address and profile picture with us. We never see your Google password.</p>
         <p><strong>Listings you post.</strong> Titles, descriptions, photos, videos, location (state, LGA, area and any street address you enter), prices, fees, property details and who is listing (owner, agent, caretaker or developer).</p>
-        <p><strong>Viewings.</strong> The dates and times you request or offer, and the status of each booking.</p>
+        <p><strong>Bookings.</strong> The dates and times you request or offer, and the status of each booking.</p>
         <p><strong>Messages</strong> you send to other users through Ile.</p>
         <p><strong>Reviews and reports</strong> you write, including star ratings and comments.</p>
         <p><strong>Technical data.</strong> When you use Ile, our hosting and database providers automatically record things like your IP address, browser type and the time of each request. This is used for security, preventing abuse and keeping the service running.</p>
@@ -39,7 +39,7 @@ const sections = [
       <>
         <ul>
           <li>To run your account and let you log in (needed to provide the service you signed up for).</li>
-          <li>To show your listings to home-seekers, and to let people book viewings and message each other.</li>
+          <li>To show your listings to home-seekers, and to let people make bookings and message each other.</li>
           <li>To keep Ile safe: preventing fraud, fake listings and spam, enforcing rate limits, reviewing reports, and removing content that breaks our Terms (our legitimate interest in a trustworthy marketplace).</li>
           <li>To send you service emails you need, such as password-reset links.</li>
           <li>To meet legal obligations, for example responding to lawful requests from authorities.</li>
@@ -56,10 +56,10 @@ const sections = [
         <ul>
           <li><strong>Listings are public</strong>, including photos, price, location and street address if you add one, and your name as the lister.</li>
           <li><strong>Lister profiles are public</strong>: your name, photo, bio, languages, business name, office address, areas you cover, when you started listing, which professional body you&apos;re registered with (not the number), how quickly you usually reply, your live listings, your average rating and reviews about you.</li>
-          <li><strong>Private to you:</strong> the state you live in, your registration number and any phone number. Your occupation and move-in timing are shown only to listers you book a viewing with.</li>
-          <li><strong>Reviews of listers are public, but the reviewer stays anonymous.</strong> Reviews of home-seekers are only visible to listers that home-seeker books viewings with.</li>
+          <li><strong>Private to you:</strong> the state you live in, your registration number and any phone number. Your occupation and move-in timing are shown only to listers you fix a booking with.</li>
+          <li><strong>Reviews of listers are public, but the reviewer stays anonymous.</strong> Reviews of home-seekers are only visible to listers that home-seeker makes bookings with.</li>
           <li><strong>Messages</strong> are visible only to the two people in the conversation.</li>
-          <li>When you book a viewing, the lister sees your name and the time you chose.</li>
+          <li>When you fix a booking, the lister sees your name and the time you chose.</li>
           <li>Your email address and any phone number on your account are never shown to other users.</li>
         </ul>
       </>
@@ -103,10 +103,10 @@ const sections = [
     body: (
       <>
         <ul>
-          <li>Account details, listings, viewings, messages and reviews are kept while your account is open.</li>
+          <li>Account details, listings, bookings, messages and reviews are kept while your account is open.</li>
           <li>
             When you delete your account, we delete your profile, login, listings (with their photos and videos),
-            viewings and reviews about you. Messages you sent stay visible to the people you chatted with, shown as
+            bookings and reviews about you. Messages you sent stay visible to the people you chatted with, shown as
             from a &ldquo;Deleted user&rdquo;, and reviews you wrote and reports you made stay without your name. We
             may also keep limited data where needed to resolve disputes, prevent fraud or meet legal obligations.
           </li>

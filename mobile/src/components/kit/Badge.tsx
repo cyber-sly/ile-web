@@ -56,7 +56,7 @@ export function ServicedBadge() {
   );
 }
 
-// Viewing status, same labels and colours as the website.
+// Booking status, same labels and colours as the website.
 export function StatusBadge({ status }: { status: string }) {
   const s = (VIEWING_STATUS as Record<string, { tone: Tone; label: string }>)[status] || { tone: "neutral" as Tone, label: status };
   return <Badge tone={s.tone}>{s.label}</Badge>;

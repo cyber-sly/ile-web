@@ -32,7 +32,7 @@ import { fetchReferralSummary } from "@/lib/referrals";
 
 const GROUPS = [
   { key: "reply", title: "Needs your reply", statuses: ["pending"] },
-  { key: "upcoming", title: "Confirmed viewings", statuses: ["confirmed"] },
+  { key: "upcoming", title: "Confirmed bookings", statuses: ["confirmed"] },
   { key: "waiting", title: "Waiting on the home-seeker", statuses: ["countered"] },
   { key: "past", title: "Past and closed", statuses: ["done", "declined", "cancelled"], collapsed: true },
 ];
@@ -111,7 +111,7 @@ export default function DashboardPage() {
 
     fetchDashboardData();
 
-    // Viewings this account has booked on other people's properties (agents
+    // Bookings this account has booked on other people's properties (agents
     // viewing for clients, landlords looking to rent or buy).
     supabase
       .from("inspections")
@@ -164,7 +164,7 @@ export default function DashboardPage() {
         primary={{ href: "/login?next=/dashboard", label: "Log in" }}
         secondary={{ href: "/signup?role=landlord&next=/listings/new", label: "Create lister account" }}
       >
-        Your dashboard is where you manage listings and viewing requests.
+        Your dashboard is where you manage listings and booking requests.
       </AccessWall>
     );
   }
@@ -187,7 +187,7 @@ export default function DashboardPage() {
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-5xl">
             {firstName ? `Welcome, ${firstName}` : "Your dashboard"}
           </h1>
-          <p className="mt-2 text-ink-muted">Manage your listings and reply to viewing requests.</p>
+          <p className="mt-2 text-ink-muted">Manage your listings and reply to booking requests.</p>
         </div>
         <Link href="/listings/new" className={button()}>
           <Plus size={17} aria-hidden="true" /> New listing
@@ -204,11 +204,11 @@ export default function DashboardPage() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-semibold text-ink">
-              Viewings you&apos;ve booked ({myViewings.length})
+              Your bookings on other listings ({myViewings.length})
             </span>
             <span className="block text-sm text-ink-muted">
               {myViewings.some((v) => v.status === "countered")
-                ? "A lister suggested a new time. Reply in My viewings."
+                ? "A lister suggested a new time. Reply in My bookings."
                 : "Properties you're going to see on other people's listings."}
             </span>
           </span>
@@ -247,15 +247,15 @@ export default function DashboardPage() {
       )}
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]">
-        {/* Viewing requests */}
+        {/* Booking requests */}
         <section aria-labelledby="requests-heading">
           <h2 id="requests-heading" className="font-serif text-2xl font-semibold text-ink">
-            Viewing requests
+            Booking requests
           </h2>
           {inspections.length === 0 ? (
             <div className="mt-4">
               <EmptyState icon={CalendarDays} title="No requests yet">
-                When someone books a viewing on one of your listings, it shows up here.
+                When someone makes a booking on one of your listings, it shows up here.
               </EmptyState>
             </div>
           ) : (
@@ -507,7 +507,7 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
 
       {requestActions(inspection).confirm && !proposing && (
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" disabled={busy} onClick={() => act({ status: "confirmed" }, null, "Viewing confirmed")} className={button({ size: "sm" })}>
+          <button type="button" disabled={busy} onClick={() => act({ status: "confirmed" }, null, "Booking confirmed")} className={button({ size: "sm" })}>
             Confirm
           </button>
           <button type="button" disabled={busy} onClick={() => setProposing(true)} className={button({ variant: "neutral", size: "sm" })}>
@@ -516,7 +516,7 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
           <button
             type="button"
             disabled={busy}
-            onClick={() => act({ status: "declined" }, { title: "Decline this viewing request?", confirmLabel: "Decline" }, "Request declined")}
+            onClick={() => act({ status: "declined" }, { title: "Decline this booking request?", confirmLabel: "Decline" }, "Request declined")}
             className={button({ variant: "danger-ghost", size: "sm" })}
           >
             Decline
@@ -537,13 +537,13 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
               onClick={() =>
                 act(
                   { status: "declined" },
-                  { title: "Cancel this viewing?", body: "The home-seeker will see it's been cancelled.", confirmLabel: "Cancel viewing", cancelLabel: "Keep it" },
-                  "Viewing cancelled"
+                  { title: "Cancel this booking?", body: "The home-seeker will see it's been cancelled.", confirmLabel: "Cancel booking", cancelLabel: "Keep it" },
+                  "Booking cancelled"
                 )
               }
               className={button({ variant: "danger-ghost", size: "sm" })}
             >
-              Cancel viewing
+              Cancel booking
             </button>
           )}
         </div>

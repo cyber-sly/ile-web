@@ -31,7 +31,7 @@ test("shareMessage without a code", () => {
 test("inviteMessage uses the exact invite copy", () => {
   assert.equal(
     inviteMessage({ site: SITE, code: "TUNDE7" }),
-    "List your property on Ile for free. Serious home-seekers book viewings straight from your listing. Sign up with my code TUNDE7: https://ile.test/signup?role=landlord&ref=TUNDE7"
+    "List your property on Ile for free. Serious home-seekers make bookings straight from your listing. Sign up with my code TUNDE7: https://ile.test/signup?role=landlord&ref=TUNDE7"
   );
 });
 

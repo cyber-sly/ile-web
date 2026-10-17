@@ -53,8 +53,8 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
         ) : !available ? (
           <p className="text-sm text-ink-muted">
             {isModerated(listing)
-              ? "This listing isn't taking viewings while Ile reviews it."
-              : `This listing is no longer taking viewings because it has been ${listing.status === "sold" ? "sold" : "let"}.`}
+              ? "This listing isn't taking bookings while Ile reviews it."
+              : `This listing is no longer taking bookings because it has been ${listing.status === "sold" ? "sold" : "let"}.`}
           </p>
         ) : !user ? (
           <SignedOut listingId={listing.id} />
@@ -72,7 +72,7 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
 
       <p className="mt-5 flex items-start gap-2 text-sm text-ink-muted">
         <ShieldCheck size={17} className="mt-px shrink-0 text-palm" aria-hidden="true" />
-        Viewings on Ile are free. Never pay an inspection fee to see a property.
+        Booking on Ile is free. Never pay anyone before you&apos;ve seen the property in person.
       </p>
     </div>
   );
@@ -186,7 +186,7 @@ function OwnerActions({ listing, onDelete, onStatusChange }) {
     <div>
       <p className="font-semibold text-ink">This is your listing</p>
       <p className="mt-1 text-sm text-ink-muted">
-        {status === "active" ? "Viewing requests appear in your dashboard." : `Marked as ${status}. It's hidden from search.`}
+        {status === "active" ? "Booking requests appear in your dashboard." : `Marked as ${status}. It's hidden from search.`}
       </p>
       {status === "active" && needsConfirming(listing) && (
         <div className="mt-3 rounded-[var(--radius-control)] bg-gold-soft p-3 text-sm text-ink">
@@ -228,7 +228,7 @@ function SignedOut({ listingId }) {
   const next = `/listings/${listingId}#book`;
   return (
     <div>
-      <p className="font-semibold text-ink">Book a free viewing</p>
+      <p className="font-semibold text-ink">Fix a booking</p>
       <p className="mt-1 text-sm text-ink-muted">Log in or create a free account to pick a time.</p>
       <div className="mt-4 flex flex-col gap-2">
         <Link href={loginHref(next)} className={button({ full: true, size: "lg" })}>
@@ -261,7 +261,7 @@ function BookingForm({ listing, user }) {
     return (
       <div>
         <div className="flex items-center justify-between gap-2">
-          <p className="font-semibold text-ink">Your viewing</p>
+          <p className="font-semibold text-ink">Your booking</p>
           <StatusBadge status={existing.status} />
         </div>
         <p className="mt-2 flex items-center gap-2 text-sm text-ink">
@@ -272,11 +272,11 @@ function BookingForm({ listing, user }) {
         </p>
         <p className="mt-2 text-sm text-ink-muted">
           {existing.status === "pending" && "Request sent. The lister will confirm or suggest another time."}
-          {existing.status === "countered" && "Accept or decline the new time in My viewings."}
+          {existing.status === "countered" && "Accept or decline the new time in My bookings."}
           {existing.status === "confirmed" && "You're booked in. See you there."}
         </p>
         <Link href="/my-bookings" className={button({ variant: "neutral", full: true, className: "mt-4" })}>
-          Go to My viewings
+          Go to My bookings
         </Link>
       </div>
     );
@@ -319,7 +319,7 @@ function RequestForm({ listing, user, onBooked }) {
       const data = await requestViewing(supabase, listing.id, user.id, date, time);
       recordBookingRef(data?.id, readRefHere());
       setBooking(false);
-      toast("Viewing requested");
+      toast("Booking requested");
       onBooked(data);
     } catch (err) {
       setBooking(false);
@@ -332,13 +332,13 @@ function RequestForm({ listing, user, onBooked }) {
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
       <div>
-        <p className="font-semibold text-ink">Request a viewing</p>
+        <p className="font-semibold text-ink">Request a booking</p>
         <p className="mt-0.5 text-sm text-ink-muted">The lister will confirm or suggest another time.</p>
       </div>
       <Field label="Preferred date" type="date" icon={CalendarDays} min={today} value={date} onChange={(e) => setDate(e.target.value)} required />
       <Field label="Preferred time" optional type="time" icon={Clock} value={time} onChange={(e) => setTime(e.target.value)} />
       <button type="submit" disabled={booking} className={button({ full: true, size: "lg" })}>
-        {booking ? "Sending request…" : "Request viewing"}
+        {booking ? "Sending request…" : "Request booking"}
       </button>
       {error && <Alert>{error}</Alert>}
     </form>

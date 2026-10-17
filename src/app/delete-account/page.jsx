@@ -35,7 +35,7 @@ export default function DeleteAccountInfoPage() {
         <ul className="ml-5 list-disc space-y-1">
           <li>Your profile, email address and login</li>
           <li>All your listings, with their photos and videos</li>
-          <li>Viewings on your listings, and viewings you booked</li>
+          <li>Bookings on your listings, and bookings you made</li>
           <li>Reviews other people wrote about you</li>
         </ul>
         <h2 className="pt-3 font-serif text-xl font-semibold text-ink">What&apos;s kept, without your name</h2>

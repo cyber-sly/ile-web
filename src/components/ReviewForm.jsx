@@ -47,7 +47,7 @@ export default function ReviewForm({ inspectionId, reviewing, name, onDone }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4 rounded-[var(--radius-control)] bg-cream p-4">
-      <StarInput value={rating} onChange={setRating} label={isLister ? `How was viewing with ${who}?` : `How was ${who} as a visitor?`} />
+      <StarInput value={rating} onChange={setRating} label={isLister ? `How was your booking with ${who}?` : `How was ${who} as a visitor?`} />
       {isLister && (
         <fieldset>
           <legend className="mb-1.5 text-sm font-semibold text-ink">Did the property match the listing?</legend>

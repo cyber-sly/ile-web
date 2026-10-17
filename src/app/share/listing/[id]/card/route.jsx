@@ -122,7 +122,7 @@ export async function GET(request, { params }) {
                 height={WORDMARK_HEIGHT}
                 width={Math.round((WORDMARK_HEIGHT * WORD_BOX.w) / WORD_BOX.h)}
               />
-              <div style={{ display: "flex", fontSize: 34, color: C.muted, marginTop: 4 }}>Free viewings. No inspection fees.</div>
+              <div style={{ display: "flex", fontSize: 34, color: C.muted, marginTop: 4 }}>Free to search. Free to book.</div>
               {code ? (
                 <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: C.palm, marginTop: 18 }}>Use code {code} on Ile</div>
               ) : null}

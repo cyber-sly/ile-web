@@ -64,11 +64,11 @@ export default function MyBookingsPage() {
   if (!user) {
     return (
       <AccessWall
-        title="Log in to see your viewings"
+        title="Log in to see your bookings"
         primary={{ href: "/login?next=/my-bookings", label: "Log in" }}
         secondary={{ href: "/listings", label: "Browse listings" }}
       >
-        Viewings you book on Ile are listed here.
+        Bookings you make on Ile are listed here.
       </AccessWall>
     );
   }
@@ -78,8 +78,8 @@ export default function MyBookingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 md:py-12">
-      <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-5xl">My viewings</h1>
-      <p className="mt-2 text-ink-muted">Track the viewings you&apos;ve requested and respond to new times.</p>
+      <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-5xl">My bookings</h1>
+      <p className="mt-2 text-ink-muted">Track the bookings you&apos;ve requested and respond to new times.</p>
 
       {error && <Alert className="mt-6">{error}</Alert>}
       {mutationError && <Alert className="mt-6">{mutationError}</Alert>}
@@ -88,14 +88,14 @@ export default function MyBookingsPage() {
         {sorted.length === 0 ? (
           <EmptyState
             icon={CalendarX}
-            title="No viewings booked yet"
+            title="No bookings yet"
             action={
               <Link href="/listings" className={button()}>
                 Find a place to view
               </Link>
             }
           >
-            Book a free viewing from any listing page.
+            Fix a booking from any listing page.
           </EmptyState>
         ) : (
           <ul className="flex flex-col gap-4">
@@ -211,13 +211,13 @@ export default function MyBookingsPage() {
                           update(
                             b,
                             { status: "cancelled" },
-                            { title: "Cancel this viewing?", body: "The lister will see it's cancelled.", confirmLabel: "Cancel viewing", cancelLabel: "Keep it" },
-                            "Viewing cancelled"
+                            { title: "Cancel this booking?", body: "The lister will see it's cancelled.", confirmLabel: "Cancel booking", cancelLabel: "Keep it" },
+                            "Booking cancelled"
                           )
                         }
                         className={button({ variant: "danger-ghost", size: "sm" })}
                       >
-                        Cancel viewing
+                        Cancel booking
                       </button>
                     </div>
                   )}
@@ -231,7 +231,7 @@ export default function MyBookingsPage() {
                           update(
                             b,
                             { status: "cancelled" },
-                            { title: "Cancel this viewing request?", confirmLabel: "Cancel request", cancelLabel: "Keep it" },
+                            { title: "Cancel this booking request?", confirmLabel: "Cancel request", cancelLabel: "Keep it" },
                             "Request cancelled"
                           )
                         }

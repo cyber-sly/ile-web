@@ -15,7 +15,7 @@ import { colors, fonts, radius } from "@/theme";
 const DELETED = [
   "your profile and login",
   "all your listings, with their photos and videos",
-  "viewings on your listings and viewings you booked",
+  "bookings on your listings and bookings you made",
   "reviews other people wrote about you",
 ];
 const KEPT = [

@@ -29,7 +29,7 @@ export async function generateMetadata({ params }) {
   const lead = summary(listing);
   const description = listing.description
     ? `${lead}. ${listing.description.replace(/\s+/g, " ").trim().slice(0, 150)}`
-    : `${lead}. Book a free viewing on Ile. No inspection fees.`;
+    : `${lead}. Fix a booking on Ile for free.`;
   const image = listing.image_url || listing.image_urls?.[0];
   const title = `${listing.title.trim()} · ${priceParts(listing).amount}`;
   const url = `/listings/${listing.id}`;

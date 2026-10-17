@@ -24,7 +24,7 @@ const columns = [
     links: [
       { href: "/login", label: "Log in" },
       { href: "/signup", label: "Create account" },
-      { href: "/my-bookings", label: "My viewings" },
+      { href: "/my-bookings", label: "My bookings" },
     ],
   },
 ];
@@ -37,7 +37,7 @@ export default function Footer() {
           <div className="md:col-span-4">
             <Logo />
             <p className="mt-4 max-w-xs font-serif text-lg leading-snug text-ink">
-              Find your place in Nigeria, <em>without the wahala.</em>
+              Find your place in Nigeria, <em>without wahala.</em>
             </p>
             <a
               href={`mailto:${CONTACT_EMAIL}`}
@@ -71,7 +71,7 @@ export default function Footer() {
             <Link href="/privacy" className="hover:text-ink">Privacy</Link> ·{" "}
             <Link href="/terms" className="hover:text-ink">Terms</Link>
           </p>
-          <p>Free to search. Free viewings. No inspection fees.</p>
+          <p>Free to search. Free to book.</p>
         </div>
       </div>
     </footer>

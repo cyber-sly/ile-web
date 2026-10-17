@@ -142,7 +142,7 @@ export default async function ProfilePage({ params }) {
                 {r.comment && <p className="mt-3 text-ink">&ldquo;{r.comment}&rdquo;</p>}
                 <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
                   <span className="flex items-center gap-1">
-                    <Star size={12} aria-hidden="true" /> Verified viewing
+                    <Star size={12} aria-hidden="true" /> Verified booking
                   </span>
                   {r.listing_accurate === true && <span className="font-semibold text-palm">Matched the listing</span>}
                   {r.listing_accurate === false && <span className="font-semibold text-clay">Didn&apos;t match the listing</span>}

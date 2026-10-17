@@ -14,8 +14,8 @@ import { colors, fonts, radius } from "@/theme";
 
 const ROWS: { key: keyof NotificationPrefs; title: string; body: string }[] = [
   { key: "messages", title: "Messages", body: "When someone sends you a message." },
-  { key: "bookings", title: "Viewings and bookings", body: "Requests, confirmations, new times, cancellations and reviews." },
-  { key: "reminders", title: "Reminders", body: "The day before a viewing, and when a listing needs confirming." },
+  { key: "bookings", title: "Bookings", body: "Requests, confirmations, new times, cancellations and reviews." },
+  { key: "reminders", title: "Reminders", body: "The day before a booking, and when a listing needs confirming." },
   { key: "hide_message_text", title: "Hide message text on lock screen", body: "Show “Sent you a message” instead of what they wrote." },
 ];
 

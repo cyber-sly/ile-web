@@ -65,14 +65,13 @@ export default function HomeHero() {
 
         <div className="px-5 pb-24 pt-28 sm:px-10 sm:pb-28 sm:pt-40 md:pt-48">
           <h1 className="animate-fade-up max-w-3xl font-serif text-[2.6rem] font-medium leading-[1.04] tracking-tight text-white sm:text-6xl md:text-7xl">
-            Find your place in Nigeria, <em className="font-normal">without the wahala.</em>
+            Find your place in Nigeria, <em className="font-normal">without wahala.</em>
           </h1>
           <p
             className="animate-fade-up mt-4 max-w-xl text-lg text-white/90"
             style={{ animationDelay: "120ms" }}
           >
-            Homes, land and shops to rent or buy, from Lagos to Kano. Free to search, free to view.
-            No inspection fees.
+            Homes, land and shops to rent or buy, in every state in Nigeria. Free to search, free to book.
           </p>
         </div>
       </div>

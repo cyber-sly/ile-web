@@ -71,7 +71,7 @@ export default function InboxPage() {
               </Link>
             }
           >
-            Tap &ldquo;Message lister&rdquo; on any listing to ask a question before you book a viewing.
+            Tap &ldquo;Message lister&rdquo; on any listing to ask a question before you fix a booking.
           </EmptyState>
         ) : (
           <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">

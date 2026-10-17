@@ -78,8 +78,8 @@ export default function ViewingTimesPage() {
     setMessage({
       tone: "success",
       text: rows.length
-        ? `Saved. ${open?.length || 0} open viewing slots in the next two weeks. Bookings are confirmed instantly and appear in your dashboard.`
-        : "Saved. With no viewing times set, people will request a time and you confirm it.",
+        ? `Saved. ${open?.length || 0} open booking slots in the next two weeks. Bookings are confirmed instantly and appear in your dashboard.`
+        : "Saved. With no booking times set, people will request a time and you confirm it.",
     });
   }
 
@@ -88,7 +88,7 @@ export default function ViewingTimesPage() {
   if (!listing || !user || user.id !== listing.landlord_id) {
     return (
       <AccessWall
-        title="You can only set viewing times on your own listings"
+        title="You can only set booking times on your own listings"
         primary={user ? { href: "/dashboard", label: "Back to dashboard" } : { href: `/login?next=/listings/${id}/viewings`, label: "Log in" }}
       >
         Log in with the account that posted this listing.
@@ -101,7 +101,7 @@ export default function ViewingTimesPage() {
       <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-ink">
         <ArrowLeft size={16} aria-hidden="true" /> Dashboard
       </Link>
-      <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">Viewing times</h1>
+      <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">Booking times</h1>
       <p className="mt-2 text-ink-muted">
         For <span className="font-semibold text-ink">{listing.title}</span>. Choose when you&apos;re free each week and
         home-seekers can book a slot that&apos;s confirmed straight away. Times are Nigeria time (WAT).
@@ -150,7 +150,7 @@ export default function ViewingTimesPage() {
           })}
         </ul>
         <div className="flex flex-wrap items-center gap-3 border-t border-line px-4 py-4 sm:px-5">
-          <span className="text-sm font-semibold text-ink">Each viewing lasts</span>
+          <span className="text-sm font-semibold text-ink">Each booking lasts</span>
           <div className="flex gap-1.5" role="radiogroup" aria-label="Slot length">
             {LENGTHS.map((m) => (
               <button
@@ -177,7 +177,7 @@ export default function ViewingTimesPage() {
       )}
       <div className="mt-5 flex gap-2">
         <button type="button" onClick={save} disabled={saving} className={button({ size: "lg" })}>
-          {saving ? "Saving…" : "Save viewing times"}
+          {saving ? "Saving…" : "Save booking times"}
         </button>
         <Link href={`/listings/${id}`} className={button({ variant: "ghost", size: "lg" })}>
           View listing

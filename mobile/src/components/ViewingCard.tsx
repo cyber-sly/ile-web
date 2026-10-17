@@ -34,7 +34,7 @@ function confirm(title: string, message: string, action: string, run: () => void
   ]);
 }
 
-// One viewing on the Viewings tab, with the actions that apply to it.
+// One viewing on the Bookings tab, with the actions that apply to it.
 export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, reviewed, onReviewed }: Props) {
   const l = v.listings;
   const actions = viewingActions(v);
@@ -153,7 +153,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
               disabled={!online || busy}
               onPress={() =>
                 confirm(
-                  v.status === "pending" ? "Cancel this viewing request?" : "Cancel this viewing?",
+                  v.status === "pending" ? "Cancel this booking request?" : "Cancel this booking?",
                   v.status === "pending" ? "The lister won't see it any more." : "The lister will see it's cancelled.",
                   "Cancel it",
                   () => run(() => onUpdate(v, { status: "cancelled" }))
@@ -161,7 +161,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
               }
               style={[styles.cancelButton, (!online || busy) && styles.dim]}
             >
-              <Text style={styles.cancel}>{v.status === "pending" ? "Cancel request" : "Cancel viewing"}</Text>
+              <Text style={styles.cancel}>{v.status === "pending" ? "Cancel request" : "Cancel booking"}</Text>
             </Tap>
           )}
         </View>

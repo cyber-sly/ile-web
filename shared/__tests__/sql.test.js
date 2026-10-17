@@ -59,3 +59,18 @@ test("held-reward check looks at any 1-hour window in the last 2 hours", () => {
   assert.match(body, /interval '2 hours'/);
   assert.match(body, /s\.t \+ interval '1 hour'/);
 });
+
+// Notification titles use booking wording; booking_wording.sql carries the
+// same two functions so the founder can update the live database.
+test("notifications say booking, and booking_wording.sql matches push_notifications.sql", () => {
+  const dir = join(import.meta.dirname, "..", "..", "supabase");
+  const push = readFileSync(join(dir, "push_notifications.sql"), "utf8");
+  const wording = readFileSync(join(dir, "booking_wording.sql"), "utf8");
+  const fn = (sql, name) => sql.match(new RegExp(`create or replace function public\\.${name}\\(\\)[\\s\\S]*?\\n\\$\\$;`))?.[0];
+  for (const name of ["ile_notify_inspection", "ile_viewing_reminders"]) {
+    const body = fn(push, name);
+    assert.ok(body, name);
+    assert.doesNotMatch(body, /'[^']*\b[Vv]iewing\b[^']*'|wants to view/, name);
+    assert.equal(fn(wording, name)?.replace(/\r/g, ""), body.replace(/\r/g, ""), `${name} matches`);
+  }
+});

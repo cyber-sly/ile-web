@@ -41,7 +41,7 @@ export default function ReportListing({ listing, user }) {
         <ShieldAlert size={20} className="text-palm" aria-hidden="true" /> Stay safe
       </h2>
       <ul className="mt-3 space-y-2 text-sm text-ink-muted">
-        <li>• Never pay an inspection fee, deposit or rent before you&apos;ve seen the property in person.</li>
+        <li>• Never pay a fee, deposit or rent before you&apos;ve seen the property in person.</li>
         <li>• Meet at the property itself, ideally in daylight, and bring someone with you.</li>
         <li>• Keep chats on Ile so there&apos;s a record if anything goes wrong.</li>
         {listing.category === "land" && (

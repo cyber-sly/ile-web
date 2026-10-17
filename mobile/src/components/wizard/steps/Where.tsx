@@ -39,7 +39,7 @@ export default function Where({ values, set, errors }: StepProps) {
       <ErrorText>{errors.lga}</ErrorText>
       <Field label="Area or neighbourhood" value={values.area} onChangeText={(area) => set({ area })} placeholder="e.g. Lekki Phase 1" maxLength={80} />
       <Field label="Street address (optional)" value={values.address} onChangeText={(address) => set({ address })} maxLength={200} />
-      <Hint>People see the area on your listing. Share the exact address when you confirm a viewing.</Hint>
+      <Hint>People see the area on your listing. Share the exact address when you confirm a booking.</Hint>
     </>
   );
 }

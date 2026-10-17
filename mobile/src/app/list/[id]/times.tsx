@@ -17,18 +17,18 @@ import Tap from "@/components/kit/Tap";
 type Day = { on: boolean; start: string; end: string };
 const hhmm = (t: string | null) => (t || "").slice(0, 5);
 
-// Weekly viewing times for one listing. Bookings in these slots are confirmed instantly.
+// Weekly booking times for one listing. Bookings in these slots are confirmed instantly.
 export default function ViewingTimesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useSession();
   const online = useOnline();
   const data = useQuery({ queryKey: ["availability", id], queryFn: () => fetchAvailability(supabase, id), staleTime: 0 });
 
-  if (data.isPending && !online) return <Screen title="Viewing times need a connection" subtitle="Connect to the internet to see and change them." />;
+  if (data.isPending && !online) return <Screen title="Booking times need a connection" subtitle="Connect to the internet to see and change them." />;
   if (data.isPending) return <ActivityIndicator color={colors.palm} style={styles.loading} />;
   if (data.isError && !data.data) {
     return (
-      <Screen title="Couldn't load viewing times" subtitle="Check your connection and try again.">
+      <Screen title="Couldn't load booking times" subtitle="Check your connection and try again.">
         <Button label="Try again" onPress={() => data.refetch()} />
       </Screen>
     );
@@ -37,7 +37,7 @@ export default function ViewingTimesScreen() {
   const listing = data.data?.listing;
   if (!listing || !user || listing.landlord_id !== user.id) {
     return (
-      <Screen title="You can only set viewing times on your own listings" subtitle="Log in with the account that posted this listing.">
+      <Screen title="You can only set booking times on your own listings" subtitle="Log in with the account that posted this listing.">
         <Button label="Back" variant="secondary" onPress={() => router.back()} />
       </Screen>
     );
@@ -80,8 +80,8 @@ function TimesEditor({ id, listing, windows, online }: { id: string; listing: Re
       setMessage({
         tone: "success",
         text: rows.length
-          ? `Saved. ${open} open viewing slots in the next two weeks. Bookings are confirmed instantly and appear in your dashboard.`
-          : "Saved. With no viewing times set, people will request a time and you confirm it.",
+          ? `Saved. ${open} open booking slots in the next two weeks. Bookings are confirmed instantly and appear in your dashboard.`
+          : "Saved. With no booking times set, people will request a time and you confirm it.",
       });
     } catch (e) {
       setMessage({ tone: "error", text: friendlyError(e) });
@@ -127,7 +127,7 @@ function TimesEditor({ id, listing, windows, online }: { id: string; listing: Re
         );
       })}
 
-      <Text style={styles.section}>Each viewing lasts</Text>
+      <Text style={styles.section}>Each booking lasts</Text>
       <View style={styles.chips}>
         {SLOT_LENGTHS.map((m: number) => (
           <Chip key={m} label={`${m} min`} selected={minutes === m} onPress={() => setMinutes(m)} />
@@ -135,7 +135,7 @@ function TimesEditor({ id, listing, windows, online }: { id: string; listing: Re
       </View>
 
       {message && <Text style={message.tone === "error" ? styles.error : styles.success}>{message.text}</Text>}
-      <Button label={online ? "Save viewing times" : "This needs a connection"} loading={saving} disabled={!online} onPress={save} />
+      <Button label={online ? "Save booking times" : "This needs a connection"} loading={saving} disabled={!online} onPress={save} />
     </ScrollView>
   );
 }

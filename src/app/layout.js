@@ -20,12 +20,12 @@ const inter = Inter({
 });
 
 const DESCRIPTION =
-  "Rent or buy homes, land and shops across Nigeria. Prices upfront, free viewings, and no inspection fees.";
+  "Rent or buy homes, land and shops in every state in Nigeria. Prices upfront, free to search and free to book.";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Ile — Find property in Nigeria without the wahala",
+    default: "Ile — Find property in Nigeria without wahala",
     template: "%s · Ile",
   },
   description: DESCRIPTION,
@@ -34,7 +34,7 @@ export const metadata = {
     type: "website",
     siteName: SITE_NAME,
     locale: "en_NG",
-    title: "Ile — Find property in Nigeria without the wahala",
+    title: "Ile — Find property in Nigeria without wahala",
     description: DESCRIPTION,
     images: [{ url: DEFAULT_OG_IMAGE, width: 1920, height: 1080, alt: "Ile — property across Nigeria" }],
   },

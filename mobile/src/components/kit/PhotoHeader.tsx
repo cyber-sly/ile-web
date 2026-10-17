@@ -35,7 +35,7 @@ export default function PhotoHeader({ image, quote, onClose, height = 220 }: { i
   );
 }
 
-// Italic part of a serif quote or headline ("without the wahala.").
+// Italic part of a serif quote or headline ("without wahala.").
 export function Em({ children }: { children: ReactNode }) {
   return <Text style={{ fontFamily: fonts.serifItalic }}>{children}</Text>;
 }

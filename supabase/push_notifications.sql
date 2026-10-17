@@ -290,11 +290,11 @@ begin
 
   if tg_op = 'INSERT' then
     if new.status = 'confirmed' then
-      perform public.ile_notify(l.landlord_id, 'viewing_booked', 'Viewing booked',
+      perform public.ile_notify(l.landlord_id, 'viewing_booked', 'Booking fixed',
         v_seeker || ' booked ' || l.title || ' for ' || v_when || '.', v_to_lister);
     elsif new.status = 'pending' then
-      perform public.ile_notify(l.landlord_id, 'viewing_request', 'New viewing request',
-        v_seeker || ' wants to view ' || l.title || ' on ' || v_when || '.', v_to_lister);
+      perform public.ile_notify(l.landlord_id, 'viewing_request', 'New booking request',
+        v_seeker || ' wants to book ' || l.title || ' on ' || v_when || '.', v_to_lister);
     end if;
     return new;
   end if;
@@ -306,10 +306,10 @@ begin
   if new.status = 'confirmed' then
     if v_actor = new.tenant_id then
       -- The home-seeker accepted the lister's suggested time.
-      perform public.ile_notify(l.landlord_id, 'viewing_confirmed', 'Viewing confirmed',
+      perform public.ile_notify(l.landlord_id, 'viewing_confirmed', 'Booking confirmed',
         l.title || ', ' || v_when || '. See you there.', v_to_lister);
     else
-      perform public.ile_notify(new.tenant_id, 'viewing_confirmed', 'Viewing confirmed',
+      perform public.ile_notify(new.tenant_id, 'viewing_confirmed', 'Booking confirmed',
         l.title || ', ' || v_when || '. See you there.', v_to_seeker);
     end if;
   elsif new.status = 'countered' then
@@ -320,14 +320,14 @@ begin
       perform public.ile_notify(l.landlord_id, 'viewing_declined', 'Suggested time declined',
         v_seeker || ' declined your suggested time for ' || l.title || '.', v_to_lister);
     elsif old.status = 'confirmed' then
-      perform public.ile_notify(new.tenant_id, 'viewing_cancelled', 'Viewing cancelled',
+      perform public.ile_notify(new.tenant_id, 'viewing_cancelled', 'Booking cancelled',
         l.title || ', ' || v_when || ' was cancelled.', v_to_seeker);
     else
-      perform public.ile_notify(new.tenant_id, 'viewing_declined', 'Viewing request declined',
+      perform public.ile_notify(new.tenant_id, 'viewing_declined', 'Booking request declined',
         l.title || ': the lister can''t do that time.', v_to_seeker);
     end if;
   elsif new.status = 'cancelled' then
-    perform public.ile_notify(l.landlord_id, 'viewing_cancelled', 'Viewing cancelled',
+    perform public.ile_notify(l.landlord_id, 'viewing_cancelled', 'Booking cancelled',
       v_seeker || ' cancelled ' || l.title || ', ' || v_when || '.', v_to_lister);
   end if;
   return new;
@@ -411,10 +411,10 @@ begin
     from public.inspections i join public.listings l on l.id = i.listing_id
     where i.status = 'confirmed' and i.preferred_date = v_tomorrow
   loop
-    perform public.ile_notify(r.tenant_id, 'viewing_reminder', 'Viewing tomorrow',
+    perform public.ile_notify(r.tenant_id, 'viewing_reminder', 'Booking tomorrow',
       r.title || coalesce(' at ' || ltrim(to_char(r.preferred_time, 'HH12:MI AM'), '0'), '') || '.',
       jsonb_build_object('route', 'viewings'), false);
-    perform public.ile_notify(r.landlord_id, 'viewing_reminder', 'Viewing tomorrow',
+    perform public.ile_notify(r.landlord_id, 'viewing_reminder', 'Booking tomorrow',
       r.title || coalesce(' at ' || ltrim(to_char(r.preferred_time, 'HH12:MI AM'), '0'), '') || '.',
       jsonb_build_object('route', 'dashboard'), false);
   end loop;

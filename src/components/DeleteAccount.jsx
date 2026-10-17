@@ -60,7 +60,7 @@ export default function DeleteAccount({ user }) {
             <ul className="ml-5 list-disc text-ink/85">
               <li>your profile and login</li>
               <li>all your listings, with their photos and videos</li>
-              <li>viewings on your listings and viewings you booked</li>
+              <li>bookings on your listings and bookings you made</li>
               <li>reviews other people wrote about you</li>
             </ul>
             <p className="mt-2 font-semibold">Kept, without your name:</p>

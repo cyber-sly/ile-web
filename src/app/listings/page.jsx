@@ -16,7 +16,7 @@ export async function generateMetadata({ searchParams }) {
 
   const where = lga ? `${lga}, ${stateLabel(state)}` : state ? stateLabel(state) : "Nigeria";
   const title = q && !state ? `${tab.heading} matching “${q}”` : `${tab.heading} in ${where}`;
-  const description = `Browse ${tab.heading.toLowerCase()} in ${where}. Prices shown upfront, free viewings, no inspection fees.`;
+  const description = `Browse ${tab.heading.toLowerCase()} in ${where}. Prices shown upfront, free to search and book.`;
 
   // Index the main category and location pages; keep filtered variants
   // (price, beds, free-text) out of Google to avoid thousands of near-duplicates.

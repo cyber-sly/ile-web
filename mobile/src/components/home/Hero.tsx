@@ -28,9 +28,9 @@ export default function Hero({ onSearch, onList }: { onSearch: (tab: string, q: 
         <Image source={require("@/assets/images/hero.jpg")} style={StyleSheet.absoluteFill} contentFit="cover" alt="" />
         <Shade colors={["rgba(14,21,38,0.2)", "rgba(14,21,38,0.35)", "rgba(14,21,38,0.8)"]} />
         <Text style={styles.h1} accessibilityRole="header">
-          Find your place in Nigeria, <Em>without the wahala.</Em>
+          Find your place in Nigeria, <Em>without wahala.</Em>
         </Text>
-        <Text style={styles.lead}>Homes, land and shops to rent or buy, from Lagos to Kano. Free to search, free to view. No inspection fees.</Text>
+        <Text style={styles.lead}>Homes, land and shops to rent or buy, in every state in Nigeria. Free to search, free to book.</Text>
       </View>
 
       <View style={styles.card} accessibilityRole="search">

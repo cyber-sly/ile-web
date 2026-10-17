@@ -63,7 +63,7 @@ export default function ReviewSheet({
         </View>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.muted}>
-            {isLister ? "How was the viewing? Your name isn't shown with your review." : "How was this home-seeker to deal with? Only other listers see this."}
+            {isLister ? "How was the booking? Your name isn't shown with your review." : "How was this home-seeker to deal with? Only other listers see this."}
           </Text>
           <Stars value={rating} onChange={setRating} size={32} />
           {isLister && (

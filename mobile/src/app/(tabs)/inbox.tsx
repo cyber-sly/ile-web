@@ -87,7 +87,7 @@ export default function InboxTab() {
         title="No messages yet"
         action={<Button label="Browse listings" full={false} onPress={() => router.navigate("/search")} />}
       >
-        Tap “Message lister” on any listing to ask a question before you book a viewing.
+        Tap “Message lister” on any listing to ask a question before you fix a booking.
       </EmptyState>
     );
   }

@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-// Brief confirmations ("Saved", "Viewing requested"). Call toast() from
+// Brief confirmations ("Saved", "Booking requested"). Call toast() from
 // anywhere; <Toaster /> in the root layout shows them.
 let toasts = [];
 let nextId = 1;

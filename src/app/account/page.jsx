@@ -146,7 +146,7 @@ export default function AccountPage() {
             </Link>
           }
         >
-          Log in to manage your viewings, listings and saved homes.
+          Log in to manage your bookings, listings and saved homes.
         </EmptyState>
       </div>
     );
@@ -225,7 +225,7 @@ export default function AccountPage() {
       {/* At a glance */}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile href="/saved" icon={Heart} value={savedCount} label="Saved homes" />
-        <StatTile href="/my-bookings" icon={CalendarDays} value={counts.viewings} label="Upcoming viewings" />
+        <StatTile href="/my-bookings" icon={CalendarDays} value={counts.viewings} label="Upcoming bookings" />
         <StatTile href="/messages" icon={MessageCircle} value={unread} label="Unread messages" alert={unread > 0} />
         <StatTile href="/dashboard" icon={LayoutDashboard} value={counts.listings} label="My listings" />
       </div>
@@ -233,9 +233,9 @@ export default function AccountPage() {
       <div className="mt-8 flex flex-col gap-7">
         <SettingsGroup title="Activity">
           <SettingsRow href="/saved" icon={Heart} tone="rose" label="Saved homes" description="Places you've hearted" />
-          <SettingsRow href="/my-bookings" icon={CalendarDays} tone="palm" label="My viewings" description="Viewings you've booked" />
+          <SettingsRow href="/my-bookings" icon={CalendarDays} tone="palm" label="My bookings" description="Bookings you've made" />
           <SettingsRow href="/messages" icon={MessageCircle} tone="sky" label="Messages" description="Chats with listers and home-seekers" badge={unread} />
-          <SettingsRow href="/dashboard" icon={LayoutDashboard} tone="ink" label="My listings" description="Manage listings and viewing requests" />
+          <SettingsRow href="/dashboard" icon={LayoutDashboard} tone="ink" label="My listings" description="Manage listings and booking requests" />
           <SettingsRow href="/listings/new" icon={PlusCircle} tone="gold" label="List a property" description="Free, in about five minutes" />
         </SettingsGroup>
 

@@ -64,7 +64,7 @@ export default function Navbar() {
           </Link>
           {user && (
             <Link href="/my-bookings" className={linkClass("/my-bookings")}>
-              My viewings
+              My bookings
             </Link>
           )}
           {landlord && (
@@ -161,7 +161,7 @@ function AccountMenu({ user, landlord, onLogout }) {
               <Heart size={16} aria-hidden="true" /> Saved homes
             </Link>
             <Link role="menuitem" href="/my-bookings" className={item}>
-              <CalendarDays size={16} aria-hidden="true" /> My viewings
+              <CalendarDays size={16} aria-hidden="true" /> My bookings
             </Link>
             <Link role="menuitem" href="/dashboard" className={item}>
               <LayoutDashboard size={16} aria-hidden="true" /> My listings

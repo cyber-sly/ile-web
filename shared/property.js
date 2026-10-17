@@ -203,7 +203,7 @@ export const REPORT_REASONS = [
   { value: "fake", label: "Fake, or the property doesn't exist" },
   { value: "unavailable", label: "Already let or sold" },
   { value: "misleading", label: "Photos, price or details are misleading" },
-  { value: "upfront_fee", label: "Asked me to pay an inspection fee or deposit before viewing" },
+  { value: "upfront_fee", label: "Asked me to pay before I'd seen the property" },
   { value: "scam", label: "Looks like a scam" },
   { value: "duplicate", label: "Duplicate of another listing" },
   { value: "other", label: "Something else" },

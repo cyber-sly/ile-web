@@ -31,7 +31,7 @@ export function shareMessage({ listing, site, code }) {
 }
 
 export function inviteMessage({ site, code }) {
-  return `List your property on Ile for free. Serious home-seekers book viewings straight from your listing. Sign up with my code ${code}: ${site}/signup?role=landlord&ref=${code}`;
+  return `List your property on Ile for free. Serious home-seekers make bookings straight from your listing. Sign up with my code ${code}: ${site}/signup?role=landlord&ref=${code}`;
 }
 
 // The code someone arrived with, kept on this device for 30 days. The first

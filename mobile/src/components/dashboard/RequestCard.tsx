@@ -39,7 +39,7 @@ function ask(title: string, action: string, run: () => void) {
   ]);
 }
 
-// One viewing request on the lister's Dashboard.
+// One booking request on the lister's Dashboard.
 export default function RequestCard({ request: r, person, details, rating, online, onUpdate, onCounter, reviewed, onReviewed }: Props) {
   const actions = requestActions(r);
   const [busy, setBusy] = useState(false);
@@ -138,15 +138,15 @@ export default function RequestCard({ request: r, person, details, rating, onlin
         {actions.confirm && <Action label="Confirm" primary disabled={disabled} onPress={() => run({ status: "confirmed" })} />}
         {actions.counter && <Action label="Suggest another time" disabled={disabled} onPress={onCounter} />}
         {actions.decline && (
-          <Action label="Decline" danger disabled={disabled} onPress={() => ask("Decline this viewing request?", "Decline", () => run({ status: "declined" }))} />
+          <Action label="Decline" danger disabled={disabled} onPress={() => ask("Decline this booking request?", "Decline", () => run({ status: "declined" }))} />
         )}
         {actions.done && <Action label="Mark as viewed" disabled={disabled} onPress={() => run({ status: "done" })} />}
         {actions.cancel && (
           <Action
-            label="Cancel viewing"
+            label="Cancel booking"
             danger
             disabled={disabled}
-            onPress={() => ask("Cancel this viewing? The home-seeker will see it's been cancelled.", "Cancel it", () => run({ status: "declined" }))}
+            onPress={() => ask("Cancel this booking? The home-seeker will see it's been cancelled.", "Cancel it", () => run({ status: "declined" }))}
           />
         )}
         {actions.withdraw && (

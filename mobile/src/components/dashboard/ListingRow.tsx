@@ -102,7 +102,7 @@ export default function ListingRow({ listing: l, online, onUpdate, onDelete, onS
         {onShare && isAvailable(l) && <Small label="Share" onPress={onShare} />}
         {onBoost && isAvailable(l) && <Small label={isBoosted(l) ? "Boosted" : "Boost"} disabled={!online} onPress={onBoost} />}
         {actions.edit && <Small label="Edit" onPress={() => router.push({ pathname: "/list/[id]/edit", params: { id: String(l.id) } })} />}
-        {actions.times && <Small label="Viewing times" disabled={!online} onPress={() => router.push({ pathname: "/list/[id]/times", params: { id: String(l.id) } })} />}
+        {actions.times && <Small label="Booking times" disabled={!online} onPress={() => router.push({ pathname: "/list/[id]/times", params: { id: String(l.id) } })} />}
         {actions.markTaken && <Small label={taken === "sold" ? "Mark as sold" : "Mark as let"} disabled={disabled} onPress={() => run(() => onUpdate({ status: taken }))} />}
         {actions.relist && <Small label="Relist" disabled={disabled} onPress={() => run(() => onUpdate({ status: "active", ...confirmNow() }))} />}
         {actions.remove && (

@@ -11,7 +11,7 @@ const PROMISE_ICONS = [Wallet, ShieldCheck, Eye];
 const STEP_ICONS = [Search, CalendarCheck, KeyRound];
 const CARD_WIDTH = 260;
 
-// "Free to search, save and view" · "No inspection or search fees" · "Prices shown upfront".
+// "Free to search, save and book" · "Listings from all 36 states and Abuja" · "Prices shown upfront".
 export function Promises() {
   return (
     <View style={styles.promises}>
@@ -160,7 +160,7 @@ export function OwnersPanel({ onList }: { onList: () => void }) {
         <Text style={styles.eyebrow}>For owners and agents</Text>
         <Text style={styles.ownersTitle}>Have a property to let or sell?</Text>
         <Text style={styles.ownersBody}>
-          List it free in a few minutes. Serious home-seekers book viewings straight from your listing, and you manage every request in one dashboard.
+          List it free in a few minutes. Serious home-seekers make bookings straight from your listing, and you manage every request in one dashboard.
         </Text>
         <View style={styles.ownersButton}>
           <Button label="List your property free" variant="onDark" full={false} icon={ArrowRight} iconRight onPress={onList} />

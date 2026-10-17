@@ -16,12 +16,12 @@ import { colors, fonts, radius } from "@/theme";
 import Tap from "@/components/kit/Tap";
 import { errorHaptic, successHaptic } from "@/lib/haptics";
 
-type Viewing = { id: string; status: string; preferred_date: string; preferred_time: string | null; proposed_date?: string; proposed_time?: string };
+type ActiveBooking = { id: string; status: string; preferred_date: string; preferred_time: string | null; proposed_date?: string; proposed_time?: string };
 type Slot = { slot_date: string; slot_time: string };
 
 const STATUS_LINE: Record<string, string> = {
   pending: "Request sent. The lister will confirm or suggest another time.",
-  countered: "Accept or decline the new time in My viewings.",
+  countered: "Accept or decline the new time in My bookings.",
   confirmed: "You're booked in. See you there.",
 };
 
@@ -35,12 +35,12 @@ export default function BookSheet() {
 
   const existing = useQuery({
     queryKey: ["active-viewing", id, userId],
-    queryFn: () => fetchActiveViewing(supabase, id, userId) as Promise<Viewing | null>,
+    queryFn: () => fetchActiveViewing(supabase, id, userId) as Promise<ActiveBooking | null>,
     enabled: Boolean(userId),
   });
   const slots = useQuery({ queryKey: ["open-slots", id], queryFn: () => fetchOpenSlots(supabase, id) as Promise<Slot[]> });
 
-  function booked(viewing: Viewing) {
+  function booked(viewing: ActiveBooking) {
     queryClient.setQueryData(["active-viewing", id, userId], viewing);
     queryClient.invalidateQueries({ queryKey: ["viewings"] });
   }
@@ -53,7 +53,7 @@ export default function BookSheet() {
     body = (
       <View style={styles.section}>
         <View style={styles.rowBetween}>
-          <Text style={styles.heading}>Your viewing</Text>
+          <Text style={styles.heading}>Your booking</Text>
           <StatusBadge status={v.status} />
         </View>
         <View style={styles.row}>
@@ -66,7 +66,7 @@ export default function BookSheet() {
         </View>
         <Text style={styles.muted}>{STATUS_LINE[v.status]}</Text>
         <Button
-          label="Go to My viewings"
+          label="Go to My bookings"
           variant="secondary"
           onPress={() => {
             router.back();
@@ -102,7 +102,7 @@ export default function BookSheet() {
       {body}
       <View style={styles.notice}>
         <ShieldCheck color={colors.palm} size={18} />
-        <Text style={styles.muted}>Viewings on Ile are free. Never pay an inspection fee to see a property.</Text>
+        <Text style={styles.muted}>Booking on Ile is free. Never pay anyone before you&apos;ve seen the property in person.</Text>
       </View>
     </ScrollView>
   );
@@ -116,7 +116,7 @@ function SlotBooking({
 }: {
   listingId: string;
   slots: Slot[];
-  onBooked: (v: Viewing) => void;
+  onBooked: (v: ActiveBooking) => void;
   onTaken: () => void;
 }) {
   const days: { date: string; times: string[] }[] = useMemo(() => groupSlotsByDay(slots), [slots]);
@@ -146,7 +146,7 @@ function SlotBooking({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.heading}>Pick a viewing time</Text>
+      <Text style={styles.heading}>Pick a time</Text>
       <View style={styles.row}>
         <Zap color={colors.gold} size={15} />
         <Text style={styles.muted}>Confirmed instantly. Free.</Text>
@@ -169,7 +169,7 @@ function SlotBooking({
   );
 }
 
-function RequestBooking({ listingId, userId, onBooked }: { listingId: string; userId: string; onBooked: (v: Viewing) => void }) {
+function RequestBooking({ listingId, userId, onBooked }: { listingId: string; userId: string; onBooked: (v: ActiveBooking) => void }) {
   const days = useMemo(() => requestDays(todayInLagos()), []);
   const [day, setDay] = useState<string | null>(null);
   const [time, setTime] = useState<string>("");
@@ -193,7 +193,7 @@ function RequestBooking({ listingId, userId, onBooked }: { listingId: string; us
 
   return (
     <View style={styles.section}>
-      <Text style={styles.heading}>Request a viewing</Text>
+      <Text style={styles.heading}>Request a booking</Text>
       <Text style={styles.muted}>The lister will confirm or suggest another time.</Text>
       <DayTimePicker
         days={days}
@@ -205,7 +205,7 @@ function RequestBooking({ listingId, userId, onBooked }: { listingId: string; us
         timeLabel={(t) => (t ? formatTime(t) : "Any time")}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button label="Request viewing" loading={busy} disabled={!day} onPress={request} />
+      <Button label="Request booking" loading={busy} disabled={!day} onPress={request} />
     </View>
   );
 }

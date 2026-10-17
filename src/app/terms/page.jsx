@@ -48,7 +48,7 @@ const sections = [
     id: "no-fees",
     title: "Free to search, free to view",
     body: (
-      <p>Searching, saving, messaging and booking viewings on Ile are free for home-seekers. <strong>Listers must not charge an inspection, viewing or &ldquo;commitment&rdquo; fee for a viewing arranged through Ile</strong>, or ask for any payment before the home-seeker has seen the property in person. Doing so is grounds for removing listings and closing accounts.</p>
+      <p>Searching, saving, messaging and making bookings on Ile are free for home-seekers. <strong>Listers must not charge an inspection, viewing or &ldquo;commitment&rdquo; fee for a viewing arranged through Ile</strong>, or ask for any payment before the home-seeker has seen the property in person. Doing so is grounds for removing listings and closing accounts.</p>
     ),
   },
   {
@@ -70,10 +70,10 @@ const sections = [
   },
   {
     id: "viewings-messages",
-    title: "Viewings and messages",
+    title: "Bookings and messages",
     body: (
       <ul>
-        <li>Turn up to viewings you book or confirm, or cancel in good time so the slot can go to someone else.</li>
+        <li>Turn up to bookings you make or confirm, or cancel in good time so the slot can go to someone else.</li>
         <li>Be respectful and honest in messages. Don&apos;t use them for spam, advertising, harassment or to pressure anyone into paying.</li>
         <li>We recommend keeping conversations on Ile, so there&apos;s a record if something goes wrong.</li>
       </ul>
@@ -83,7 +83,7 @@ const sections = [
     id: "reviews",
     title: "Reviews",
     body: (
-      <p>Reviews must be honest and based on a viewing that actually happened. Don&apos;t post reviews in exchange for payment or favours, review yourself, or use reviews to threaten anyone. We may remove reviews that are abusive, off-topic, or break these Terms.</p>
+      <p>Reviews must be honest and based on a booking that actually happened. Don&apos;t post reviews in exchange for payment or favours, review yourself, or use reviews to threaten anyone. We may remove reviews that are abusive, off-topic, or break these Terms.</p>
     ),
   },
   {
@@ -92,7 +92,7 @@ const sections = [
     body: (
       <ul>
         <li>Fraud, scams, fake or bait listings, or impersonating someone else.</li>
-        <li>Asking for money before a viewing, or collecting deposits for property you can&apos;t let or sell.</li>
+        <li>Asking for money before someone has seen the property, or collecting deposits for property you can&apos;t let or sell.</li>
         <li>Harassment, threats, hate speech or sharing other people&apos;s personal information.</li>
         <li>Scraping or copying listings in bulk, using bots or automated accounts, or creating accounts to get around a ban.</li>
         <li>Trying to break, overload or get around Ile&apos;s security or limits.</li>

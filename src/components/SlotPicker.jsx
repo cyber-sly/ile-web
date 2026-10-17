@@ -21,7 +21,7 @@ function dayParts(isoDate) {
   };
 }
 
-// Pick from the lister's open viewing times; booking is confirmed instantly.
+// Pick from the lister's open booking times; booking is confirmed instantly.
 // `slots` is [{ slot_date: "2026-10-12", slot_time: "10:00:00" }, ...].
 export default function SlotPicker({ listingId, slots, onBooked }) {
   const days = useMemo(() => groupSlotsByDay(slots), [slots]);
@@ -45,13 +45,13 @@ export default function SlotPicker({ listingId, slots, onBooked }) {
     }
     setBooking(false);
     recordBookingRef(id, readRefHere());
-    toast("Viewing booked");
+    toast("Booking fixed");
     onBooked({ id, status: "confirmed", preferred_date: date, preferred_time: time });
   }
 
   return (
     <div>
-      <p className="font-semibold text-ink">Pick a viewing time</p>
+      <p className="font-semibold text-ink">Pick a time</p>
       <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-muted">
         <Zap size={14} className="text-gold" aria-hidden="true" /> Confirmed instantly. Free.
       </p>

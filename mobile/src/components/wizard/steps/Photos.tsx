@@ -69,7 +69,7 @@ export default function Photos({ photos, videos, setPhotos, setVideos, error }: 
   return (
     <>
       <Hint>
-        Clear, bright photos get more viewings. The first photo is the cover. Up to {MAX_PHOTOS} photos.
+        Clear, bright photos get more bookings. The first photo is the cover. Up to {MAX_PHOTOS} photos.
       </Hint>
       <View style={styles.buttons}>
         <View style={styles.flex}>

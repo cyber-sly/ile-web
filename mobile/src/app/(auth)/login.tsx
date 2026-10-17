@@ -39,7 +39,7 @@ export default function LoginScreen() {
         </>
       }
       title="Welcome back"
-      subtitle="Log in to book viewings and manage your listings."
+      subtitle="Log in to make bookings and manage your listings."
     >
       <SocialButtons remember={remember} placement="top" />
       <Field

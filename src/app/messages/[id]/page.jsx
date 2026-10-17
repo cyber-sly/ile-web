@@ -173,7 +173,7 @@ export default function ConversationPage() {
       <div className="flex-1 overflow-y-auto bg-cream px-4 py-4 sm:border-x sm:border-line" aria-live="polite">
         <p className="mx-auto mb-4 flex max-w-md items-start gap-2 rounded-[var(--radius-control)] bg-palm-soft px-3.5 py-2.5 text-xs text-palm">
           <ShieldCheck size={15} className="mt-px shrink-0" aria-hidden="true" />
-          Keep chats on Ile. Never pay an inspection fee or a deposit before you&apos;ve seen the property in person.
+          Keep chats on Ile. Never pay anyone before you&apos;ve seen the property in person.
         </p>
         {messages.length === 0 && (
           <p className="py-10 text-center text-sm text-ink-muted">

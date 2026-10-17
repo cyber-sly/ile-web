@@ -13,8 +13,8 @@ import type { ListingRow } from "@/components/PropertyCard";
 import { colors, fonts, radius } from "@/theme";
 import Tap from "@/components/kit/Tap";
 
-// Sticky bar on the listing screen: book a viewing or message the lister.
-// The lister sees "Edit listing" and "Viewing times" on their own listing.
+// Sticky bar on the listing screen: fix a booking or message the lister.
+// The lister sees "Edit listing" and "Booking times" on their own listing.
 export default function ListingActions({ listing }: { listing: ListingRow }) {
   const { user } = useSession();
   const online = useOnline();
@@ -30,12 +30,12 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
         <View style={styles.row}>
           <Tap
             accessibilityRole="button"
-            accessibilityLabel="Viewing times"
+            accessibilityLabel="Booking times"
             onPress={() => router.push({ pathname: "/list/[id]/times", params: { id: String(listing.id) } })}
             style={[styles.button, styles.secondary]}
           >
             <CalendarClock color={colors.palm} size={18} />
-            <Text style={[styles.label, styles.secondaryLabel]}>Viewing times</Text>
+            <Text style={[styles.label, styles.secondaryLabel]}>Booking times</Text>
           </Tap>
           <Tap
             accessibilityRole="button"
@@ -87,13 +87,13 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
         </Tap>
         <Tap
           accessibilityRole="button"
-          accessibilityLabel="Book a viewing"
+          accessibilityLabel="Fix a booking"
           disabled={!online}
           onPress={book}
           style={[styles.button, styles.primary, !online && styles.dim]}
         >
           <CalendarDays color={colors.white} size={18} />
-          <Text style={[styles.label, styles.primaryLabel]}>Book a viewing</Text>
+          <Text style={[styles.label, styles.primaryLabel]}>Fix a booking</Text>
         </Tap>
       </View>
     </View>

@@ -27,30 +27,30 @@ describe("ListingActions", () => {
     mockUser = { id: "seeker" };
   });
 
-  test("shows Book and Message for a home-seeker on an available listing", () => {
+  test("shows Fix a booking and Message for a home-seeker on an available listing", () => {
     const r = render();
-    expect(r.root.findAllByProps({ accessibilityLabel: "Book a viewing" }).length).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ accessibilityLabel: "Fix a booking" }).length).toBeGreaterThan(0);
     expect(r.root.findAllByProps({ accessibilityLabel: "Message the lister" }).length).toBeGreaterThan(0);
   });
 
-  test("shows Edit and Viewing times to the owner instead of booking", () => {
+  test("shows Edit and Booking times to the owner instead of booking", () => {
     mockUser = { id: "lister" };
     const r = render();
     expect(r.root.findAllByProps({ accessibilityLabel: "Edit listing" }).length).toBeGreaterThan(0);
-    expect(r.root.findAllByProps({ accessibilityLabel: "Viewing times" }).length).toBeGreaterThan(0);
-    expect(r.root.findAllByProps({ accessibilityLabel: "Book a viewing" })).toHaveLength(0);
+    expect(r.root.findAllByProps({ accessibilityLabel: "Booking times" }).length).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ accessibilityLabel: "Fix a booking" })).toHaveLength(0);
   });
 
   test("sends logged-out people to log in", () => {
     mockUser = null;
     const r = render();
-    act(() => r.root.findAllByProps({ accessibilityLabel: "Book a viewing" })[0].props.onPress());
+    act(() => r.root.findAllByProps({ accessibilityLabel: "Fix a booking" })[0].props.onPress());
     expect(mockPush).toHaveBeenCalledWith("/login");
   });
 
   test("opens the booking sheet for a home-seeker", () => {
     const r = render();
-    act(() => r.root.findAllByProps({ accessibilityLabel: "Book a viewing" })[0].props.onPress());
+    act(() => r.root.findAllByProps({ accessibilityLabel: "Fix a booking" })[0].props.onPress());
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/book/[id]", params: { id: "l1" } });
   });
 });

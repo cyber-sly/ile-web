@@ -56,7 +56,7 @@ export default function SavedPage() {
               </Link>
             }
           >
-            Save the places you like so you can compare them and book viewings later.
+            Save the places you like so you can compare them and make bookings later.
           </EmptyState>
         ) : (
           <div className={GRID}>

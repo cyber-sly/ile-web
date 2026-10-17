@@ -41,7 +41,7 @@ async function fetchDashboard(userId: string): Promise<DashboardData> {
     fetchPeople(supabase, tenantIds),
     fetchTenantDetails(supabase, tenantIds),
     fetchRatings(supabase, tenantIds, "tenant"),
-    // Viewings this account booked on other people's properties.
+    // Bookings this account booked on other people's properties.
     supabase.from("inspections").select("id", { count: "exact", head: true }).eq("tenant_id", userId).in("status", ACTIVE_STATUSES),
   ]);
   return { listings, requests, people, tenantInfo, ratings, myBookings: count || 0 };
@@ -155,15 +155,15 @@ export default function Dashboard() {
 
         {(d?.myBookings || 0) > 0 && (
           <Tap accessibilityRole="button" onPress={() => router.push("/my-viewings")} style={styles.linkRow}>
-            <Text style={styles.linkText}>Viewings you&apos;ve booked ({d?.myBookings})</Text>
+            <Text style={styles.linkText}>Your bookings on other listings ({d?.myBookings})</Text>
             <ChevronRight color={colors.palm} size={18} />
           </Tap>
         )}
 
-        <Text style={styles.section}>Viewing requests</Text>
+        <Text style={styles.section}>Booking requests</Text>
         {open.length === 0 ? (
           <EmptyState icon={CalendarDays} title="No requests yet">
-            When someone books a viewing on one of your listings, it shows up here.
+            When someone makes a booking on one of your listings, it shows up here.
           </EmptyState>
         ) : (
           open.map(card)

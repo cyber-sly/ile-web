@@ -239,7 +239,7 @@ export default function ListingDetail({ initialListing }) {
                   ))}
                 </div>
               ) : (
-                <p className="mt-3 text-ink-muted">The lister hasn&apos;t added a description yet. Book a viewing to see it in person.</p>
+                <p className="mt-3 text-ink-muted">The lister hasn&apos;t added a description yet. Fix a booking to see it in person.</p>
               )}
             </section>
 
@@ -333,7 +333,7 @@ export default function ListingDetail({ initialListing }) {
           <p className="text-xs text-ink-muted">{suffix ? suffix.replace("/", "per ") : isSale ? "asking price" : ""}</p>
         </div>
         <button type="button" onClick={scrollToBooking} className={button({ className: "shrink-0" })}>
-          {isOwner ? "Manage" : available ? "Book viewing" : "Unavailable"}
+          {isOwner ? "Manage" : available ? "Fix a booking" : "Unavailable"}
         </button>
       </div>
 

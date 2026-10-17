@@ -99,11 +99,11 @@ export default function SignupScreen() {
       image={SIGNUP_PHOTO}
       quote={
         <>
-          A home, a shop, a plot. <Em>Without the wahala.</Em>
+          A home, a shop, a plot. <Em>Without wahala.</Em>
         </>
       }
       title="Create your account"
-      subtitle="Free for everyone. No search or inspection fees."
+      subtitle="Free for everyone."
     >
       <View>
         <Text style={styles.legend}>I want to</Text>

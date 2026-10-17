@@ -81,7 +81,7 @@ export default function AccountScreen() {
             </View>
           }
         >
-          Log in to manage your viewings, listings and saved homes.
+          Log in to manage your bookings, listings and saved homes.
         </EmptyState>
         <View style={styles.group}>
           <Row Icon={Shield} label="Privacy Policy" onPress={() => WebBrowser.openBrowserAsync(`${SITE}/privacy`)} />
@@ -164,7 +164,7 @@ export default function AccountScreen() {
           <Pressable style={styles.tile} onPress={() => router.navigate("/viewings")}>
             <CalendarDays color={colors.palm} size={18} />
             <Text style={styles.tileValue}>Open</Text>
-            <Text style={styles.tileLabel}>{lister ? "Dashboard" : "Viewings"}</Text>
+            <Text style={styles.tileLabel}>{lister ? "Dashboard" : "Bookings"}</Text>
           </Pressable>
           <Pressable style={styles.tile} onPress={() => router.navigate("/inbox")}>
             <MessageCircle color={colors.palm} size={18} />
@@ -179,7 +179,7 @@ export default function AccountScreen() {
         <View style={styles.group}>
           <Row Icon={UserRound} label="Edit profile" detail="Photo, bio, languages and more" onPress={() => router.push("/account/profile")} />
           {lister && <Row Icon={UserRound} label="View my public profile" onPress={() => router.push({ pathname: "/u/[id]", params: { id: user.id } })} />}
-          <Row Icon={Bell} label="Notifications" detail="Messages, viewings and reminders" onPress={() => router.push("/notifications")} />
+          <Row Icon={Bell} label="Notifications" detail="Messages, bookings and reminders" onPress={() => router.push("/notifications")} />
           {hasPassword(user) && <Row Icon={KeyRound} label="Change password" onPress={() => router.push("/account/password")} />}
         </View>
 

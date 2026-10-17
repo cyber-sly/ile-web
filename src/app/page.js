@@ -51,7 +51,7 @@ const CATEGORIES = [
 
 const STEPS = [
   { icon: Search, title: "Search for free", body: "Filter by area, budget and bedrooms. No search fee, ever." },
-  { icon: CalendarCheck, title: "Book a viewing", body: "Pick a time online. Viewings are free, with no inspection fee." },
+  { icon: CalendarCheck, title: "Fix a booking", body: "Pick a time online. Booking on Ile is free." },
   { icon: KeyRound, title: "Move in", body: "Agree terms with the lister and pay them directly." },
 ];
 
@@ -80,8 +80,8 @@ export default function Home() {
       <section aria-label="Why Ile" className="mx-auto max-w-7xl px-4 pt-12 sm:px-6">
         <ul className="grid gap-4 sm:grid-cols-3">
           {[
-            { icon: Wallet, text: "Free to search, save and view" },
-            { icon: ShieldCheck, text: "No inspection or search fees" },
+            { icon: Wallet, text: "Free to search, save and book" },
+            { icon: ShieldCheck, text: "Listings from all 36 states and Abuja" },
             { icon: Eye, text: "Prices shown upfront on every listing" },
           ].map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-3 text-sm font-semibold text-ink">
@@ -194,7 +194,7 @@ export default function Home() {
               Have a property to let or sell?
             </h2>
             <p className="mt-3 max-w-md text-white/80">
-              List it free in a few minutes. Serious home-seekers book viewings straight from your
+              List it free in a few minutes. Serious home-seekers make bookings straight from your
               listing, and you manage every request in one dashboard.
             </p>
             <Link

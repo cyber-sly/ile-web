@@ -58,10 +58,10 @@ export const HOME_CATEGORIES = [
   },
 ] as const;
 
-export const HOME_PROMISES = ["Free to search, save and view", "No inspection or search fees", "Prices shown upfront on every listing"] as const;
+export const HOME_PROMISES = ["Free to search, save and book", "Listings from all 36 states and Abuja", "Prices shown upfront on every listing"] as const;
 
 export const HOME_STEPS = [
   { title: "Search for free", body: "Filter by area, budget and bedrooms. No search fee, ever." },
-  { title: "Book a viewing", body: "Pick a time online. Viewings are free, with no inspection fee." },
+  { title: "Fix a booking", body: "Pick a time online. Booking on Ile is free." },
   { title: "Move in", body: "Agree terms with the lister and pay them directly." },
 ] as const;

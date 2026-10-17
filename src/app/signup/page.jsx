@@ -125,9 +125,9 @@ function SignupForm() {
   return (
     <AuthShell
       title="Create your account"
-      subtitle="Free for everyone. No search or inspection fees."
+      subtitle="Free for everyone."
       image="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=70"
-      quote={<>A home, a shop, a plot. <em>Without the wahala.</em></>}
+      quote={<>A home, a shop, a plot. <em>Without wahala.</em></>}
     >
       <form onSubmit={handleSignup} className="flex flex-col gap-5">
         <fieldset>

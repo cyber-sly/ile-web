@@ -63,7 +63,7 @@ export function invalidTokens(messages, tickets) {
     .filter(Boolean);
 }
 
-// Where tapping a notification opens. The Viewings tab shows listers their Dashboard.
+// Where tapping a notification opens. The Bookings tab shows listers their Dashboard.
 export function notificationRoute(data) {
   switch (data?.route) {
     case "chat":

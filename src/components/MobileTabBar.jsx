@@ -19,7 +19,7 @@ export default function MobileTabBar() {
     { href: "/messages", label: "Inbox", icon: MessageCircle, badge: unread },
     landlord
       ? { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }
-      : { href: "/my-bookings", label: "Viewings", icon: CalendarDays },
+      : { href: "/my-bookings", label: "Bookings", icon: CalendarDays },
     user
       ? { href: "/account", label: "Account", icon: UserRound }
       : { href: loginHref(pathname), label: "Log in", icon: UserRound, match: "/login" },
