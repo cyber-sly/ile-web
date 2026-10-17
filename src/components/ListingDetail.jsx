@@ -13,6 +13,7 @@ import {
   categoryOf, priceParts, fullPlace, detailFacts, isAvailable, freshCutoff, isExpired, isModerated,
   isBoosted,
 } from "@/lib/property";
+import { browsePath } from "@/lib/search";
 import Lightbox from "@/components/Lightbox";
 import ShareListing from "@/components/ShareListing";
 import PhotoGallery from "@/components/PhotoGallery";
@@ -27,8 +28,6 @@ import {
   MapPin, BedDouble, Bath, Ruler, FileCheck2, Sofa, Car, Building2, Check, Share2, ChevronRight, ArrowLeft,
   Home as HomeIcon, ExternalLink, UserRound, Sparkles,
 } from "lucide-react";
-
-const TAB_FOR = { homes: null, land: "land", commercial: "commercial" };
 
 // The facts grid adapts to what kind of property this is (rules in shared/property.js).
 const FACT_ICONS = {
@@ -120,11 +119,10 @@ export default function ListingDetail({ initialListing }) {
   const mapQuery = encodeURIComponent([listing.address, place, "Nigeria"].filter(Boolean).join(", "));
   const facts = factsFor(listing);
 
-  const tab = category === "homes" ? (isSale ? "sale" : null) : TAB_FOR[category];
-  const browseBase = tab ? `/listings?tab=${tab}` : "/listings";
+  const browseBase = browsePath(listing);
   const withParam = (extra) => `${browseBase}${browseBase.includes("?") ? "&" : "?"}${extra}`;
   const crumbs = [
-    { href: browseBase, label: category === "homes" ? (isSale ? "Homes for sale" : "Homes for rent") : category === "land" ? "Land" : "Commercial" },
+    { href: browseBase, label: category === "commercial" ? "Commercial" : `${category === "land" ? "Land" : "Homes"} for ${isSale ? "sale" : "rent"}` },
     listing.state && { href: withParam(`state=${encodeURIComponent(listing.state)}`), label: stateLabel(listing.state) },
     listing.lga && { href: withParam(`state=${encodeURIComponent(listing.state)}&lga=${encodeURIComponent(listing.lga)}`), label: listing.lga },
   ].filter(Boolean);

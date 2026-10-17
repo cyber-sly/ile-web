@@ -3,8 +3,8 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { LocateFixed } from "lucide-react-native";
 import { NIGERIA, STATES, stateLabel } from "@shared/nigeria.js";
-import { PROPERTY_TYPES, TITLE_DOCUMENTS } from "@shared/property.js";
-import { SORTS } from "@shared/search.js";
+import { TITLE_DOCUMENTS } from "@shared/property.js";
+import { isLandSearch, searchTypeOptions, SORTS } from "@shared/search.js";
 import { DEFAULT_FILTERS, useFilters } from "@/lib/filters";
 import { findNearMe, NEAR_ME_ERRORS } from "@/lib/nearMe";
 import Chip from "@/components/Chip";
@@ -38,8 +38,9 @@ export default function FiltersSheet() {
   const [locating, setLocating] = useState(false);
   const [nearMeError, setNearMeError] = useState("");
 
-  const category = filters.tab === "rent" || filters.tab === "sale" ? "homes" : filters.tab;
-  const types = (PROPERTY_TYPES as Choice[]).filter((t) => t.category === category);
+  const homesTab = filters.tab === "rent" || filters.tab === "sale";
+  const landSearch = isLandSearch(filters);
+  const types = searchTypeOptions(filters.tab) as Choice[];
   const states = STATES.map((s: string) => ({ value: s, label: stateLabel(s) }));
   const lgas = filters.state ? (NIGERIA as Record<string, string[]>)[filters.state].map((l) => ({ value: l, label: l.replace("|", " / ") })) : [];
 
@@ -72,7 +73,7 @@ export default function FiltersSheet() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Filters</Text>
 
-        {category !== "homes" && (
+        {!homesTab && (
           <Section label="Looking to">
             {PURPOSES.map((p) => (
               <Chip key={p.value} label={p.label} selected={filters.purpose === p.value} onPress={() => change({ purpose: p.value })} />
@@ -106,7 +107,7 @@ export default function FiltersSheet() {
           <PriceInput label="Max price (₦)" value={max} onChange={setMax} onBlur={applyPrices} />
         </View>
 
-        {category === "homes" && (
+        {homesTab && !landSearch && (
           <Section label="Bedrooms">
             {BEDS.map((b) => (
               <Chip key={b.value} label={b.label} selected={filters.beds === b.value} onPress={() => change({ beds: b.value })} />
@@ -114,7 +115,7 @@ export default function FiltersSheet() {
           </Section>
         )}
 
-        {category === "land" && (
+        {landSearch && (
           <SelectField
             label="Title document"
             value={filters.title}

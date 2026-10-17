@@ -1,17 +1,47 @@
 // Listing search: URL params <-> filters <-> Supabase query.
 // Filters live in the URL so results can be shared and survive refresh.
-import { freshCutoff } from "./property.js";
+import { categoryOf, freshCutoff, PROPERTY_TYPES } from "./property.js";
 import { stateLabel } from "./nigeria.js";
 
 export const PAGE_SIZE = 24;
 
-// Rent and Buy cover homes; Land and Commercial cover both purposes.
+// Rent and Buy cover homes and land (ptype "land" narrows to any land);
+// Commercial covers both purposes.
 export const SEARCH_TABS = [
   { value: "rent", label: "Rent", heading: "Homes for rent" },
   { value: "sale", label: "Buy", heading: "Homes for sale" },
-  { value: "land", label: "Land", heading: "Land" },
   { value: "commercial", label: "Commercial", heading: "Commercial property" },
 ];
+
+// Property-type filter value meaning "any kind of land".
+export const LAND_TYPE = "land";
+
+const typesIn = (category) => PROPERTY_TYPES.filter((t) => t.category === category).map(({ value, label }) => ({ value, label }));
+
+// The property-type choices for a tab: Rent and Buy list home types, then any
+// land, then each land type; Commercial lists commercial types.
+export function searchTypeOptions(tab) {
+  if (tab === "commercial") return typesIn("commercial");
+  return [...typesIn("homes"), { value: LAND_TYPE, label: "Land (any)" }, ...typesIn("land")];
+}
+
+// True when the search is narrowed to land (any land, or one land type).
+export function isLandSearch(f) {
+  if (!f.ptype) return false;
+  return f.ptype === LAND_TYPE || PROPERTY_TYPES.some((t) => t.value === f.ptype && t.category === "land");
+}
+
+// The search a listing belongs to, for breadcrumbs and "Browse similar".
+export function browsePath(listing) {
+  const category = categoryOf(listing);
+  const sale = listing.listing_type === "sale";
+  if (category === "commercial") return "/listings?tab=commercial";
+  const params = new URLSearchParams();
+  if (sale) params.set("tab", "sale");
+  if (category === "land") params.set("ptype", LAND_TYPE);
+  const query = params.toString();
+  return query ? `/listings?${query}` : "/listings";
+}
 
 export const SORTS = [
   { value: "new", label: "Newest" },
@@ -26,6 +56,11 @@ export function readFilters(searchParams) {
   // Older links used ?type=rent|sale and ?location=...
   if (!f.tab) f.tab = ["rent", "sale"].includes(searchParams.get("type")) ? searchParams.get("type") : "rent";
   if (!f.q && searchParams.get("location")) f.q = searchParams.get("location");
+  // The Land tab was folded into Buy (and Rent): old links open Buy, land only.
+  if (f.tab === "land") {
+    f.tab = "sale";
+    if (!f.ptype) f.ptype = LAND_TYPE;
+  }
   if (!SEARCH_TABS.some((t) => t.value === f.tab)) f.tab = "rent";
   return f;
 }
@@ -68,15 +103,17 @@ function searchQuery(client, f, page, boostFirst) {
     .eq("status", "active")
     .gte("last_confirmed_at", freshCutoff());
 
-  if (f.tab === "rent" || f.tab === "sale") query = query.eq("category", "homes").eq("listing_type", f.tab);
-  else {
+  if (f.tab === "rent" || f.tab === "sale") {
+    query = query.eq("listing_type", f.tab);
+    query = f.ptype === LAND_TYPE ? query.eq("category", "land") : query.in("category", ["homes", "land"]);
+  } else {
     query = query.eq("category", f.tab);
     if (f.purpose === "rent" || f.purpose === "sale") query = query.eq("listing_type", f.purpose);
   }
 
   if (f.state) query = query.eq("state", f.state);
   if (f.lga) query = query.eq("lga", f.lga);
-  if (f.ptype) query = query.eq("property_type", f.ptype);
+  if (f.ptype && f.ptype !== LAND_TYPE) query = query.eq("property_type", f.ptype);
   if (Number(f.min) > 0) query = query.gte("price", Number(f.min));
   if (Number(f.max) > 0) query = query.lte("price", Number(f.max));
   if (Number(f.beds) > 0) query = query.gte("bedrooms", Number(f.beds));
@@ -104,8 +141,9 @@ function searchQuery(client, f, page, boostFirst) {
 // "Land in Eti-Osa, Lagos", "Homes for sale matching \"Lekki\"".
 export function listingsHeading(f) {
   const tab = SEARCH_TABS.find((t) => t.value === f.tab) || SEARCH_TABS[0];
+  const heading = f.ptype === LAND_TYPE && f.tab !== "commercial" ? `Land for ${f.tab === "sale" ? "sale" : "rent"}` : tab.heading;
   const where = f.lga ? `${f.lga}, ${stateLabel(f.state)}` : f.state ? stateLabel(f.state) : f.q ? `"${f.q}"` : "Nigeria";
-  return `${tab.heading} ${f.q && !f.state ? "matching" : "in"} ${where}`;
+  return `${heading} ${f.q && !f.state ? "matching" : "in"} ${where}`;
 }
 
 // The app keeps filters as an object; this applies the same clearing rules

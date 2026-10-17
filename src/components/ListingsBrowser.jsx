@@ -10,8 +10,8 @@ import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { formatNairaShort } from "@/lib/format";
 import { NIGERIA, STATES, stateLabel } from "@/lib/nigeria";
-import { PROPERTY_TYPES, TITLE_DOCUMENTS } from "@/lib/property";
-import { SEARCH_TABS, SORTS, PAGE_SIZE, readFilters, nextParams, buildQuery, listingsHeading } from "@/lib/search";
+import { TITLE_DOCUMENTS } from "@/lib/property";
+import { SEARCH_TABS, SORTS, PAGE_SIZE, readFilters, nextParams, buildQuery, listingsHeading, searchTypeOptions, isLandSearch } from "@/lib/search";
 import { MapPin, X, SearchX, SlidersHorizontal } from "lucide-react";
 
 const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3";
@@ -107,8 +107,8 @@ function ListingsContent() {
 
   const loading = result.key !== paramKey;
   const isHomesTab = f.tab === "rent" || f.tab === "sale";
-  const tabCategory = isHomesTab ? "homes" : f.tab;
-  const typeOptions = PROPERTY_TYPES.filter((t) => t.category === tabCategory);
+  const landSearch = isLandSearch(f);
+  const typeOptions = searchTypeOptions(f.tab);
   const budgets = f.tab === "rent" || f.purpose === "rent" ? BUDGETS.rent : BUDGETS.default;
   const activeFilters = ["state", "lga", "ptype", "purpose", "min", "max", "beds", "title"].filter((k) => f[k]).length;
   const hasFilters = activeFilters > 0 || f.q;
@@ -208,7 +208,7 @@ function ListingsContent() {
             placeholder="Any type"
             options={typeOptions}
           />
-          {isHomesTab && (
+          {isHomesTab && !landSearch && (
             <FilterSelect
               label="Bedrooms"
               value={f.beds}
@@ -217,7 +217,7 @@ function ListingsContent() {
               options={BEDS.map((b) => ({ value: String(b), label: `${b}+ beds` }))}
             />
           )}
-          {f.tab === "land" && (
+          {landSearch && (
             <FilterSelect
               label="Title document"
               value={f.title}

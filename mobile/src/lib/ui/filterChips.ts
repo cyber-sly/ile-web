@@ -1,6 +1,7 @@
 import { stateLabel } from "@shared/nigeria.js";
 import { titleShort, typeLabel } from "@shared/property.js";
 import { formatNairaShort } from "@shared/format.js";
+import { LAND_TYPE } from "@shared/search.js";
 import type { Filters } from "@/lib/filters";
 
 export type FilterChip = { key: string; label: string };
@@ -8,7 +9,7 @@ export type FilterChip = { key: string; label: string };
 const LABELS: Record<string, (v: string) => string> = {
   state: (v) => stateLabel(v),
   lga: (v) => v,
-  ptype: (v) => typeLabel(v),
+  ptype: (v) => (v === LAND_TYPE ? "Land" : typeLabel(v)),
   purpose: (v) => (v === "sale" ? "For sale" : "For rent"),
   min: (v) => `From ${formatNairaShort(v)}`,
   max: (v) => `Up to ${formatNairaShort(v)}`,

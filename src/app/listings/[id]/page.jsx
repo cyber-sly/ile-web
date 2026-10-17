@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getListing } from "@/lib/supabaseServer";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
+import { browsePath } from "@/lib/search";
 import { stateLabel } from "@/lib/nigeria";
 import {
   categoryOf, typeLabel, priceParts, placeLabel, keyFacts, isAvailable,
@@ -64,13 +65,12 @@ function structuredData(listing) {
   const images = listing.image_urls?.length ? listing.image_urls : listing.image_url ? [listing.image_url] : [];
   const category = categoryOf(listing);
   const isSale = listing.listing_type === "sale";
-  const tab = category === "homes" ? (isSale ? "sale" : null) : category;
-  const browse = `${SITE_URL}/listings${tab ? `?tab=${tab}` : ""}`;
-  const sep = tab ? "&" : "?";
+  const browse = `${SITE_URL}${browsePath(listing)}`;
+  const sep = browse.includes("?") ? "&" : "?";
 
   const crumbs = [
     { name: "Ile", item: SITE_URL },
-    { name: category === "homes" ? (isSale ? "Homes for sale" : "Homes for rent") : category === "land" ? "Land" : "Commercial", item: browse },
+    { name: category === "commercial" ? "Commercial" : `${category === "land" ? "Land" : "Homes"} for ${isSale ? "sale" : "rent"}`, item: browse },
     listing.state && { name: stateLabel(listing.state), item: `${browse}${sep}state=${encodeURIComponent(listing.state)}` },
     { name: listing.title.trim(), item: url },
   ].filter(Boolean);

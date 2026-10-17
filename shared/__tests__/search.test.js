@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFilters, nextParams, buildQuery, applyFilterChange, fetchLatestListings, listingsHeading } from "../search.js";
+import { readFilters, nextParams, buildQuery, applyFilterChange, fetchLatestListings, listingsHeading, SEARCH_TABS, searchTypeOptions, isLandSearch, browsePath } from "../search.js";
 
 // Records every builder call so the query can be checked without a database.
 function fakeClient() {
@@ -21,7 +21,7 @@ test("reads legacy type and location params", () => {
 });
 
 test("clears filters that no longer apply", () => {
-  assert.equal(nextParams({ tab: "rent", ptype: "flat" }, { tab: "land" }).get("ptype"), null);
+  assert.equal(nextParams({ tab: "rent", ptype: "flat" }, { tab: "commercial" }).get("ptype"), null);
   assert.equal(nextParams({ state: "Lagos", lga: "Ikeja" }, { state: "Oyo" }).get("lga"), null);
 });
 
@@ -30,7 +30,7 @@ test("builds a safe rent search query", () => {
   buildQuery(client, { tab: "rent", q: "yaba, (x)" });
   const has = (...call) => client.calls.some((c) => JSON.stringify(c) === JSON.stringify(call));
   assert.ok(has("eq", "status", "active"));
-  assert.ok(has("eq", "category", "homes"));
+  assert.ok(has("in", "category", ["homes", "land"]));
   assert.ok(has("eq", "listing_type", "rent"));
   const or = client.calls.find((c) => c[0] === "or")[1];
   assert.ok(or.includes("title.ilike.%yaba"));
@@ -40,8 +40,8 @@ test("builds a safe rent search query", () => {
 
 test("applyFilterChange clears home-only filters when the tab changes", () => {
   const start = readFilters(new URLSearchParams("beds=3&ptype=flat&state=Lagos"));
-  const f = applyFilterChange(start, { tab: "land" });
-  assert.equal(f.tab, "land");
+  const f = applyFilterChange(start, { tab: "commercial" });
+  assert.equal(f.tab, "commercial");
   assert.equal(f.beds, "");
   assert.equal(f.ptype, "");
   assert.equal(f.state, "Lagos");
@@ -81,7 +81,7 @@ test("listingsHeading names the place, the search text or Nigeria", () => {
   const f = (v) => readFilters(new URLSearchParams(v));
   assert.equal(listingsHeading(f({ tab: "rent" })), "Homes for rent in Nigeria");
   assert.equal(listingsHeading(f({ tab: "sale", state: "FCT" })), "Homes for sale in FCT (Abuja)");
-  assert.equal(listingsHeading(f({ tab: "land", state: "Lagos", lga: "Eti-Osa" })), "Land in Eti-Osa, Lagos");
+  assert.equal(listingsHeading(f({ tab: "commercial", state: "Lagos", lga: "Eti-Osa" })), "Commercial property in Eti-Osa, Lagos");
   assert.equal(listingsHeading(f({ tab: "rent", q: "Lekki" })), 'Homes for rent matching "Lekki"');
 });
 
@@ -148,4 +148,51 @@ test("search still works before the boost column exists", async () => {
 test("Fresh on Ile still works before the boost column exists", async () => {
   const rows = await fetchLatestListings(clientMissingBoostColumn());
   assert.deepEqual(rows, [{ id: "l1" }]);
+});
+
+test("search tabs are Rent, Buy and Commercial", () => {
+  assert.deepEqual(SEARCH_TABS.map((t) => t.label), ["Rent", "Buy", "Commercial"]);
+});
+
+test("old Land links open Buy filtered to land", () => {
+  const f = readFilters(new URLSearchParams("tab=land&state=Lagos"));
+  assert.equal(f.tab, "sale");
+  assert.equal(f.ptype, "land");
+  assert.equal(f.state, "Lagos");
+  assert.equal(readFilters(new URLSearchParams("tab=land&ptype=farmland")).ptype, "farmland");
+});
+
+test("Rent and Buy include land; the Land type filter shows only land", () => {
+  const all = fakeClient();
+  buildQuery(all, { tab: "sale" });
+  assert.ok(all.calls.some((c) => c[0] === "in" && c[1] === "category" && c[2].join() === "homes,land"));
+  const land = fakeClient();
+  buildQuery(land, { tab: "rent", ptype: "land" });
+  assert.ok(land.calls.some((c) => c[0] === "eq" && c[1] === "category" && c[2] === "land"));
+  assert.ok(!land.calls.some((c) => c[0] === "eq" && c[1] === "property_type"));
+  assert.equal(listingsHeading(readFilters(new URLSearchParams("tab=sale&ptype=land"))), "Land for sale in Nigeria");
+});
+
+test("Rent and Buy offer home types, then any land, then each land type", () => {
+  const values = searchTypeOptions("sale").map((o) => o.value);
+  assert.equal(values[0], "flat");
+  assert.ok(values.indexOf("land") > values.indexOf("terrace"));
+  assert.ok(values.indexOf("farmland") > values.indexOf("land"));
+  assert.equal(searchTypeOptions("sale").find((o) => o.value === "land").label, "Land (any)");
+  assert.deepEqual(searchTypeOptions("commercial").map((o) => o.value), ["shop", "office", "warehouse"]);
+});
+
+test("isLandSearch is true for any land filter", () => {
+  assert.equal(isLandSearch({ tab: "sale", ptype: "land" }), true);
+  assert.equal(isLandSearch({ tab: "rent", ptype: "farmland" }), true);
+  assert.equal(isLandSearch({ tab: "rent", ptype: "flat" }), false);
+  assert.equal(isLandSearch({ tab: "rent" }), false);
+});
+
+test("browsePath points a listing's breadcrumb at the matching search", () => {
+  assert.equal(browsePath({ category: "homes", listing_type: "rent" }), "/listings");
+  assert.equal(browsePath({ category: "homes", listing_type: "sale" }), "/listings?tab=sale");
+  assert.equal(browsePath({ category: "land", listing_type: "sale" }), "/listings?tab=sale&ptype=land");
+  assert.equal(browsePath({ category: "land", listing_type: "rent" }), "/listings?ptype=land");
+  assert.equal(browsePath({ category: "commercial", listing_type: "rent" }), "/listings?tab=commercial");
 });
