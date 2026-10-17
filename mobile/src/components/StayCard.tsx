@@ -6,6 +6,7 @@ import { formatDate, formatNaira } from "@shared/format.js";
 import { cancelStay, lagosToday, respondStay, STAY_STATUS, stayActions, type StayRow } from "@/lib/stays";
 import { openChat } from "@/lib/messagingApp";
 import ReviewSheet from "@/components/ReviewSheet";
+import ContactLine from "@/components/ContactLine";
 import Tap from "@/components/kit/Tap";
 import { Badge, Button } from "@/components/kit";
 import { colors, fonts, radius } from "@/theme";
@@ -78,11 +79,19 @@ export default function StayCard({
         {s.guests === 1 ? "guest" : "guests"}
       </Text>
       <Text style={styles.line}>
-        {role === "host" && personName ? `${personName} · ` : ""}
+        {role === "host" && personName ? (
+          <Text accessibilityRole="link" style={styles.link} onPress={() => router.push({ pathname: "/u/[id]", params: { id: String(s.guest_id) } })}>
+            {personName}
+          </Text>
+        ) : null}
+        {role === "host" && personName ? " · " : ""}
         <Text style={styles.strong}>{formatNaira(s.total)}</Text> total
       </Text>
       {s.note ? <Text style={styles.note}>“{s.note}”</Text> : null}
       {s.status === "declined" && s.decline_reason ? <Text style={styles.muted}>Reason: {s.decline_reason}</Text> : null}
+      {s.status === "accepted" ? (
+        <ContactLine kind="stay" id={String(s.id)} name={name} />
+      ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       {declining ? (
@@ -134,6 +143,7 @@ const styles = StyleSheet.create({
   muted: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkMuted },
   line: { fontFamily: fonts.sans, fontSize: 14, color: colors.ink },
   strong: { fontFamily: fonts.sansBold },
+  link: { fontFamily: fonts.sansSemi, color: colors.palm },
   note: { padding: 10, borderRadius: radius.control, backgroundColor: colors.cream, fontFamily: fonts.sans, fontSize: 14, color: colors.ink },
   error: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.clay },
   decline: { gap: 8, marginTop: 4 },

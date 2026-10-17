@@ -4,7 +4,8 @@ import { router } from "expo-router";
 import { Image } from "expo-image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, ImagePlus, MapPin, Trash2, UserRound, X } from "lucide-react-native";
-import { fetchMyProfile, formToProfileChanges, profileToForm, saveProfile, validateProfileForm } from "@shared/account.js";
+import { fetchMyProfile, formToProfileChanges, profileFieldsSupported, profileToForm, saveProfile, validateProfileForm } from "@shared/account.js";
+import PrivacyFields from "@/components/PrivacyFields";
 import { LANGUAGES, MOVE_IN, OCCUPATIONS, REGISTRATION_BODIES } from "@shared/profileDisplay.js";
 import { LISTER_TYPES } from "@shared/property.js";
 import { STATES, stateLabel } from "@shared/nigeria.js";
@@ -50,7 +51,11 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
   const [photoBusy, setPhotoBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  // Username and phone appear once supabase/profiles_privacy.sql has been run.
+  const privacyQuery = useQuery({ queryKey: ["profile-fields-supported"], queryFn: () => profileFieldsSupported(supabase), staleTime: 60 * 60 * 1000 });
+  const privacy = privacyQuery.data === true;
   const errors = validateProfileForm(v) as unknown as Record<string, string>;
+  if (!privacy) for (const k of ["username", "show_as", "phone"]) delete errors[k];
 
   const set = (changes: Form) => setV((prev) => ({ ...prev, ...changes }));
   const toggleIn = (key: string, item: string) => set({ [key]: v[key].includes(item) ? v[key].filter((x: string) => x !== item) : [...v[key], item] });
@@ -92,12 +97,13 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
     setSaving(true);
     setMessage(null);
     try {
-      await saveProfile(supabase, userId, formToProfileChanges(v, showLister));
+      await saveProfile(supabase, userId, formToProfileChanges(v, showLister, undefined, privacy));
       queryClient.invalidateQueries({ queryKey: ["my-profile", userId] });
       setMessage({ tone: "success", text: "Profile saved." });
       router.back();
     } catch (e) {
-      setMessage({ tone: "error", text: friendlyError(e) });
+      const taken = /profiles_username_key|duplicate key/i.test((e as Error)?.message || "");
+      setMessage({ tone: "error", text: taken ? "That username is taken." : friendlyError(e) });
     } finally {
       setSaving(false);
     }
@@ -126,6 +132,7 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
 
         <Text style={styles.section}>About you</Text>
         <Field label="Name" icon={UserRound} value={v.full_name} onChangeText={(full_name) => set({ full_name })} maxLength={80} error={errors.full_name} />
+        {privacy && <PrivacyFields v={v} set={set} errors={errors} />}
         <Field label="Short bio" optional value={v.bio} onChangeText={(bio) => set({ bio })} multiline maxLength={300} hint={`${v.bio.length}/300`} />
         <Text style={styles.label}>Languages you speak</Text>
         <View style={styles.chips}>

@@ -10,6 +10,7 @@ import { cancelStay, fetchMyStays, fetchStayRequests, lagosToday, respondStay, s
 import { fetchReviewedStayIds } from "@shared/stays.js";
 import MessageButton from "@/components/MessageButton";
 import ReviewForm from "@/components/ReviewForm";
+import ContactLine from "@/components/ContactLine";
 import Badge from "@/components/ui/Badge";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
@@ -106,7 +107,14 @@ function StayCard({ stay: s, role, user, today, person, reviewed, onChanged, onE
             {s.guests === 1 ? "guest" : "guests"}
           </p>
           <p className="text-sm text-ink">
-            {role === "host" ? `${name} · ` : ""}
+            {role === "host" && (
+              <>
+                <Link href={`/u/${s.guest_id}`} className="hover:text-palm hover:underline">
+                  {name}
+                </Link>
+                {" · "}
+              </>
+            )}
             <strong>{formatNaira(s.total)}</strong> total
           </p>
         </div>
@@ -114,6 +122,7 @@ function StayCard({ stay: s, role, user, today, person, reviewed, onChanged, onE
       </div>
       {s.note && <p className="mt-2 rounded-[var(--radius-control)] bg-cream p-2.5 text-sm text-ink">&ldquo;{s.note}&rdquo;</p>}
       {s.status === "declined" && s.decline_reason && <p className="mt-2 text-sm text-ink-muted">Reason: {s.decline_reason}</p>}
+      {s.status === "accepted" && <ContactLine kind="stay" id={s.id} name={name} className="mt-2" />}
 
       {declining ? (
         <div className="mt-3 flex flex-col gap-2">

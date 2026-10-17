@@ -143,3 +143,87 @@ test("verifyPassword is false only for a wrong password", async () => {
   await assert.rejects(verifyPassword(answer({ message: "email rate limit exceeded", status: 429 }), "a@b.c", "right"), /rate limit/);
   await assert.rejects(verifyPassword(answer({ message: "Network request failed" }), "a@b.c", "right"), /Network/);
 });
+
+function profileClient(profile, { missingColumns = false } = {}) {
+  const selects = [];
+  const chain = (result) => {
+    const b = new Proxy({}, {
+      get: (_, m) => (m === "then" ? (resolve) => resolve(result) : m === "maybeSingle" ? async () => result : () => b),
+    });
+    return b;
+  };
+  return {
+    selects,
+    rpc: async () => ({ data: [], error: null }),
+    from: (table) => ({
+      select: (cols) => {
+        selects.push([table, cols]);
+        if (table !== "profiles") return chain({ data: [], error: null });
+        if (missingColumns && cols.includes("username")) return chain({ data: null, error: { code: "42703", message: "column profiles.username does not exist" } });
+        return chain({ data: profile, error: null });
+      },
+    }),
+  };
+}
+
+const PROFILE_ID = "6f2c3a1e-1111-4222-8333-444455556666";
+
+test("fetchListerProfile returns a home-seeker's basic profile with their display name", async () => {
+  const data = await fetchListerProfile(profileClient({ id: PROFILE_ID, full_name: "Ada", username: "ada", show_as: "username", role: "tenant" }), PROFILE_ID);
+  assert.equal(data.profile.display_name, "@ada");
+  assert.equal(data.profile.is_lister, false);
+  assert.deepEqual(data.listings, []);
+  assert.equal(await fetchListerProfile(profileClient(null), PROFILE_ID), null);
+});
+
+test("fetchListerProfile still works before the username columns exist", async () => {
+  const client = profileClient({ id: PROFILE_ID, full_name: "Bayo", role: "landlord" }, { missingColumns: true });
+  const data = await fetchListerProfile(client, PROFILE_ID);
+  assert.equal(data.profile.display_name, "Bayo");
+  assert.equal(data.profile.is_lister, true);
+});
+
+test("validateProfileForm refuses show_as username without a username", () => {
+  const v = { ...EMPTY_PROFILE_FORM, full_name: "Ada", show_as: "username", username: "" };
+  assert.equal(validateProfileForm(v).show_as, "Choose a username first.");
+  assert.equal(validateProfileForm({ ...v, username: "ada_o" }).show_as, undefined);
+});
+
+test("validateProfileForm checks username and phone formats", () => {
+  const v = { ...EMPTY_PROFILE_FORM, full_name: "Ada" };
+  assert.equal(validateProfileForm({ ...v, username: "a-b" }).username, "Use 3 to 20 letters, numbers or underscores.");
+  assert.equal(validateProfileForm({ ...v, phone: "12345" }).phone, "Enter a Nigerian number, e.g. 0803 123 4567.");
+  assert.deepEqual(validateProfileForm({ ...v, username: "Ada_O", phone: "0803 123 4567" }), {});
+});
+
+test("profile row saves the normalised username and phone only when supported", () => {
+  const v = { ...EMPTY_PROFILE_FORM, full_name: "Ada", username: " @Ada_O ", show_as: "username", phone: "0803 123 4567" };
+  const row = formToProfileChanges(v, false, 2026, true);
+  assert.equal(row.username, "ada_o");
+  assert.equal(row.show_as, "username");
+  assert.equal(row.phone, "+2348031234567");
+  const cleared = formToProfileChanges({ ...v, username: "", show_as: "name", phone: "" }, false, 2026, true);
+  assert.equal(cleared.username, null);
+  assert.equal(cleared.phone, null);
+  assert.equal("username" in formToProfileChanges(v, false, 2026), false);
+  assert.equal(profileToForm({ full_name: "Ada", phone: "+2348031234567", show_as: "username", username: "ada" }).phone, "0803 123 4567");
+});
+
+test("fetchListerProfile reads the public name and falls back on any error", async () => {
+  const client = profileClient({ id: PROFILE_ID, full_name: "Bayo", role: "landlord" });
+  await fetchListerProfile(client, PROFILE_ID);
+  assert.match(client.selects.find(([t]) => t === "profiles")[1], /full_name:public_name/);
+
+  const denied = profileClient({ id: PROFILE_ID, full_name: "Bayo", role: "landlord" });
+  const from = denied.from;
+  denied.from = (table) => {
+    const q = from(table);
+    return {
+      select: (cols) =>
+        table === "profiles" && cols.includes("public_name")
+          ? { eq: () => ({ maybeSingle: async () => ({ data: null, error: { code: "42501", message: "permission denied" } }) }) }
+          : q.select(cols),
+    };
+  };
+  assert.equal((await fetchListerProfile(denied, PROFILE_ID)).profile.display_name, "Bayo");
+});

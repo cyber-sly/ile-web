@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { reviewState } from "@/lib/reviews";
 import ReviewSheet from "@/components/ReviewSheet";
+import ContactLine from "@/components/ContactLine";
 import { friendlyError } from "@shared/errors.js";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
@@ -100,6 +101,7 @@ export default function ViewingCard({ viewing: v, online, onAccept, onUpdate, re
         </View>
       )}
 
+      {v.status === "confirmed" || v.status === "done" ? <ContactLine kind="viewing" id={String(v.id)} name="the lister" /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {review === "can-review" && l && (
         <View style={styles.reviewRow}>

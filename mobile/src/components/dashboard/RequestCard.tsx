@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { reviewState } from "@/lib/reviews";
 import ReviewSheet from "@/components/ReviewSheet";
+import ContactLine from "@/components/ContactLine";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -87,7 +88,12 @@ export default function RequestCard({ request: r, person, details, rating, onlin
         )}
         <View style={styles.info}>
           <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>
+            <Text
+              style={styles.name}
+              numberOfLines={1}
+              accessibilityRole={r.tenant_id ? "link" : undefined}
+              onPress={r.tenant_id ? () => router.push({ pathname: "/u/[id]", params: { id: String(r.tenant_id) } }) : undefined}
+            >
               {name}
             </Text>
             <StatusBadge status={r.status} />
@@ -120,6 +126,7 @@ export default function RequestCard({ request: r, person, details, rating, onlin
         </View>
       )}
       {r.landlord_note && r.status !== "pending" ? <Text style={styles.muted}>Your note: “{r.landlord_note}”</Text> : null}
+      {r.status === "confirmed" || r.status === "done" ? <ContactLine kind="viewing" id={String(r.id)} name={name} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {review === "can-review" && (
         <Action label={`Rate ${(person?.name || "them").trim().split(/\s+/)[0]}`} disabled={!online} onPress={() => setReviewing(true)} />

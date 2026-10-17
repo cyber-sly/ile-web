@@ -23,6 +23,7 @@ type Thread = {
   convo: { id: string; tenant_id: string | null; landlord_id: string | null; listings: { id: string; title: string; image_url: string | null } | null } | null;
   messages: Message[];
   other: { name: string; avatar: string | null } | null;
+  otherId?: string | null;
 };
 
 async function loadChat(id: string, userId: string): Promise<Thread> {
@@ -30,7 +31,7 @@ async function loadChat(id: string, userId: string): Promise<Thread> {
   if (!convo) return { convo: null, messages: [], other: null };
   const otherId = convo.tenant_id === userId ? convo.landlord_id : convo.tenant_id;
   const people = otherId ? await fetchPeople(supabase, [otherId]) : {};
-  return { convo, messages, other: otherId ? people[otherId] || { name: "", avatar: null } : null };
+  return { convo, messages, otherId, other: otherId ? people[otherId] || { name: "", avatar: null } : null };
 }
 
 // One conversation, live: new messages, read receipts, offline sending.
@@ -118,7 +119,12 @@ export default function ChatScreen() {
         </View>
       )}
       <View style={styles.headerText}>
-        <Text style={styles.name} numberOfLines={1}>
+        <Text
+          style={styles.name}
+          numberOfLines={1}
+          accessibilityRole={t?.otherId ? "link" : undefined}
+          onPress={t?.otherId ? () => router.push({ pathname: "/u/[id]", params: { id: String(t.otherId) } }) : undefined}
+        >
           {t?.convo ? (t.other ? t.other.name || (t.convo.tenant_id === userId ? "The lister" : "Home-seeker") : "Deleted user") : ""}
         </Text>
         {t?.convo && (

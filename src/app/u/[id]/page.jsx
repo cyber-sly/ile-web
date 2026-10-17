@@ -23,8 +23,15 @@ export async function generateMetadata({ params }) {
   const { id } = await params;
   const data = await loadProfile(id);
   if (!data) return { title: "Profile not found", robots: { index: false } };
-  const name = data.profile.full_name?.trim() || "Lister";
+  const name = data.profile.display_name;
   const r = data.rating;
+  if (!data.profile.is_lister) {
+    return {
+      title: `${name} · Ile`,
+      description: `${name} is a member of Ile.`,
+      robots: { index: false },
+    };
+  }
   const description = r?.total
     ? `${name} is rated ${Number(r.average).toFixed(1)}/5 from ${r.total} review${r.total === 1 ? "" : "s"} on Ile. ${data.listings.length} properties listed.`
     : `${name} lists property on Ile. ${data.listings.length} properties available.`;
@@ -42,10 +49,11 @@ export default async function ProfilePage({ params }) {
   if (!data) notFound();
 
   const { profile, rating, reviews, listings, responseMinutes } = data;
-  const name = profile.full_name?.trim() || "Ile lister";
+  const name = profile.display_name;
+  const lister = profile.is_lister;
   const response = formatResponseTime(responseMinutes);
   const details = [
-    profile.lister_type && { icon: Building2, text: listerLabel(profile.lister_type) },
+    { icon: Building2, text: profile.lister_type ? listerLabel(profile.lister_type) : lister ? "Lister" : "Home-seeker" },
     response && { icon: Clock, text: response },
     profile.listing_since && { icon: CalendarDays, text: `Listing property since ${profile.listing_since}` },
     profile.registration_body && { icon: Award, text: `${registrationLabel(profile.registration_body)} registration provided` },
@@ -62,7 +70,7 @@ export default async function ProfilePage({ params }) {
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">{name}</h1>
           {profile.business_name && <p className="mt-0.5 font-semibold text-ink">{profile.business_name}</p>}
           <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
-            <CalendarDays size={15} aria-hidden="true" /> Listing on Ile since {monthYear(profile.created_at)}
+            <CalendarDays size={15} aria-hidden="true" /> {lister ? "Listing on Ile" : "Member"} since {monthYear(profile.created_at)}
           </p>
           {profile.bio && <p className="mt-3 max-w-2xl text-ink/85">{profile.bio}</p>}
           {details.length > 0 && (
@@ -74,7 +82,7 @@ export default async function ProfilePage({ params }) {
               ))}
             </ul>
           )}
-          <div className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
+          {lister && <div className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Rating</p>
               {rating?.total ? (
@@ -101,11 +109,11 @@ export default async function ProfilePage({ params }) {
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Live listings</p>
               <p className="mt-1 text-2xl font-bold text-ink">{listings.length}</p>
             </div>
-          </div>
+          </div>}
         </div>
       </header>
 
-      <section className="mt-12">
+      {lister && <><section className="mt-12">
         <h2 className="font-serif text-2xl font-semibold text-ink md:text-3xl">Listings</h2>
         {listings.length === 0 ? (
           <div className="mt-4">
@@ -156,7 +164,7 @@ export default async function ProfilePage({ params }) {
             ))}
           </ul>
         )}
-      </section>
+      </section></>}
     </div>
   );
 }
