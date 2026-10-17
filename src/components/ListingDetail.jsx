@@ -26,13 +26,14 @@ import Badge, { ListingTypeBadge, VerifiedBadge, BoostedBadge } from "@/componen
 import { button } from "@/components/ui/Button";
 import {
   MapPin, BedDouble, Bath, Ruler, FileCheck2, Sofa, Car, Building2, Check, Share2, ChevronRight, ArrowLeft,
-  Home as HomeIcon, ExternalLink, UserRound, Sparkles,
+  Home as HomeIcon, ExternalLink, UserRound, Sparkles, Hotel, Users, Moon, LogIn, LogOut,
 } from "lucide-react";
 
 // The facts grid adapts to what kind of property this is (rules in shared/property.js).
 const FACT_ICONS = {
   type: Building2, bedrooms: BedDouble, bathrooms: Bath, furnishing: Sofa, size: Ruler, title: FileCheck2,
   parking: Car, toilets: Bath, lister: UserRound,
+  hotel: Hotel, guests: Users, minNights: Moon, checkIn: LogIn, checkOut: LogOut,
 };
 
 function factsFor(listing) {
@@ -245,7 +246,7 @@ export default function ListingDetail({ initialListing }) {
 
             {features.length > 0 && (
               <section className="mt-10">
-                <h2 className="font-serif text-2xl font-semibold text-ink">What&apos;s included</h2>
+                <h2 className="font-serif text-2xl font-semibold text-ink">Amenities</h2>
                 <ul className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
                   {features.map((f) => (
                     <li key={f} className="flex items-center gap-3 text-ink">
@@ -256,6 +257,13 @@ export default function ListingDetail({ initialListing }) {
                     </li>
                   ))}
                 </ul>
+              </section>
+            )}
+
+            {listing.house_rules && (
+              <section className="mt-10">
+                <h2 className="font-serif text-2xl font-semibold text-ink">House rules</h2>
+                <p className="mt-3 whitespace-pre-line text-[17px] leading-relaxed text-ink/85">{listing.house_rules}</p>
               </section>
             )}
 

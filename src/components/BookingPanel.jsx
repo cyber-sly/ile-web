@@ -15,6 +15,7 @@ import { toast } from "@/lib/toast";
 import MessageButton from "@/components/MessageButton";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SlotPicker from "@/components/SlotPicker";
+import StayBookingForm from "@/components/StayBookingForm";
 import { ACTIVE_STATUSES, fetchActiveViewing, fetchOpenSlots, requestViewing } from "@shared/viewings.js";
 import { readRefHere, recordBookingRef } from "@/lib/referrals";
 import { button } from "@/components/ui/Button";
@@ -28,6 +29,7 @@ import { CalendarDays, Clock, Pencil, Trash2, ShieldCheck, AlertTriangle, Rotate
 // actions, a login prompt, the visitor's existing booking, or the booking form.
 export default function BookingPanel({ listing, user, onDelete, onStatusChange }) {
   const isRent = listing.listing_type === "rent";
+  const isStay = listing.category === "stays";
   const isOwner = user && user.id === listing.landlord_id;
   const available = isAvailable(listing);
   const { amount, suffix } = priceParts(listing);
@@ -40,10 +42,10 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
         {suffix && <span className="text-base font-medium text-ink-muted"> {suffix}</span>}
       </p>
       <p className="mt-1 text-sm text-ink-muted">
-        {isRent ? `Rent ${periodLabel(period)}, paid to the lister` : period === "plot" ? "Price per plot" : "Asking price"}
+        {isStay ? "Per night, paid to the host" : isRent ? `Rent ${periodLabel(period)}, paid to the lister` : period === "plot" ? "Price per plot" : "Asking price"}
       </p>
 
-      <MoveInCost listing={listing} />
+      {!isStay && <MoveInCost listing={listing} />}
 
       <div className="mt-5 border-t border-line pt-5">
         {user === undefined ? (
@@ -58,6 +60,8 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
           </p>
         ) : !user ? (
           <SignedOut listingId={listing.id} />
+        ) : isStay ? (
+          <StayBookingForm listing={listing} user={user} />
         ) : (
           <BookingForm listing={listing} user={user} />
         )}
@@ -72,7 +76,9 @@ export default function BookingPanel({ listing, user, onDelete, onStatusChange }
 
       <p className="mt-5 flex items-start gap-2 text-sm text-ink-muted">
         <ShieldCheck size={17} className="mt-px shrink-0 text-palm" aria-hidden="true" />
-        Booking on Ile is free. Never pay anyone before you&apos;ve seen the property in person.
+        {isStay
+          ? "Pay the host directly. Never pay before you've confirmed the place is real."
+          : "Booking on Ile is free. Never pay anyone before you've seen the property in person."}
       </p>
     </div>
   );

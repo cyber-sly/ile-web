@@ -25,25 +25,25 @@ const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4";
 const CATEGORIES = [
   {
     href: "/listings",
-    title: "Homes for rent",
-    blurb: "Flats, self-contains and duplexes.",
+    title: "Homes",
+    blurb: "Flats, self-contains and duplexes to rent or buy.",
     image: rentPhoto,
   },
   {
-    href: "/listings?tab=sale",
-    title: "Homes for sale",
-    blurb: "Own your home, with the asking price upfront.",
+    href: "/listings?tab=stays",
+    title: "Shortlets & hotels",
+    blurb: "Shortlet apartments, hotel rooms and Airbnbs by the night.",
     image: salePhoto,
   },
   {
-    href: "/listings?tab=land",
+    href: "/listings?tab=sale&ptype=land",
     title: "Land",
     blurb: "Plots and farmland, with the title document shown.",
     image: landPhoto,
   },
   {
     href: "/listings?tab=commercial",
-    title: "Shops and offices",
+    title: "Shops & offices",
     blurb: "Space to run your business.",
     image: commercialPhoto,
   },

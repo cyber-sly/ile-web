@@ -49,3 +49,10 @@ test("listing form offers amenities and stays", () => {
   assert.match(form, /"stays"/);
   assert.match(form, /Price per night/);
 });
+
+test("home page has the four category cards", () => {
+  const home = readFileSync(join(ROOT, "src/app/page.js"), "utf8");
+  assert.match(home, /"Shortlets & hotels"/);
+  assert.match(home, /"Shops & offices"|Shops and offices/);
+  assert.doesNotMatch(home, /"Homes for sale"/);
+});

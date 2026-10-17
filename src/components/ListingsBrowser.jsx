@@ -10,8 +10,8 @@ import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { formatNairaShort } from "@/lib/format";
 import { NIGERIA, STATES, stateLabel } from "@/lib/nigeria";
-import { TITLE_DOCUMENTS } from "@/lib/property";
-import { SEARCH_TABS, SORTS, PAGE_SIZE, readFilters, nextParams, buildQuery, listingsHeading, searchTypeOptions, isLandSearch } from "@/lib/search";
+import { TITLE_DOCUMENTS, amenitiesFor } from "@/lib/property";
+import { SEARCH_TABS, SORTS, PAGE_SIZE, readFilters, nextParams, buildQuery, listingsHeading, searchTypeOptions, isLandSearch, amenitiesFilter } from "@/lib/search";
 import { MapPin, X, SearchX, SlidersHorizontal } from "lucide-react";
 
 const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3";
@@ -19,7 +19,10 @@ const BEDS = [1, 2, 3, 4, 5];
 const BUDGETS = {
   rent: [200_000, 500_000, 1_000_000, 2_000_000, 3_000_000, 5_000_000, 10_000_000, 20_000_000],
   default: [1_000_000, 5_000_000, 10_000_000, 25_000_000, 50_000_000, 100_000_000, 250_000_000, 500_000_000],
+  stays: [10_000, 20_000, 30_000, 50_000, 75_000, 100_000, 150_000, 250_000],
 };
+
+const GUESTS = [1, 2, 3, 4, 5, 6, 8, 10];
 
 const selectClass =
   "h-9 max-w-[11rem] cursor-pointer rounded-full border border-line-strong bg-surface pl-3.5 pr-8 text-sm font-semibold text-ink outline-none transition-colors hover:border-ink/30 focus:border-palm focus:ring-2 focus:ring-palm/25";
@@ -109,8 +112,10 @@ function ListingsContent() {
   const isHomesTab = f.tab === "rent" || f.tab === "sale";
   const landSearch = isLandSearch(f);
   const typeOptions = searchTypeOptions(f.tab);
-  const budgets = f.tab === "rent" || f.purpose === "rent" ? BUDGETS.rent : BUDGETS.default;
-  const activeFilters = ["state", "lga", "ptype", "purpose", "min", "max", "beds", "title"].filter((k) => f[k]).length;
+  const isStaysTab = f.tab === "stays";
+  const budgets = isStaysTab ? BUDGETS.stays : f.tab === "rent" || f.purpose === "rent" ? BUDGETS.rent : BUDGETS.default;
+  const chosenAmenities = amenitiesFilter(f);
+  const activeFilters = ["state", "lga", "ptype", "purpose", "min", "max", "beds", "title", "guests", "checkin", "checkout", "amen"].filter((k) => f[k]).length;
   const hasFilters = activeFilters > 0 || f.q;
 
   const heading = listingsHeading(f);
@@ -189,7 +194,40 @@ function ListingsContent() {
               options={(NIGERIA[f.state] || []).map((l) => ({ value: l, label: l }))}
             />
           )}
-          {!isHomesTab && (
+          {isStaysTab && (
+            <>
+              <label className="shrink-0">
+                <span className="sr-only">Check-in</span>
+                <input type="date" value={f.checkin} min={new Date().toISOString().slice(0, 10)} onChange={(e) => update({ checkin: e.target.value })} className={selectClass} aria-label="Check-in" />
+              </label>
+              <label className="shrink-0">
+                <span className="sr-only">Check-out</span>
+                <input type="date" value={f.checkout} min={f.checkin || undefined} onChange={(e) => update({ checkout: e.target.value })} className={selectClass} aria-label="Check-out" />
+              </label>
+              <FilterSelect
+                label="Guests"
+                value={f.guests}
+                onChange={(v) => update({ guests: v })}
+                placeholder="Any guests"
+                options={GUESTS.map((g) => ({ value: String(g), label: `${g}+ ${g === 1 ? "guest" : "guests"}` }))}
+              />
+              {amenitiesFor("stays").slice(0, 8).map((a) => {
+                const on = chosenAmenities.includes(a);
+                return (
+                  <button
+                    key={a}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => update({ amen: (on ? chosenAmenities.filter((x) => x !== a) : [...chosenAmenities, a]).join(",") })}
+                    className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${on ? "border-palm bg-palm-soft text-palm" : "border-line-strong bg-surface text-ink hover:border-ink/30"}`}
+                  >
+                    {a}
+                  </button>
+                );
+              })}
+            </>
+          )}
+          {!isHomesTab && !isStaysTab && (
             <FilterSelect
               label="Rent or buy"
               value={f.purpose}
