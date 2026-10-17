@@ -150,8 +150,8 @@ test("Fresh on Ile still works before the boost column exists", async () => {
   assert.deepEqual(rows, [{ id: "l1" }]);
 });
 
-test("search tabs are Rent, Buy and Commercial", () => {
-  assert.deepEqual(SEARCH_TABS.map((t) => t.label), ["Rent", "Buy", "Commercial"]);
+test("search tabs are Rent, Buy, Shortlets and Commercial", () => {
+  assert.deepEqual(SEARCH_TABS.map((t) => t.label), ["Rent", "Buy", "Shortlets", "Commercial"]);
 });
 
 test("old Land links open Buy filtered to land", () => {
@@ -195,4 +195,57 @@ test("browsePath points a listing's breadcrumb at the matching search", () => {
   assert.equal(browsePath({ category: "land", listing_type: "sale" }), "/listings?tab=sale&ptype=land");
   assert.equal(browsePath({ category: "land", listing_type: "rent" }), "/listings?ptype=land");
   assert.equal(browsePath({ category: "commercial", listing_type: "rent" }), "/listings?tab=commercial");
+});
+
+function stayClient(rpcResult) {
+  const calls = [];
+  const builder = new Proxy({}, {
+    get: (_, method) =>
+      method === "then"
+        ? (resolve) => resolve({ data: [{ id: "x" }], count: 1, error: null })
+        : (...args) => {
+            calls.push([method, ...args]);
+            return builder;
+          },
+  });
+  return {
+    calls,
+    from: () => builder,
+    rpc: async (name, args) => {
+      calls.push(["rpc", name, args]);
+      return rpcResult;
+    },
+  };
+}
+
+test("stays search filters by guests, amenities and free dates", async () => {
+  const client = stayClient({ data: ["a", "b"], error: null });
+  await buildQuery(client, readFilters(new URLSearchParams("tab=stays&guests=3&amen=Wi-Fi,Kitchen&checkin=2026-11-05&checkout=2026-11-08")));
+  const has = (...call) => client.calls.some((c) => JSON.stringify(c) === JSON.stringify(call));
+  assert.ok(has("eq", "category", "stays"));
+  assert.ok(has("gte", "max_guests", 3));
+  assert.ok(has("contains", "features", ["Wi-Fi", "Kitchen"]));
+  assert.ok(has("rpc", "stays_unavailable", { p_check_in: "2026-11-05", p_check_out: "2026-11-08" }));
+  assert.ok(has("not", "id", "in", "(a,b)"));
+});
+
+test("stays search ignores bad dates and still works when stays_unavailable is missing", async () => {
+  const missing = stayClient({ data: null, error: { code: "PGRST202", message: "Could not find the function" } });
+  const { data } = await buildQuery(missing, readFilters(new URLSearchParams("tab=stays&checkin=2026-11-05&checkout=2026-11-08")));
+  assert.deepEqual(data, [{ id: "x" }]);
+  assert.ok(!missing.calls.some((c) => c[0] === "not"));
+  const bad = stayClient({ data: ["a"], error: null });
+  await buildQuery(bad, readFilters(new URLSearchParams("tab=stays&checkin=2026-11-08&checkout=2026-11-05")));
+  assert.ok(!bad.calls.some((c) => c[0] === "rpc"));
+});
+
+test("changing tab clears stay filters", () => {
+  const p = nextParams({ tab: "stays", guests: "2", checkin: "2026-11-05", checkout: "2026-11-08", amen: "Wi-Fi" }, { tab: "rent" });
+  for (const k of ["guests", "checkin", "checkout", "amen"]) assert.equal(p.get(k), null, k);
+});
+
+test("stays tab: type options, heading and breadcrumb", () => {
+  assert.deepEqual(searchTypeOptions("stays").map((o) => o.value), ["shortlet", "hotel_room", "airbnb"]);
+  assert.equal(listingsHeading(readFilters(new URLSearchParams("tab=stays"))), "Shortlets & hotels in Nigeria");
+  assert.equal(browsePath({ category: "stays", listing_type: "rent" }), "/listings?tab=stays");
 });

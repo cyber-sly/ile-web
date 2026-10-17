@@ -6,10 +6,12 @@ import { stateLabel } from "./nigeria.js";
 export const PAGE_SIZE = 24;
 
 // Rent and Buy cover homes and land (ptype "land" narrows to any land);
+// Shortlets covers stays (shortlets, hotel rooms, Airbnbs) by the night;
 // Commercial covers both purposes.
 export const SEARCH_TABS = [
   { value: "rent", label: "Rent", heading: "Homes for rent" },
   { value: "sale", label: "Buy", heading: "Homes for sale" },
+  { value: "stays", label: "Shortlets", heading: "Shortlets & hotels" },
   { value: "commercial", label: "Commercial", heading: "Commercial property" },
 ];
 
@@ -22,6 +24,7 @@ const typesIn = (category) => PROPERTY_TYPES.filter((t) => t.category === catego
 // land, then each land type; Commercial lists commercial types.
 export function searchTypeOptions(tab) {
   if (tab === "commercial") return typesIn("commercial");
+  if (tab === "stays") return typesIn("stays");
   return [...typesIn("homes"), { value: LAND_TYPE, label: "Land (any)" }, ...typesIn("land")];
 }
 
@@ -36,6 +39,7 @@ export function browsePath(listing) {
   const category = categoryOf(listing);
   const sale = listing.listing_type === "sale";
   if (category === "commercial") return "/listings?tab=commercial";
+  if (category === "stays") return "/listings?tab=stays";
   const params = new URLSearchParams();
   if (sale) params.set("tab", "sale");
   if (category === "land") params.set("ptype", LAND_TYPE);
@@ -49,7 +53,19 @@ export const SORTS = [
   { value: "high", label: "Highest price" },
 ];
 
-const KEYS = ["tab", "q", "state", "lga", "ptype", "purpose", "min", "max", "beds", "title", "sort"];
+const KEYS = ["tab", "q", "state", "lga", "ptype", "purpose", "min", "max", "beds", "title", "sort", "guests", "checkin", "checkout", "amen"];
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+// Check-in and check-out when both are real dates in the right order.
+export function stayDates(f) {
+  return DATE.test(f.checkin || "") && DATE.test(f.checkout || "") && f.checkout > f.checkin
+    ? { checkIn: f.checkin, checkOut: f.checkout }
+    : null;
+}
+
+// "Wi-Fi,Kitchen" -> ["Wi-Fi", "Kitchen"]
+export const amenitiesFilter = (f) => (f.amen || "").split(",").map((a) => a.trim()).filter(Boolean);
 
 export function readFilters(searchParams) {
   const f = Object.fromEntries(KEYS.map((k) => [k, searchParams.get(k) || ""]));
@@ -69,7 +85,7 @@ export function readFilters(searchParams) {
 export function nextParams(current, changes) {
   const merged = { ...current, ...changes };
   if ("tab" in changes && changes.tab !== current.tab) {
-    Object.assign(merged, { ptype: "", purpose: "", beds: "", title: "" });
+    Object.assign(merged, { ptype: "", purpose: "", beds: "", title: "", guests: "", checkin: "", checkout: "", amen: "" });
   }
   // A new state clears the LGA, unless one for that state comes with it (Near me).
   if ("state" in changes && changes.state !== current.state && !("lga" in changes)) merged.lga = "";
@@ -91,12 +107,40 @@ function clean(text) {
 const missingBoostColumn = (error) => error?.code === "42703" && /boosted_until/.test(error.message || "");
 
 // Runs the search: { data, count, error }.
-export async function buildQuery(client, f, page = 0) {
-  const result = await searchQuery(client, f, page, true);
-  return missingBoostColumn(result.error) ? searchQuery(client, f, page, false) : result;
+// Before supabase/stays.sql has been run there are no stay columns or the
+// stays_unavailable function; stays searches then run without stay filters.
+const missingStayColumn = (error) => error?.code === "42703" && /max_guests|features/.test(error.message || "");
+const missingFunction = (error) => error?.code === "PGRST202" || /could not find the function/i.test(error?.message || "");
+
+// Stays already booked (accepted) for the chosen dates; [] if unknown.
+async function unavailableStays(client, f) {
+  const dates = f.tab === "stays" ? stayDates(f) : null;
+  if (!dates || !client.rpc) return [];
+  try {
+    const { data, error } = await client.rpc("stays_unavailable", { p_check_in: dates.checkIn, p_check_out: dates.checkOut });
+    if (error) {
+      if (missingFunction(error)) return [];
+      throw new Error(error.message);
+    }
+    return (data || []).map(String);
+  } catch {
+    return [];
+  }
 }
 
-function searchQuery(client, f, page, boostFirst) {
+export function buildQuery(client, f, page = 0) {
+  const run = async (exclude) => {
+    const opts = { boostFirst: true, stayFilters: true, exclude };
+    let result = await searchQuery(client, f, page, opts);
+    if (missingStayColumn(result.error)) result = await searchQuery(client, f, page, { ...opts, stayFilters: false });
+    if (missingBoostColumn(result.error)) result = await searchQuery(client, f, page, { ...opts, boostFirst: false, stayFilters: false });
+    return result;
+  };
+  // Only a Shortlets search with dates needs the booked-stays lookup first.
+  return f.tab === "stays" && stayDates(f) ? unavailableStays(client, f).then(run) : run([]);
+}
+
+function searchQuery(client, f, page, { boostFirst, stayFilters, exclude }) {
   let query = client
     .from("listings")
     .select("*", { count: "exact" })
@@ -118,6 +162,12 @@ function searchQuery(client, f, page, boostFirst) {
   if (Number(f.max) > 0) query = query.lte("price", Number(f.max));
   if (Number(f.beds) > 0) query = query.gte("bedrooms", Number(f.beds));
   if (f.title) query = query.eq("title_document", f.title);
+  if (f.tab === "stays" && stayFilters) {
+    if (Number(f.guests) > 0) query = query.gte("max_guests", Number(f.guests));
+    const amen = amenitiesFilter(f);
+    if (amen.length) query = query.contains("features", amen);
+    if (exclude.length) query = query.not("id", "in", `(${exclude.join(",")})`);
+  }
 
   const q = clean(f.q || "");
   if (q) {

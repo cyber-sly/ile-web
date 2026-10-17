@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { buildQuery as buildQueryWith } from "@shared/search.js";
 
-export { PAGE_SIZE, SEARCH_TABS, SORTS, readFilters, nextParams, listingsHeading, searchTypeOptions, isLandSearch, browsePath } from "@shared/search.js";
+export { PAGE_SIZE, SEARCH_TABS, SORTS, readFilters, nextParams, listingsHeading, searchTypeOptions, isLandSearch, browsePath, stayDates, amenitiesFilter } from "@shared/search.js";
 
 export function buildQuery(f, page = 0) {
   return buildQueryWith(supabase, f, page);
