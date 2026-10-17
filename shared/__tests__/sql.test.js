@@ -123,3 +123,25 @@ test("profiles_privacy.sql tidies old-format phones before the phone check", () 
   const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "profiles_privacy.sql"), "utf8");
   assert.ok(sql.indexOf("set phone = '+234'") > 0 && sql.indexOf("set phone = '+234'") < sql.indexOf("add constraint profiles_phone_check"));
 });
+
+test("presence_edit.sql locks presence down and guards edits", () => {
+  const sql = readFileSync(join(import.meta.dirname, "..", "..", "supabase", "presence_edit.sql"), "utf8");
+  assert.doesNotMatch(sql, /grant [^;]* on (table )?public\.presence\b/);
+  const fn = (name) => {
+    const start = sql.indexOf(`function public.${name}(`);
+    return start < 0 ? "" : sql.slice(start, sql.indexOf("\n$$;", start));
+  };
+  assert.match(fn("chat_presence"), /auth\.uid\(\)/);
+  const edit = fn("edit_message");
+  assert.match(edit, /sender_id/);
+  assert.match(edit, /3 minutes 15 seconds/);
+  assert.match(edit, /set_config\('ile\.editing', 'on', true\)/);
+  const guard = fn("guard_message_update");
+  assert.match(guard, /Messages cannot be edited/);
+  assert.match(guard, /Only the recipient can mark a message read/);
+  assert.match(guard, /new\.sender_id is null and old\.sender_id = auth\.uid\(\)/);
+  assert.match(guard, /ile\.editing/);
+  for (const f of ["touch_presence()", "chat_presence(uuid[])", "edit_message(uuid, text)"]) {
+    assert.ok(sql.includes(`revoke execute on function public.${f} from public, anon`), f);
+  }
+});
