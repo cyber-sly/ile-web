@@ -49,3 +49,12 @@ test("touchPresence never throws", async () => {
   await touchPresence({ rpc: async () => Promise.reject(new Error("offline")) });
   await touchPresence({ rpc: async () => ({ error: { message: "missing" } }) });
 });
+
+test("touchPresence records the server clock so serverNow follows it", async () => {
+  const { serverNow, setServerClock } = await import("../presence.js");
+  const local = Date.now();
+  await touchPresence({ rpc: async () => ({ data: new Date(local + 300000).toISOString(), error: null }) });
+  assert.ok(Math.abs(serverNow().getTime() - (Date.now() + 300000)) < 2000);
+  setServerClock(null);
+  assert.ok(Math.abs(serverNow().getTime() - Date.now()) < 50);
+});

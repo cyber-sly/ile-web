@@ -25,3 +25,12 @@ test("PresenceLine shows Online, Last seen, or nothing", () => {
   expect(texts(render("2026-10-17T12:00:00Z"))[0]).toMatch(/^Last seen /);
   expect(render(null).toJSON()).toBeNull();
 });
+
+test("PresenceLine moves from Online to Last seen without new data", () => {
+  const r = render("2026-10-17T14:59:30Z");
+  expect(texts(r)).toEqual(["Online"]);
+  act(() => {
+    jest.advanceTimersByTime(3 * 60 * 1000);
+  });
+  expect(texts(r)[0]).toMatch(/^Last seen /);
+});

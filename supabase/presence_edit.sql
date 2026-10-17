@@ -21,9 +21,11 @@ alter table public.presence enable row level security;
 revoke all on public.presence from anon, authenticated;
 
 -- Check in. Skips the write if the last check-in was under 50 seconds ago
--- (several tabs, quick reconnects).
-create or replace function public.touch_presence()
-returns void
+-- (several tabs, quick reconnects). Returns the server's time so the app can
+-- allow for a phone clock that is set wrong.
+drop function if exists public.touch_presence();
+create function public.touch_presence()
+returns timestamptz
 language sql
 security definer
 set search_path = public
@@ -33,6 +35,7 @@ as $$
   where auth.uid() is not null
   on conflict (user_id) do update set last_seen_at = now()
   where presence.last_seen_at < now() - interval '50 seconds';
+  select now();
 $$;
 
 revoke execute on function public.touch_presence() from public, anon;

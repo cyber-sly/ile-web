@@ -4,6 +4,20 @@
 export const ONLINE_MS = 2 * 60 * 1000;
 export const CHECK_IN_MS = 60 * 1000;
 
+// Gap between this device's clock and the server's, learned at each check-in,
+// so a phone set a few minutes wrong still shows the right status and Edit.
+let offsetMs = 0;
+
+/** @param {string | null} serverIso @param {number} [localMs] */
+export function setServerClock(serverIso, localMs = Date.now()) {
+  const server = serverIso ? new Date(serverIso).getTime() : NaN;
+  offsetMs = Number.isNaN(server) ? 0 : server - localMs;
+}
+
+export function serverNow() {
+  return new Date(Date.now() + offsetMs);
+}
+
 const ZONE = "Africa/Lagos";
 const dayKey = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 const lagosYear = (d) => new Intl.DateTimeFormat("en-GB", { timeZone: ZONE, year: "numeric" }).format(d);
@@ -11,7 +25,7 @@ const lagosYear = (d) => new Intl.DateTimeFormat("en-GB", { timeZone: ZONE, year
 // "Online", "Last seen 10:42", "Last seen yesterday", "Last seen 12 Oct", or
 // null when there's nothing to show.
 /** @param {string | null | undefined} lastSeenAt @param {Date} [now] */
-export function presenceLabel(lastSeenAt, now = new Date()) {
+export function presenceLabel(lastSeenAt, now = serverNow()) {
   if (!lastSeenAt) return null;
   const seen = new Date(lastSeenAt);
   if (Number.isNaN(seen.getTime())) return null;
@@ -33,7 +47,8 @@ export function presenceLabel(lastSeenAt, now = new Date()) {
 // Check in. Never throws: presence is a nice-to-have.
 export async function touchPresence(client) {
   try {
-    await client.rpc("touch_presence");
+    const { data } = await client.rpc("touch_presence");
+    if (typeof data === "string") setServerClock(data);
   } catch {
     // offline or SQL not run yet
   }

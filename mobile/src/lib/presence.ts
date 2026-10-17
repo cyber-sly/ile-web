@@ -39,6 +39,14 @@ export function usePresenceCheckIn() {
 export function useChatPresence(conversationIds: string[]): Record<string, string> {
   const active = useAppActive();
   const ids = [...new Set(conversationIds)].sort();
+  // Redraw every 30 s so inbox dots go out when someone leaves, even though
+  // their saved time (and so the query data) stops changing.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!active || ids.length === 0) return;
+    const timer = setInterval(() => setTick((n) => n + 1), 30 * 1000);
+    return () => clearInterval(timer);
+  }, [active, ids.length]);
   const { data } = useQuery({
     queryKey: ["chat-presence", ...ids],
     queryFn: () => fetchChatPresence(supabase, ids) as Promise<Record<string, string>>,

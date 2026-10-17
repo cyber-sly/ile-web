@@ -116,3 +116,13 @@ test("editMessage passes the window error through friendly", async () => {
   const client = { rpc: async () => ({ data: null, error: { code: "P0001", message: msg } }) };
   await assert.rejects(editMessage(client, "m1", "new"), (e) => friendlyError(e) === msg);
 });
+
+test("canEdit uses the server clock when the device clock is slow", async () => {
+  const { setServerClock } = await import("../presence.js");
+  const local = Date.now();
+  setServerClock(new Date(local + 300000).toISOString(), local); // device 5 minutes slow
+  const msg = { id: "m1", sender_id: "me", body: "hi", edited_at: null, read_at: null, created_at: new Date(local + 300000 - 250000).toISOString() };
+  assert.equal(canEdit(msg, "me"), false); // really 250 s old
+  assert.equal(canEdit({ ...msg, created_at: new Date(local + 300000 - 30000).toISOString() }, "me"), true);
+  setServerClock(null);
+});

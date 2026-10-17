@@ -1,6 +1,7 @@
 // In-app messages: conversations about a listing between a home-seeker and
 // a lister. Shared by the website and the app.
 import { fetchPeople } from "./people.js";
+import { serverNow } from "./presence.js";
 
 export const MAX_MESSAGE = 2000;
 
@@ -120,7 +121,7 @@ export const EDIT_WINDOW_MS = 3 * 60 * 1000;
 // A minute of clock difference the other way is tolerated; the database is
 // the final judge.
 /** @param {any} message @param {string} userId @param {Date} [now] */
-export function canEdit(message, userId, now = new Date()) {
+export function canEdit(message, userId, now = serverNow()) {
   if (!message || !("edited_at" in message) || message.pending) return false;
   if (!userId || message.sender_id !== userId || String(message.id).startsWith("temp-")) return false;
   const age = now.getTime() - new Date(message.created_at).getTime();
