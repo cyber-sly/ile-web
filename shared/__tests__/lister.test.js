@@ -165,3 +165,60 @@ test("fetchAvailability reports a failed load instead of 'no listing'", async ()
   });
   await assert.rejects(fetchAvailability(failing, "l1"));
 });
+
+const stayDraft = {
+  ...homeDraft,
+  category: "stays",
+  propertyType: "shortlet",
+  price: "45000",
+  maxGuests: "4",
+  minNights: "2",
+  checkInTime: "14:00",
+  checkOutTime: "11:00",
+  cleaningFee: "10000",
+  houseRules: " No parties ",
+  features: ["Wi-Fi", "Kitchen"],
+};
+
+test("stays draft saves stay fields and per-night price", () => {
+  const row = draftToRow(stayDraft);
+  assert.equal(row.price_period, "night");
+  assert.equal(row.max_guests, 4);
+  assert.equal(row.min_nights, 2);
+  assert.equal(row.check_in_time, "14:00");
+  assert.equal(row.cleaning_fee, 10000);
+  assert.equal(row.caution_deposit, 500000);
+  assert.equal(row.house_rules, "No parties");
+  assert.equal(row.hotel_name, null);
+  assert.equal(row.bedrooms, 2);
+  assert.deepEqual(row.features, ["Wi-Fi", "Kitchen"]);
+});
+
+test("non-stays drafts save no stay fields", () => {
+  const row = draftToRow({ ...homeDraft, maxGuests: "4", hotelName: "X" });
+  for (const k of ["max_guests", "min_nights", "check_in_time", "check_out_time", "cleaning_fee", "hotel_name", "house_rules"]) {
+    assert.equal(row[k], null, k);
+  }
+});
+
+test("stays drafts are validated", () => {
+  assert.equal(validateDraft({ ...stayDraft, propertyType: "hotel_room", hotelName: "" }).hotelName, "Enter the hotel's name.");
+  assert.equal(validateDraft({ ...stayDraft, maxGuests: "0" }).maxGuests, "Enter how many guests can stay (1–50).");
+  assert.equal(validateDraft({ ...stayDraft, minNights: "400" }).minNights, "Minimum nights must be between 1 and 365.");
+  assert.equal(validateDraft({ ...stayDraft, cleaningFee: "-5" }).cleaningFee, "Enter ₦0 or more.");
+  assert.equal(validateDraft({ ...stayDraft, houseRules: "x".repeat(1001) }).houseRules, "Keep house rules under 1000 characters.");
+  assert.deepEqual(validateDraft({ ...stayDraft, propertyType: "hotel_room", hotelName: "Eko Suites" }), {});
+});
+
+test("old features become amenities", () => {
+  assert.deepEqual(draftFromListing({ features: ["Borehole", "POP"] }).features, ["Borehole", "POP"]);
+  assert.deepEqual(draftFromListing({}).features, []);
+});
+
+test("features are trimmed, deduped and capped at 30", () => {
+  const many = Array.from({ length: 35 }, (_, i) => `Item ${i}`);
+  assert.equal(draftToRow({ ...homeDraft, features: many }).features.length, 30);
+  assert.deepEqual(draftToRow({ ...homeDraft, features: [" Wi-Fi ", "Wi-Fi", ""] }).features, ["Wi-Fi"]);
+  assert.deepEqual(draftToRow({ ...homeDraft, features: "Borehole, POP" }).features, ["Borehole", "POP"]);
+  assert.equal(validateDraft({ ...homeDraft, features: ["x".repeat(41)] }).features, "Up to 30 amenities, each under 40 characters.");
+});

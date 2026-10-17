@@ -40,8 +40,37 @@ export const EMPTY_DRAFT = {
   caution: "",
   serviceCharge: "",
   description: "",
-  features: "",
+  features: [],
+  // Stays only.
+  maxGuests: "",
+  minNights: "1",
+  checkInTime: "",
+  checkOutTime: "",
+  cleaningFee: "",
+  hotelName: "",
+  houseRules: "",
 };
+
+export const MAX_AMENITIES = 30;
+export const MAX_AMENITY = 40;
+export const MAX_HOTEL_NAME = 100;
+export const MAX_HOUSE_RULES = 1000;
+
+// Amenities as a clean list: accepts the old comma-separated text too.
+export function amenityList(features) {
+  const raw = Array.isArray(features) ? features : String(features || "").split(",");
+  const seen = new Set();
+  const out = [];
+  for (const item of raw) {
+    const label = String(item).trim();
+    if (!label || seen.has(label.toLowerCase())) continue;
+    seen.add(label.toLowerCase());
+    out.push(label);
+  }
+  return out;
+}
+
+const time = (t) => (t ? String(t).slice(0, 5) : "");
 
 const str = (v) => (v === null || v === undefined ? "" : String(v));
 const num = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
@@ -74,7 +103,14 @@ export function draftFromListing(l) {
     caution: str(l.caution_deposit),
     serviceCharge: str(l.service_charge),
     description: l.description || "",
-    features: (l.features || []).join(", "),
+    features: amenityList(l.features),
+    maxGuests: str(l.max_guests),
+    minNights: l.min_nights ? String(l.min_nights) : "1",
+    checkInTime: time(l.check_in_time),
+    checkOutTime: time(l.check_out_time),
+    cleaningFee: str(l.cleaning_fee),
+    hotelName: l.hotel_name || "",
+    houseRules: l.house_rules || "",
   };
 }
 
@@ -83,10 +119,12 @@ export function draftFromListing(l) {
 export function draftToRow(v) {
   const isHomes = v.category === "homes";
   const isLand = v.category === "land";
-  const isRent = v.listingType === "rent";
+  const isStay = v.category === "stays";
+  const isRent = v.listingType === "rent" || isStay;
+  const roomy = isHomes || isStay;
   return {
     category: v.category,
-    listing_type: v.listingType,
+    listing_type: isStay ? "rent" : v.listingType,
     property_type: v.propertyType,
     lister_type: v.listerType,
     state: v.state || null,
@@ -96,9 +134,9 @@ export function draftToRow(v) {
     address: v.address.trim(),
     title: v.title.trim(),
     price: Number(v.price) || 0,
-    price_period: v.pricePeriod,
-    bedrooms: isHomes ? num(v.bedrooms) ?? 0 : 0,
-    bathrooms: isHomes ? num(v.bathrooms) : null,
+    price_period: isStay ? "night" : v.pricePeriod,
+    bedrooms: roomy ? num(v.bedrooms) ?? 0 : 0,
+    bathrooms: roomy ? num(v.bathrooms) : null,
     toilets: isLand ? null : num(v.toilets),
     furnishing: isHomes ? v.furnishing || null : null,
     serviced: isHomes ? v.serviced : false,
@@ -111,7 +149,14 @@ export function draftToRow(v) {
     caution_deposit: isRent ? num(v.caution) : null,
     service_charge: isLand ? null : num(v.serviceCharge),
     description: v.description.trim(),
-    features: v.features.split(",").map((f) => f.trim()).filter(Boolean),
+    features: amenityList(v.features).slice(0, MAX_AMENITIES),
+    max_guests: isStay ? num(v.maxGuests) : null,
+    min_nights: isStay ? num(v.minNights) ?? 1 : null,
+    check_in_time: isStay ? v.checkInTime || null : null,
+    check_out_time: isStay ? v.checkOutTime || null : null,
+    cleaning_fee: isStay ? num(v.cleaningFee) : null,
+    hotel_name: isStay && v.propertyType === "hotel_room" ? (v.hotelName || "").trim() || null : null,
+    house_rules: isStay ? (v.houseRules || "").trim() || null : null,
   };
 }
 
@@ -132,6 +177,20 @@ export function validateDraft(v) {
     if (v[k] !== "" && (Number(v[k]) < 0 || Number(v[k]) > 100)) er[k] = "Enter a percentage between 0 and 100.";
   }
   if (v.description.trim().length > MAX_DESCRIPTION) er.description = `Keep the description under ${MAX_DESCRIPTION} characters.`;
+  if (v.category === "stays") {
+    const guests = Number(v.maxGuests);
+    if (!Number.isInteger(guests) || guests < 1 || guests > 50) er.maxGuests = "Enter how many guests can stay (1–50).";
+    const nights = Number(v.minNights || 1);
+    if (!Number.isInteger(nights) || nights < 1 || nights > 365) er.minNights = "Minimum nights must be between 1 and 365.";
+    if (v.propertyType === "hotel_room" && !(v.hotelName || "").trim()) er.hotelName = "Enter the hotel's name.";
+    else if ((v.hotelName || "").trim().length > MAX_HOTEL_NAME) er.hotelName = `Keep the hotel name under ${MAX_HOTEL_NAME} characters.`;
+    if (v.cleaningFee !== "" && !(Number(v.cleaningFee) >= 0)) er.cleaningFee = "Enter ₦0 or more.";
+    if ((v.houseRules || "").trim().length > MAX_HOUSE_RULES) er.houseRules = `Keep house rules under ${MAX_HOUSE_RULES} characters.`;
+  }
+  const amenities = amenityList(v.features);
+  if (amenities.length > MAX_AMENITIES || amenities.some((a) => a.length > MAX_AMENITY)) {
+    er.features = `Up to ${MAX_AMENITIES} amenities, each under ${MAX_AMENITY} characters.`;
+  }
   return er;
 }
 

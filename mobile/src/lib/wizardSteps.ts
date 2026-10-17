@@ -1,13 +1,19 @@
 import { validateDraft } from "@shared/lister.js";
 
-// The listing wizard's steps, in order.
-export const STEPS = ["what", "where", "details", "price", "photos", "review"] as const;
+// The listing wizard's steps, in order. "stay" only appears for stays.
+export const STEPS = ["what", "where", "details", "stay", "amenities", "price", "photos", "review"] as const;
 export type Step = (typeof STEPS)[number];
+
+export function stepsFor(category: string): Step[] {
+  return STEPS.filter((s) => s !== "stay" || category === "stays");
+}
 
 export const STEP_TITLES: Record<Step, string> = {
   what: "What are you listing?",
   where: "Where is it?",
   details: "Tell people about it",
+  stay: "Stay rules",
+  amenities: "Amenities",
   price: "Price and fees",
   photos: "Photos and videos",
   review: "Review and publish",
@@ -18,9 +24,14 @@ const FIELDS: Record<Step, string[]> = {
   what: [],
   where: ["state", "lga"],
   details: ["title", "bedrooms", "sizeValue", "description"],
-  price: ["price", "agencyFee", "legalFee"],
+  stay: ["maxGuests", "minNights", "hotelName", "houseRules"],
+  amenities: ["features"],
+  price: ["price", "agencyFee", "legalFee", "cleaningFee"],
   photos: [],
-  review: ["state", "lga", "title", "bedrooms", "sizeValue", "description", "price", "agencyFee", "legalFee"],
+  review: [
+    "state", "lga", "title", "bedrooms", "sizeValue", "description", "maxGuests", "minNights", "hotelName", "houseRules",
+    "features", "price", "agencyFee", "legalFee", "cleaningFee",
+  ],
 };
 
 export function stepErrors(step: Step, draft: Record<string, any>, photoCount: number): Record<string, string> {
