@@ -42,3 +42,10 @@ test('bookings, not viewings: "Fix a booking" and booking wording', () => {
   // (code names like ViewingCard or MyViewings don't match).
   assert.deepEqual(offenders(/\bViewings?\b/), []);
 });
+
+test("listing form offers amenities and stays", () => {
+  const form = readFileSync(join(ROOT, "src/components/ListingForm.jsx"), "utf8");
+  assert.match(form, /AmenityPicker/);
+  assert.match(form, /"stays"/);
+  assert.match(form, /Price per night/);
+});

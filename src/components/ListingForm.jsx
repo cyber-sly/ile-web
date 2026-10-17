@@ -16,9 +16,11 @@ import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
 import { formatNaira } from "@/lib/format";
-import { ImagePlus, VideoIcon, X, MapPin, Star, Home, Trees, Store } from "lucide-react";
+import { ImagePlus, VideoIcon, X, MapPin, Star, Home, Trees, Store, BedDouble } from "lucide-react";
+import AmenityPicker from "@/components/AmenityPicker";
+import { useStaysReady } from "@/lib/stays";
 
-const CATEGORY_ICONS = { homes: Home, land: Trees, commercial: Store };
+const CATEGORY_ICONS = { homes: Home, land: Trees, commercial: Store, stays: BedDouble };
 
 const EMPTY = EMPTY_DRAFT;
 const fromListing = draftFromListing;
@@ -105,14 +107,18 @@ export default function ListingForm({ listing, userId }) {
   const saving = status !== "";
   const isHomes = v.category === "homes";
   const isLand = v.category === "land";
-  const isRent = v.listingType === "rent";
+  const isStay = v.category === "stays";
+  const isRent = v.listingType === "rent" || isStay;
+  // Stays can be offered once supabase/stays.sql has been run.
+  const staysReady = useStaysReady();
 
   const set = (key) => (e) => setValues((prev) => ({ ...prev, [key]: e.target.value }));
   const patch = (changes) => setValues((prev) => ({ ...prev, ...changes }));
 
   function setCategory(category) {
     const firstType = PROPERTY_TYPES.find((t) => t.category === category).value;
-    patch({ category, propertyType: firstType, pricePeriod: defaultPeriod(v.listingType) });
+    if (category === "stays") patch({ category, propertyType: firstType, listingType: "rent", pricePeriod: "night" });
+    else patch({ category, propertyType: firstType, pricePeriod: defaultPeriod(v.listingType) });
   }
 
   function setListingType(listingType) {
@@ -266,10 +272,11 @@ export default function ListingForm({ listing, userId }) {
           name="category"
           value={v.category}
           onChange={setCategory}
-          options={CATEGORIES.map((c) => ({ ...c, icon: CATEGORY_ICONS[c.value] }))}
+          columns="grid-cols-2 sm:grid-cols-4"
+          options={CATEGORIES.filter((c) => c.value !== "stays" || staysReady || isStay).map((c) => ({ ...c, icon: CATEGORY_ICONS[c.value] }))}
         />
         <div className="grid gap-5 sm:grid-cols-2">
-          <Segmented
+          {!isStay && <Segmented
             legend="Rent or sell"
             name="listingType"
             value={v.listingType}
@@ -278,7 +285,7 @@ export default function ListingForm({ listing, userId }) {
               { value: "rent", label: isHomes ? "For rent" : "For rent / lease" },
               { value: "sale", label: "For sale" },
             ]}
-          />
+          />}
           <Field as="select" label="Property type" value={v.propertyType} onChange={set("propertyType")}>
             {typeOptions.map((t) => (
               <option key={t.value} value={t.value}>
@@ -421,6 +428,35 @@ export default function ListingForm({ listing, userId }) {
           </>
         )}
 
+        {isStay && (
+          <>
+            {v.propertyType === "hotel_room" && (
+              <Field label="Hotel name" maxLength={100} placeholder="e.g. Eko Suites" value={v.hotelName} onChange={set("hotelName")} error={errors.hotelName} hint="Your rooms are grouped under this name." required />
+            )}
+            <div className="grid grid-cols-3 gap-3 sm:gap-5">
+              <Field label="Bedrooms" optional type="number" inputMode="numeric" min={0} step={1} value={v.bedrooms} onChange={set("bedrooms")} />
+              <Field label="Bathrooms" optional type="number" inputMode="numeric" min={0} step={1} value={v.bathrooms} onChange={set("bathrooms")} />
+              <Field label="Max guests" type="number" inputMode="numeric" min={1} max={50} step={1} value={v.maxGuests} onChange={set("maxGuests")} error={errors.maxGuests} required />
+            </div>
+            <div className="grid grid-cols-3 gap-3 sm:gap-5">
+              <Field label="Minimum nights" type="number" inputMode="numeric" min={1} max={365} step={1} value={v.minNights} onChange={set("minNights")} error={errors.minNights} />
+              <Field label="Check-in from" optional type="time" value={v.checkInTime} onChange={set("checkInTime")} />
+              <Field label="Check-out by" optional type="time" value={v.checkOutTime} onChange={set("checkOutTime")} />
+            </div>
+            <Field
+              as="textarea"
+              label="House rules"
+              optional
+              rows={3}
+              maxLength={1000}
+              placeholder="e.g. No parties. No smoking indoors. Quiet after 10pm."
+              value={v.houseRules}
+              onChange={set("houseRules")}
+              error={errors.houseRules}
+            />
+          </>
+        )}
+
         {v.category === "commercial" && (
           <div className="grid grid-cols-3 gap-3 sm:gap-5">
             <Field label="Size (sqm)" optional type="number" inputMode="numeric" min={1} value={v.sizeValue} onChange={set("sizeValue")} />
@@ -433,7 +469,7 @@ export default function ListingForm({ listing, userId }) {
       <Section title="Price and costs" description="Show the full cost upfront. Listings with clear costs earn more trust.">
         <div className="grid grid-cols-[1fr_auto] gap-3">
           <Field
-            label={isRent ? "Rent (₦)" : "Price (₦)"}
+            label={isStay ? "Price per night (₦)" : isRent ? "Rent (₦)" : "Price (₦)"}
             type="number"
             inputMode="numeric"
             min={1}
@@ -453,7 +489,13 @@ export default function ListingForm({ listing, userId }) {
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-5">
+        {isStay && (
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+            <Field label="Cleaning fee (₦)" optional type="number" inputMode="numeric" min={0} step={1} value={v.cleaningFee} onChange={set("cleaningFee")} error={errors.cleaningFee} hint="Once per stay" />
+            <Field label="Caution deposit (₦)" optional type="number" inputMode="numeric" min={0} step={1} value={v.caution} onChange={set("caution")} hint="Refundable, once per stay" />
+          </div>
+        )}
+        {!isStay && <div className="grid grid-cols-2 gap-3 sm:gap-5">
           <Field label="Agency fee (%)" optional type="number" inputMode="decimal" min={0} max={100} step="any" placeholder="e.g. 10" value={v.agencyFee} onChange={set("agencyFee")} error={errors.agencyFee} />
           <Field label="Legal / agreement fee (%)" optional type="number" inputMode="decimal" min={0} max={100} step="any" placeholder="e.g. 10" value={v.legalFee} onChange={set("legalFee")} error={errors.legalFee} />
           {isRent && (
@@ -462,10 +504,10 @@ export default function ListingForm({ listing, userId }) {
           {!isLand && (
             <Field label="Service charge (₦/year)" optional type="number" inputMode="numeric" min={0} step={1} value={v.serviceCharge} onChange={set("serviceCharge")} />
           )}
-        </div>
+        </div>}
         {warning && <Alert>{warning}</Alert>}
 
-        {Number(v.price) > 0 && cost.hasExtras && (
+        {!isStay && Number(v.price) > 0 && cost.hasExtras && (
           <div className="rounded-[var(--radius-control)] bg-cream p-4">
             <p className="text-sm font-semibold text-ink">{isRent ? "Total to move in" : "Estimated total"}</p>
             <dl className="mt-2 space-y-1 text-sm">
@@ -487,7 +529,7 @@ export default function ListingForm({ listing, userId }) {
       <Section title="Describe it" description="Help people decide before they fix a booking.">
         <Field
           label="Title"
-          placeholder={isHomes ? "e.g. 3 bedroom flat with BQ" : isLand ? "e.g. Dry 600sqm plot in a gated estate" : "e.g. Ground-floor shop on a busy road"}
+          placeholder={isStay ? "e.g. Cosy 2-bed shortlet in Lekki" : isHomes ? "e.g. 3 bedroom flat with BQ" : isLand ? "e.g. Dry 600sqm plot in a gated estate" : "e.g. Ground-floor shop on a busy road"}
           maxLength={120}
           value={v.title}
           onChange={set("title")}
@@ -504,14 +546,7 @@ export default function ListingForm({ listing, userId }) {
           value={v.description}
           onChange={set("description")}
         />
-        <Field
-          label="Features"
-          optional
-          placeholder={isLand ? "e.g. Dry land, Tarred road, Fenced estate" : "e.g. 24/7 power, Fenced compound, Parking for 2 cars"}
-          hint="Separate each feature with a comma."
-          value={v.features}
-          onChange={set("features")}
-        />
+        <AmenityPicker category={v.category} value={v.features} onChange={(features) => patch({ features })} error={errors.features} />
       </Section>
 
       <Section
