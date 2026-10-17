@@ -78,7 +78,12 @@ export default function StayCard({
         {s.guests === 1 ? "guest" : "guests"}
       </Text>
       <Text style={styles.line}>
-        {role === "host" && personName ? `${personName} · ` : ""}
+        {role === "host" && personName ? (
+          <Text accessibilityRole="link" style={styles.link} onPress={() => router.push({ pathname: "/u/[id]", params: { id: String(s.guest_id) } })}>
+            {personName}
+          </Text>
+        ) : null}
+        {role === "host" && personName ? " · " : ""}
         <Text style={styles.strong}>{formatNaira(s.total)}</Text> total
       </Text>
       {s.note ? <Text style={styles.note}>“{s.note}”</Text> : null}
@@ -134,6 +139,7 @@ const styles = StyleSheet.create({
   muted: { fontFamily: fonts.sans, fontSize: 13, color: colors.inkMuted },
   line: { fontFamily: fonts.sans, fontSize: 14, color: colors.ink },
   strong: { fontFamily: fonts.sansBold },
+  link: { fontFamily: fonts.sansSemi, color: colors.palm },
   note: { padding: 10, borderRadius: radius.control, backgroundColor: colors.cream, fontFamily: fonts.sans, fontSize: 14, color: colors.ink },
   error: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.clay },
   decline: { gap: 8, marginTop: 4 },

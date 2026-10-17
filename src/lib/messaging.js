@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { startConversation as startConversationWith, fetchUnreadCount } from "@shared/messaging.js";
+import { fetchPeople } from "@shared/people.js";
 
 // Get or create the conversation for a listing and return its id.
 // Listers pass the tenant they want to message.
@@ -10,12 +11,10 @@ export function startConversation(listingId, tenantId = null) {
   return startConversationWith(supabase, listingId, tenantId);
 }
 
-// Names for a set of user ids, as { id: "Full Name" }.
+// Names people chose to show, for a set of user ids: { id: "Ada Obi" | "@ada" }.
 export async function fetchNames(ids) {
-  const unique = [...new Set(ids.filter(Boolean))];
-  if (unique.length === 0) return {};
-  const { data } = await supabase.from("profiles").select("id, full_name").in("id", unique);
-  return Object.fromEntries((data || []).map((p) => [p.id, p.full_name?.trim() || ""]));
+  const people = await fetchPeople(supabase, ids);
+  return Object.fromEntries(Object.entries(people).map(([id, p]) => [id, p.name]));
 }
 
 export function firstName(name, fallback = "Someone") {

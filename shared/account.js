@@ -2,6 +2,7 @@
 // reports, public lister profiles and account deletion. Functions that talk
 // to the database take a Supabase client first.
 import { freshCutoff } from "./property.js";
+import { displayName } from "./people.js";
 
 export const MIN_PASSWORD = 8;
 export const MEDIA_BUCKETS = ["listing-images", "listing-videos", "avatars"];
@@ -171,15 +172,22 @@ export async function reportListing(client, { listingId, userId, reason, details
 
 // --- Public lister profile -------------------------------------------------------
 
-// Rating, reviews (reviewers stay anonymous) and live listings for a lister.
+const PUBLIC_PROFILE =
+  "id, full_name, role, created_at, avatar_url, bio, languages, lister_type, business_name, office_address, areas_covered, listing_since, registration_body";
+
+// Before supabase/profiles_privacy.sql is run there are no username columns.
+async function fetchPublicProfile(client, id) {
+  const first = await client.from("profiles").select(`${PUBLIC_PROFILE}, username, show_as`).eq("id", id).maybeSingle();
+  if (first.error?.code !== "42703") return first;
+  return client.from("profiles").select(PUBLIC_PROFILE).eq("id", id).maybeSingle();
+}
+
+// Anyone's public profile: basic details for everyone; listers also get their
+// rating, reviews (reviewers stay anonymous) and live listings.
 export async function fetchListerProfile(client, id) {
   if (!UUID.test(String(id))) return null;
   const [{ data: profile }, { data: ratingRows }, { data: reviews }, { data: listings }] = await Promise.all([
-    client
-      .from("profiles")
-      .select("id, full_name, created_at, avatar_url, bio, languages, lister_type, business_name, office_address, areas_covered, listing_since, registration_body")
-      .eq("id", id)
-      .maybeSingle(),
+    fetchPublicProfile(client, id),
     client.rpc("user_ratings", { p_users: [id], p_role: "lister" }),
     client
       .from("reviews")
@@ -198,6 +206,8 @@ export async function fetchListerProfile(client, id) {
       .limit(24),
   ]);
   if (!profile) return null;
+  profile.display_name = displayName(profile);
+  profile.is_lister = profile.role === "landlord" || Boolean(profile.lister_type) || (listings || []).length > 0;
   const { data: response } = await client.rpc("lister_response_times", { p_users: [id] });
   return {
     profile,

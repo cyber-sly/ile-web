@@ -41,10 +41,19 @@ export default function ListerProfileScreen() {
   if (!data.data) return <Screen title="This profile isn't available" subtitle="It may have been removed." />;
 
   const { profile, rating, reviews, listings, responseMinutes } = data.data;
-  const name = profile.business_name?.trim() || profile.full_name?.trim() || "Ile lister";
+  const lister = Boolean(profile.is_lister);
+  // A chosen @username wins; otherwise a lister's business name, then their name.
+  const name = profile.show_as === "username" && profile.username ? profile.display_name : profile.business_name?.trim() || profile.display_name;
   const reply = formatResponseTime(responseMinutes);
   const facts: { Icon: typeof Star; text: string }[] = [
-    profile.lister_type && { Icon: Building2, text: listerLabel(profile.lister_type) + (profile.business_name && profile.full_name ? ` · ${profile.full_name}` : "") },
+    {
+      Icon: Building2,
+      text: profile.lister_type
+        ? listerLabel(profile.lister_type) + (profile.business_name && profile.show_as !== "username" && profile.full_name ? ` · ${profile.full_name}` : "")
+        : lister
+          ? "Lister"
+          : "Home-seeker",
+    },
     profile.listing_since && { Icon: CalendarDays, text: `Listing property since ${profile.listing_since}` },
     { Icon: CalendarDays, text: `On Ile since ${monthYear(profile.created_at)}` },
     reply && { Icon: Clock, text: reply },
@@ -92,8 +101,8 @@ export default function ListerProfileScreen() {
         ))}
       </View>
 
-      <Text style={styles.section}>Listed now ({listings.length})</Text>
-      {listings.length === 0 ? (
+      {lister && <Text style={styles.section}>Listed now ({listings.length})</Text>}
+      {!lister ? null : listings.length === 0 ? (
         <EmptyState icon={HomeIcon} title="Nothing listed right now">
           Check back later, or browse other listings on Ile.
         </EmptyState>
@@ -105,8 +114,12 @@ export default function ListerProfileScreen() {
         </View>
       )}
 
-      <Text style={styles.section}>Reviews</Text>
-      <ReviewList reviews={reviews} />
+      {lister && (
+        <>
+          <Text style={styles.section}>Reviews</Text>
+          <ReviewList reviews={reviews} />
+        </>
+      )}
     </ScrollView>
   );
 }

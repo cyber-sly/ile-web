@@ -87,7 +87,12 @@ export default function RequestCard({ request: r, person, details, rating, onlin
         )}
         <View style={styles.info}>
           <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>
+            <Text
+              style={styles.name}
+              numberOfLines={1}
+              accessibilityRole={r.tenant_id ? "link" : undefined}
+              onPress={r.tenant_id ? () => router.push({ pathname: "/u/[id]", params: { id: String(r.tenant_id) } }) : undefined}
+            >
               {name}
             </Text>
             <StatusBadge status={r.status} />

@@ -106,7 +106,14 @@ function StayCard({ stay: s, role, user, today, person, reviewed, onChanged, onE
             {s.guests === 1 ? "guest" : "guests"}
           </p>
           <p className="text-sm text-ink">
-            {role === "host" ? `${name} · ` : ""}
+            {role === "host" && (
+              <>
+                <Link href={`/u/${s.guest_id}`} className="hover:text-palm hover:underline">
+                  {name}
+                </Link>
+                {" · "}
+              </>
+            )}
             <strong>{formatNaira(s.total)}</strong> total
           </p>
         </div>

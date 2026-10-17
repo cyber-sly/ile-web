@@ -480,7 +480,13 @@ function RequestCard({ inspection, name, avatar, info, rating, reviewed, onRevie
           </Link>
           <div className="mt-1.5 flex items-center gap-2">
             <Avatar src={avatar} name={name || "Home-seeker"} size="xs" />
-            <span className="text-sm text-ink">{name || "A home-seeker"}</span>
+            {inspection.tenant_id ? (
+              <Link href={`/u/${inspection.tenant_id}`} className="text-sm text-ink hover:text-palm hover:underline">
+                {name || "A home-seeker"}
+              </Link>
+            ) : (
+              <span className="text-sm text-ink">{name || "A home-seeker"}</span>
+            )}
           </div>
           <RatingSummary rating={rating} className="mt-0.5" />
           {(info?.occupation || info?.move_in_timeline) && (

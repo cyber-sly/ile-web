@@ -22,6 +22,7 @@ export default function ConversationPage() {
   const user = useUser();
   const [convo, setConvo] = useState(undefined);
   const [otherName, setOtherName] = useState("");
+  const [otherUserId, setOtherUserId] = useState(null);
   const [otherAvatar, setOtherAvatar] = useState(null);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
@@ -63,6 +64,7 @@ export default function ConversationPage() {
       ]);
       if (cancelled) return;
       setConvo(c);
+      setOtherUserId(otherId || null);
       setOtherName(otherId ? people[otherId]?.name || (c.tenant_id === user.id ? "The lister" : "Home-seeker") : "Deleted user");
       setOtherAvatar(otherId ? people[otherId]?.avatar || null : null);
       setMessages(msgs || []);
@@ -147,7 +149,13 @@ export default function ConversationPage() {
         </Link>
         <Avatar src={otherAvatar} name={otherName} size="sm" />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-ink">{otherName}</p>
+          {otherUserId ? (
+            <Link href={`/u/${otherUserId}`} className="block truncate font-semibold text-ink hover:text-palm">
+              {otherName}
+            </Link>
+          ) : (
+            <p className="truncate font-semibold text-ink">{otherName}</p>
+          )}
           <p className="text-xs text-ink-muted">{isTenant ? "Lister" : "Home-seeker"}</p>
         </div>
         {l && (
