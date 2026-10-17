@@ -155,3 +155,11 @@ export async function fetchStayRequests(client, listingIds) {
   }
   return data || [];
 }
+
+// Stay ids this person has already reviewed (so "Review" isn't offered twice).
+export async function fetchReviewedStayIds(client, stayIds, userId) {
+  if (!stayIds.length || !userId) return new Set();
+  const { data, error } = await client.from("reviews").select("stay_booking_id").in("stay_booking_id", stayIds).eq("reviewer_id", userId);
+  if (error) return new Set();
+  return new Set((data || []).map((r) => r.stay_booking_id));
+}

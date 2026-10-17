@@ -26,6 +26,7 @@ import {
   Plus, Pencil, Trash2, CalendarDays, Clock, Home as HomeIcon, ImageOff, ChevronDown, Eye, CheckCircle2, RotateCcw, CalendarClock, ChevronRight, Share2, Rocket,
 } from "lucide-react";
 import ShareListing from "@/components/ShareListing";
+import StayRequests from "@/components/StayRequests";
 import ShareStats from "@/components/ShareStats";
 import BoostDialog from "@/components/BoostDialog";
 import { fetchReferralSummary } from "@/lib/referrals";
@@ -287,6 +288,8 @@ export default function DashboardPage() {
         </section>
 
         {/* Listings */}
+        <StayRequests role="host" user={user} listingIds={listings.map((l) => l.id)} />
+
         <section aria-labelledby="listings-heading">
           {sharing && <ShareListing listing={sharing} user={user} onClose={() => setSharing(null)} />}
           {boosting && summary && (

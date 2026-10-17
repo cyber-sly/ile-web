@@ -11,6 +11,7 @@ import { formatDateTime } from "@/lib/format";
 import { priceParts, placeLabel } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
+import StayRequests from "@/components/StayRequests";
 import Alert from "@/components/ui/Alert";
 import { StatusBadge } from "@/components/ui/Badge";
 import { button } from "@/components/ui/Button";
@@ -30,6 +31,7 @@ export default function MyBookingsPage() {
   const [mutationError, setMutationError] = useState("");
   const [names, setNames] = useState({});
   const [reviewed, setReviewed] = useState(new Set());
+  const [stayCount, setStayCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -85,7 +87,8 @@ export default function MyBookingsPage() {
       {mutationError && <Alert className="mt-6">{mutationError}</Alert>}
 
       <div className="mt-8">
-        {sorted.length === 0 ? (
+        <StayRequests role="guest" user={user} onLoaded={setStayCount} />
+        {sorted.length === 0 && stayCount > 0 ? null : sorted.length === 0 ? (
           <EmptyState
             icon={CalendarX}
             title="No bookings yet"

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { leaveReview } from "@shared/account.js";
+import { leaveStayReview } from "@shared/stays.js";
 import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabaseClient";
 import { StarInput } from "@/components/Stars";
@@ -12,7 +13,8 @@ import { Star } from "lucide-react";
 
 // Collapsed "Leave a review" prompt that opens into the form.
 // `reviewing` is "lister" (home-seeker rates the lister) or "tenant".
-export default function ReviewForm({ inspectionId, reviewing, name, onDone }) {
+// Pass `stayId` instead of `inspectionId` to review a stay.
+export default function ReviewForm({ inspectionId, stayId, reviewing, name, onDone }) {
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [accurate, setAccurate] = useState(null);
@@ -27,7 +29,9 @@ export default function ReviewForm({ inspectionId, reviewing, name, onDone }) {
     setBusy(true);
     setError("");
     try {
-      await leaveReview(supabase, { inspectionId, rating, comment, accurate: isLister ? accurate : null });
+      const review = { rating, comment, accurate: isLister ? accurate : null };
+      if (stayId) await leaveStayReview(supabase, { stayId, ...review });
+      else await leaveReview(supabase, { inspectionId, ...review });
     } catch (err) {
       setBusy(false);
       setError(friendlyError(err));

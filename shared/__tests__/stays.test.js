@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { stayNights, stayQuote, rangesOverlap, validateStayRequest, stayActions, sortStays, STAY_STATUS, fetchTakenDates, requestStay, respondStay, cancelStay } from "../stays.js";
+import { stayNights, stayQuote, rangesOverlap, validateStayRequest, stayActions, sortStays, STAY_STATUS, fetchTakenDates, requestStay, respondStay, cancelStay, fetchReviewedStayIds } from "../stays.js";
 
 const STAY = { id: "s1", category: "stays", listing_type: "rent", price_period: "night", price: 45000, max_guests: 4, min_nights: 2, status: "active" };
 const TODAY = "2026-11-01";
@@ -106,4 +106,22 @@ test("respondStay and cancelStay pass their arguments", async () => {
     ["respond_stay", { p_id: "b1", p_accept: false, p_reason: "Not free" }],
     ["cancel_stay", { p_id: "b1" }],
   ]);
+});
+
+test("fetchReviewedStayIds returns the stays this person already reviewed", async () => {
+  const calls = [];
+  const builder = new Proxy({}, {
+    get: (_, method) =>
+      method === "then"
+        ? (resolve) => resolve({ data: [{ stay_booking_id: "s1" }], error: null })
+        : (...args) => {
+            calls.push([method, ...args]);
+            return builder;
+          },
+  });
+  const ids = await fetchReviewedStayIds({ from: () => builder }, ["s1", "s2"], "u1");
+  assert.deepEqual([...ids], ["s1"]);
+  assert.ok(calls.some((c) => c[0] === "in" && c[1] === "stay_booking_id"));
+  assert.ok(calls.some((c) => c[0] === "eq" && c[1] === "reviewer_id" && c[2] === "u1"));
+  assert.equal((await fetchReviewedStayIds({ from: () => builder }, [], "u1")).size, 0);
 });
