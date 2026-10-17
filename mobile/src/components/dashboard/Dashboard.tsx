@@ -17,6 +17,7 @@ import CounterSheet from "@/components/dashboard/CounterSheet";
 import ShareStats from "@/components/dashboard/ShareStats";
 import BoostSheet from "@/components/dashboard/BoostSheet";
 import ShareSheet from "@/components/ShareSheet";
+import StayList from "@/components/StayList";
 import { useReferralSummary } from "@/lib/referrals";
 import { Button, EmptyState, PageTitle, RowSkeleton, Skeleton } from "@/components/kit";
 import NotificationsCard from "@/components/NotificationsCard";
@@ -214,6 +215,7 @@ export default function Dashboard() {
         </View>
         <NotificationsCard />
         <ShareStats summary={summary.data ?? null} />
+        <StayList role="host" userId={userId} listingIds={(dashboard.data?.listings || []).map((l) => String(l.id))} />
         {body}
       </ScrollView>
       {sharing && <ShareSheet listing={sharing} code={summary.data?.code ?? null} visible onClose={() => setSharing(null)} />}

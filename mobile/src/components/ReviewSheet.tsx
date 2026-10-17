@@ -3,6 +3,7 @@ import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { leaveReview } from "@shared/account.js";
+import { leaveStayReview } from "@shared/stays.js";
 import { friendlyError } from "@shared/errors.js";
 import { supabase } from "@/lib/supabase";
 import Stars from "@/components/Stars";
@@ -17,13 +18,15 @@ import { successHaptic } from "@/lib/haptics";
 export default function ReviewSheet({
   visible,
   inspectionId,
+  stayId,
   reviewing,
   name,
   onClose,
   onDone,
 }: {
   visible: boolean;
-  inspectionId: string;
+  inspectionId?: string;
+  stayId?: string;
   reviewing: "lister" | "tenant";
   name?: string | null;
   onClose: () => void;
@@ -41,7 +44,9 @@ export default function ReviewSheet({
     setBusy(true);
     setError("");
     try {
-      await leaveReview(supabase, { inspectionId, rating, comment: comment.trim(), accurate: isLister ? accurate : null });
+      const review = { rating, comment: comment.trim(), accurate: isLister ? accurate : null };
+      if (stayId) await leaveStayReview(supabase, { stayId, ...review });
+      else await leaveReview(supabase, { inspectionId: String(inspectionId), ...review });
       successHaptic();
       onDone();
       onClose();

@@ -10,6 +10,7 @@ import { useSession } from "@/lib/useSession";
 import Screen from "@/components/Screen";
 import { Button, EmptyState, PageTitle, RowSkeleton } from "@/components/kit";
 import NotificationsCard from "@/components/NotificationsCard";
+import StayList from "@/components/StayList";
 import ViewingCard, { type ViewingRow } from "@/components/ViewingCard";
 import { useOnline } from "@/components/OfflineBanner";
 import { colors, fonts } from "@/theme";
@@ -105,6 +106,7 @@ export default function MyViewings() {
             <PageTitle>My bookings</PageTitle>
             <Text style={styles.subtitle}>Track the bookings you&apos;ve requested and respond to new times.</Text>
             <NotificationsCard />
+            <StayList role="guest" userId={userId} />
           </View>
         }
         ListEmptyComponent={empty}

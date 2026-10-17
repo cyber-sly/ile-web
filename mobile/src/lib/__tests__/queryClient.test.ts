@@ -26,6 +26,11 @@ describe("shouldPersist", () => {
     expect(shouldPersist(query(["dashboard", "u1"]), scope)).toBe(true);
   });
 
+  test("keeps stays and stay requests offline", () => {
+    expect(shouldPersist(query(["stays", "u1"]), scope)).toBe(true);
+    expect(shouldPersist(query(["stay-requests", "u1"]), scope)).toBe(true);
+  });
+
   test("keeps the referral summary", () => {
     expect(shouldPersist(query(["referral-summary", "u1"]), scope)).toBe(true);
   });

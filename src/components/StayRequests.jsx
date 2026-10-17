@@ -79,7 +79,7 @@ function StayCard({ stay: s, role, user, today, person, reviewed, onChanged, onE
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  const name = person?.full_name || (role === "host" ? "Guest" : "Host");
+  const name = person?.name || (role === "host" ? "Guest" : "Host");
 
   async function run(task) {
     setBusy(true);
