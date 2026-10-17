@@ -54,7 +54,8 @@ export default function ListingActions({ listing }: { listing: ListingRow }) {
 
   function book() {
     if (!user) return router.push("/login");
-    router.push({ pathname: "/book/[id]", params: { id: String(listing.id) } });
+    if (listing.category === "stays") router.push({ pathname: "/stay/[id]", params: { id: String(listing.id) } });
+    else router.push({ pathname: "/book/[id]", params: { id: String(listing.id) } });
   }
 
   async function message() {

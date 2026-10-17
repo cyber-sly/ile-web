@@ -197,7 +197,7 @@ export default function ListingScreen() {
 
         {features.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>What&apos;s included</Text>
+            <Text style={styles.sectionTitle}>Amenities</Text>
             <View style={styles.features}>
               {features.map((f) => (
                 <View key={f} style={styles.featureRow}>
@@ -210,6 +210,13 @@ export default function ListingScreen() {
             </View>
           </>
         )}
+
+        {listing.house_rules ? (
+          <>
+            <Text style={styles.sectionTitle}>House rules</Text>
+            <Text style={styles.paragraph}>{listing.house_rules}</Text>
+          </>
+        ) : null}
 
         {videos.length > 0 && (
           <>

@@ -32,10 +32,10 @@ describe("Home", () => {
 
   test("HOME_CATEGORIES uses the website's four categories in order", () => {
     expect(HOME_CATEGORIES.map((c) => [c.title, c.tab])).toEqual([
-      ["Homes for rent", "rent"],
-      ["Homes for sale", "sale"],
+      ["Homes", "rent"],
+      ["Shortlets & hotels", "stays"],
       ["Land", "land"],
-      ["Shops and offices", "commercial"],
+      ["Shops & offices", "commercial"],
     ]);
   });
 });

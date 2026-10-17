@@ -1,4 +1,4 @@
-import { Bath, BedDouble, Building2, Car, FileCheck2, Ruler, Sofa, UserRound, type LucideIcon } from "lucide-react-native";
+import { Bath, BedDouble, Building2, Car, FileCheck2, Hotel, LogIn, LogOut, Moon, Ruler, Sofa, UserRound, Users, type LucideIcon } from "lucide-react-native";
 
 // Icons for the listing facts grid, as on the website (ListingDetail.jsx).
 export const FACT_ICONS: Record<string, LucideIcon> = {
@@ -11,4 +11,9 @@ export const FACT_ICONS: Record<string, LucideIcon> = {
   parking: Car,
   toilets: Bath,
   lister: UserRound,
+  hotel: Hotel,
+  guests: Users,
+  minNights: Moon,
+  checkIn: LogIn,
+  checkOut: LogOut,
 };

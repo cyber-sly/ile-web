@@ -68,6 +68,10 @@ export default function RootLayout() {
               name="book/[id]"
               options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.85, 1], sheetGrabberVisible: true }}
             />
+            <Stack.Screen
+              name="stay/[id]"
+              options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.9, 1], sheetGrabberVisible: true }}
+            />
             <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="my-viewings" options={{ title: "My bookings" }} />
             <Stack.Screen name="notifications" options={{ title: "Notifications" }} />

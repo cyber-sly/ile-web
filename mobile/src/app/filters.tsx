@@ -4,7 +4,10 @@ import { router } from "expo-router";
 import { LocateFixed } from "lucide-react-native";
 import { NIGERIA, STATES, stateLabel } from "@shared/nigeria.js";
 import { TITLE_DOCUMENTS } from "@shared/property.js";
-import { isLandSearch, searchTypeOptions, SORTS } from "@shared/search.js";
+import { amenitiesFilter, isLandSearch, searchTypeOptions, SORTS } from "@shared/search.js";
+import { amenitiesFor } from "@shared/property.js";
+import MonthGrid from "@/components/MonthGrid";
+import { lagosToday } from "@/lib/stays";
 import { DEFAULT_FILTERS, useFilters } from "@/lib/filters";
 import { findNearMe, NEAR_ME_ERRORS } from "@/lib/nearMe";
 import Chip from "@/components/Chip";
@@ -21,6 +24,14 @@ const BEDS = [
   { value: "3", label: "3+" },
   { value: "4", label: "4+" },
   { value: "5", label: "5+" },
+];
+const GUESTS = [
+  { value: "", label: "Any" },
+  { value: "1", label: "1+" },
+  { value: "2", label: "2+" },
+  { value: "3", label: "3+" },
+  { value: "4", label: "4+" },
+  { value: "6", label: "6+" },
 ];
 const PURPOSES = [
   { value: "", label: "Any" },
@@ -39,6 +50,8 @@ export default function FiltersSheet() {
   const [nearMeError, setNearMeError] = useState("");
 
   const homesTab = filters.tab === "rent" || filters.tab === "sale";
+  const staysTab = filters.tab === "stays";
+  const chosenAmenities = amenitiesFilter(filters);
   const landSearch = isLandSearch(filters);
   const types = searchTypeOptions(filters.tab) as Choice[];
   const states = STATES.map((s: string) => ({ value: s, label: stateLabel(s) }));
@@ -73,7 +86,40 @@ export default function FiltersSheet() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Filters</Text>
 
-        {!homesTab && (
+        {staysTab && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.label}>Dates</Text>
+              <MonthGrid
+                checkIn={filters.checkin}
+                checkOut={filters.checkout}
+                taken={[]}
+                today={lagosToday()}
+                onChange={({ checkIn, checkOut }) => change({ checkin: checkIn, checkout: checkOut })}
+              />
+            </View>
+            <Section label="Guests">
+              {GUESTS.map((g) => (
+                <Chip key={g.value} label={g.label} selected={filters.guests === g.value} onPress={() => change({ guests: g.value })} />
+              ))}
+            </Section>
+            <Section label="Amenities">
+              {(amenitiesFor("stays") as string[]).map((a) => {
+                const on = chosenAmenities.includes(a);
+                return (
+                  <Chip
+                    key={a}
+                    label={a}
+                    selected={on}
+                    onPress={() => change({ amen: (on ? chosenAmenities.filter((x: string) => x !== a) : [...chosenAmenities, a]).join(",") })}
+                  />
+                );
+              })}
+            </Section>
+          </>
+        )}
+
+        {!homesTab && !staysTab && (
           <Section label="Looking to">
             {PURPOSES.map((p) => (
               <Chip key={p.value} label={p.label} selected={filters.purpose === p.value} onPress={() => change({ purpose: p.value })} />

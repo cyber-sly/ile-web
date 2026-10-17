@@ -34,15 +34,15 @@ export function freshSectionState({
 export const HOME_CATEGORIES = [
   {
     tab: "rent",
-    title: "Homes for rent",
-    blurb: "Flats, self-contains and duplexes.",
+    title: "Homes",
+    blurb: "Flats, self-contains and duplexes to rent or buy.",
     image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=900&q=70",
   },
   {
-    tab: "sale",
-    title: "Homes for sale",
-    blurb: "Own your home, with the asking price upfront.",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=900&q=70",
+    tab: "stays",
+    title: "Shortlets & hotels",
+    blurb: "Shortlet apartments, hotel rooms and Airbnbs by the night.",
+    image: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=900&q=70",
   },
   {
     tab: "land",
@@ -52,7 +52,7 @@ export const HOME_CATEGORIES = [
   },
   {
     tab: "commercial",
-    title: "Shops and offices",
+    title: "Shops & offices",
     blurb: "Space to run your business.",
     image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=70",
   },

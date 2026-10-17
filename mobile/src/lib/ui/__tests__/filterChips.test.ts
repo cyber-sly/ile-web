@@ -18,6 +18,15 @@ describe("activeFilterChips", () => {
     expect(activeFilterChips(filters({ tab: "rent" }))).toEqual([]);
   });
 
+  test("stay filters read as guests, amenities and dates", () => {
+    const chips = activeFilterChips(filters({ tab: "stays", guests: "2", amen: "Wi-Fi,Kitchen", checkin: "2026-11-05", checkout: "2026-11-08" }));
+    expect(chips).toEqual([
+      { key: "guests", label: "2+ guests" },
+      { key: "amen", label: "Wi-Fi, Kitchen" },
+      { key: "checkin", label: "5 Nov – 8 Nov" },
+    ]);
+  });
+
   test("the any-land filter reads Land", () => {
     expect(activeFilterChips(filters({ tab: "sale", ptype: "land" }))).toEqual([{ key: "ptype", label: "Land" }]);
   });

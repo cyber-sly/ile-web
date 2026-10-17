@@ -6,7 +6,7 @@ import { ArrowLeft, MapPin, SearchX, SlidersHorizontal, WifiOff, X } from "lucid
 import { buildQuery, listingsHeading, PAGE_SIZE, SEARCH_TABS } from "@shared/search.js";
 import { supabase } from "@/lib/supabase";
 import { activeFilterCount, DEFAULT_FILTERS, useFilters, type Filters } from "@/lib/filters";
-import { activeFilterChips } from "@/lib/ui/filterChips";
+import { activeFilterChips, chipClears } from "@/lib/ui/filterChips";
 import { useSearchText } from "@/lib/useSearchText";
 import { Button, CardSkeleton, EmptyState } from "@/components/kit";
 import PropertyCard, { type ListingRow } from "@/components/PropertyCard";
@@ -113,7 +113,7 @@ export default function SearchScreen() {
               key={c.key}
               accessibilityRole="button"
               accessibilityLabel={`Remove filter ${c.label}`}
-              onPress={() => change({ [c.key]: "" })}
+              onPress={() => change(chipClears(c.key))}
               style={styles.applied}
             >
               <Text style={styles.appliedText}>{c.label}</Text>
