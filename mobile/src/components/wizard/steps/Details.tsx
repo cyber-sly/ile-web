@@ -81,13 +81,6 @@ export default function Details({ values, set, errors }: StepProps) {
         placeholder="What's nice about it? Water, power, road, neighbours, rules…"
         error={errors.description}
       />
-      <Field
-        label="What's included (optional)"
-        value={values.features}
-        onChangeText={(features) => set({ features })}
-        placeholder="e.g. Borehole, Prepaid meter, Parking"
-        hint="Separate items with commas."
-      />
     </>
   );
 }

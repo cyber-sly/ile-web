@@ -222,3 +222,9 @@ test("features are trimmed, deduped and capped at 30", () => {
   assert.deepEqual(draftToRow({ ...homeDraft, features: "Borehole, POP" }).features, ["Borehole", "POP"]);
   assert.equal(validateDraft({ ...homeDraft, features: ["x".repeat(41)] }).features, "Up to 30 amenities, each under 40 characters.");
 });
+
+test("check-in and check-out times must be real times", () => {
+  assert.equal(validateDraft({ ...stayDraft, checkInTime: "14" }).checkInTime, "Use a time like 14:00.");
+  assert.equal(validateDraft({ ...stayDraft, checkOutTime: "25:00" }).checkOutTime, "Use a time like 11:00.");
+  assert.equal(validateDraft({ ...stayDraft, checkInTime: "", checkOutTime: "" }).checkInTime, undefined);
+});

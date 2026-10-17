@@ -10,13 +10,14 @@ const naira = (v: string) => (v ? Number(v).toLocaleString("en-NG") : "");
 
 // Step 4: price and every fee, with the live total people will see.
 export default function Price({ values, set, errors }: StepProps) {
-  const isRent = values.listingType === "rent";
+  const isStay = values.category === "stays";
+  const isRent = values.listingType === "rent" || isStay;
   const isLand = values.category === "land";
   const periods = (periodOptions(values.listingType, values.category) as string[]).map((p) => ({ value: p, label: periodLabel(p) }));
   return (
     <>
       <Field
-        label={isRent ? "Rent (₦)" : "Price (₦)"}
+        label={isStay ? "Price per night (₦)" : isRent ? "Rent (₦)" : "Price (₦)"}
         value={naira(values.price)}
         onChangeText={(v) => set({ price: v.replace(/[^0-9]/g, "") })}
         keyboardType="number-pad"
@@ -24,7 +25,14 @@ export default function Price({ values, set, errors }: StepProps) {
       />
       {periods.length > 1 && <Choice label="Price is" options={periods} value={values.pricePeriod} onChange={(pricePeriod) => set({ pricePeriod })} />}
 
-      <View style={wizardStyles.row}>
+      {isStay && (
+        <>
+          <Field label="Cleaning fee (₦, once per stay)" value={naira(values.cleaningFee)} onChangeText={(v) => set({ cleaningFee: v.replace(/[^0-9]/g, "") })} keyboardType="number-pad" error={errors.cleaningFee} />
+          <Field label="Caution deposit (₦, refundable)" value={naira(values.caution)} onChangeText={(v) => set({ caution: v.replace(/[^0-9]/g, "") })} keyboardType="number-pad" />
+          <Hint>Leave a fee empty if there isn&apos;t one. Guests see the full total before they book.</Hint>
+        </>
+      )}
+      {!isStay && <><View style={wizardStyles.row}>
         <View style={wizardStyles.flex}>
           <Field label="Agency fee (%)" value={values.agencyFee} onChangeText={(v) => set({ agencyFee: digits(v) })} keyboardType="decimal-pad" error={errors.agencyFee} />
         </View>
@@ -40,6 +48,7 @@ export default function Price({ values, set, errors }: StepProps) {
       )}
       <Hint>Leave a fee empty if there isn&apos;t one. Ile shows home-seekers the full amount up front.</Hint>
       {Number(values.price) > 0 && <MoveInCost listing={draftToRow(values)} />}
+      </>}
     </>
   );
 }

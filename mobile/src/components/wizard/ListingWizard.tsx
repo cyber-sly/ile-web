@@ -10,7 +10,7 @@ import { createAutosave, draftKey, listingFingerprint, restoreDraft, type Draft,
 import { drafts } from "@/lib/drafts";
 import { forgetLocal, removeUploaded, uploadOne, type LocalMedia } from "@/lib/media";
 import { uploadAll } from "@/lib/uploadQueue";
-import { STEPS, STEP_TITLES, stepErrors } from "@/lib/wizardSteps";
+import { STEP_TITLES, stepErrors, stepsFor } from "@/lib/wizardSteps";
 import { keyboardBehavior } from "@/components/keyboardBehavior";
 import { useOnline } from "@/components/OfflineBanner";
 import Button from "@/components/Button";
@@ -18,6 +18,8 @@ import What from "./steps/What";
 import Where from "./steps/Where";
 import Details from "./steps/Details";
 import Price from "./steps/Price";
+import Stay from "./steps/Stay";
+import Amenities from "./steps/Amenities";
 import Photos from "./steps/Photos";
 import Review from "./steps/Review";
 import { colors, fonts } from "@/theme";
@@ -77,7 +79,10 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
 
   if (!draft) return <ActivityIndicator color={colors.palm} style={styles.loading} />;
 
-  const step = STEPS[draft.step];
+  // Stays get an extra "Stay rules" step; a saved step past the end goes to the last one.
+  const steps = stepsFor(draft.values.category);
+  const stepIndex = Math.min(draft.step, steps.length - 1);
+  const step = steps[stepIndex];
   function change(make: (d: Draft) => Draft) {
     setChanged(true);
     setDraft((d) => {
@@ -101,7 +106,7 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
     const found = stepErrors(step, draft!.values, draft!.photos.length);
     setErrors(found);
     if (Object.keys(found).length) return;
-    goTo(draft!.step + 1);
+    goTo(stepIndex + 1);
   }
 
   async function publish() {
@@ -182,22 +187,24 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
   }
 
   const stepProps = { values: draft.values, set, errors };
-  const last = draft.step === STEPS.length - 1;
+  const last = stepIndex === steps.length - 1;
   const busy = status !== "";
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={keyboardBehavior(Platform.OS)}>
       <View style={styles.progress}>
-        <View style={[styles.progressFill, { width: `${((draft.step + 1) / STEPS.length) * 100}%` }]} />
+        <View style={[styles.progressFill, { width: `${((stepIndex + 1) / steps.length) * 100}%` }]} />
       </View>
       <ScrollView ref={scrollRef} style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepCount}>
-          Step {draft.step + 1} of {STEPS.length}
+          Step {stepIndex + 1} of {steps.length}
         </Text>
         <Text style={styles.title}>{STEP_TITLES[step]}</Text>
         {step === "what" && <What {...stepProps} />}
         {step === "where" && <Where {...stepProps} />}
         {step === "details" && <Details {...stepProps} />}
+        {step === "stay" && <Stay {...stepProps} />}
+        {step === "amenities" && <Amenities {...stepProps} />}
         {step === "price" && <Price {...stepProps} />}
         {step === "photos" && (
           <Photos photos={draft.photos} videos={draft.videos} setPhotos={(photos) => update({ photos })} setVideos={(videos) => update({ videos })} error={errors.photos} />
@@ -207,9 +214,9 @@ export default function ListingWizard({ listing }: { listing: Listing | null }) 
         {changed && !busy ? <Button label={listing ? "Discard my changes" : "Start over"} variant="ghost" onPress={discard} /> : null}
       </ScrollView>
       <View style={styles.footer}>
-        {draft.step > 0 && (
+        {stepIndex > 0 && (
           <View style={styles.flex}>
-            <Button label="Back" variant="secondary" disabled={busy} onPress={() => goTo(draft.step - 1)} />
+            <Button label="Back" variant="secondary" disabled={busy} onPress={() => goTo(stepIndex - 1)} />
           </View>
         )}
         <View style={styles.grow}>

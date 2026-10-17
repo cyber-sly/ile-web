@@ -185,6 +185,9 @@ export function validateDraft(v) {
     if (v.propertyType === "hotel_room" && !(v.hotelName || "").trim()) er.hotelName = "Enter the hotel's name.";
     else if ((v.hotelName || "").trim().length > MAX_HOTEL_NAME) er.hotelName = `Keep the hotel name under ${MAX_HOTEL_NAME} characters.`;
     if (v.cleaningFee !== "" && !(Number(v.cleaningFee) >= 0)) er.cleaningFee = "Enter ₦0 or more.";
+    const isTime = (t) => !t || /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
+    if (!isTime(v.checkInTime)) er.checkInTime = "Use a time like 14:00.";
+    if (!isTime(v.checkOutTime)) er.checkOutTime = "Use a time like 11:00.";
     if ((v.houseRules || "").trim().length > MAX_HOUSE_RULES) er.houseRules = `Keep house rules under ${MAX_HOUSE_RULES} characters.`;
   }
   const amenities = amenityList(v.features);

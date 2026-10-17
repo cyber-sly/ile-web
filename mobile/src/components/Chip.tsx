@@ -9,6 +9,7 @@ export default function Chip({ label, selected, onPress }: { label: string; sele
   return (
     <Tap
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ selected }}
       hitSlop={{ top: 6, bottom: 6, left: 2, right: 2 }}
       onPress={() => {

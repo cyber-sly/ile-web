@@ -24,12 +24,12 @@ const FIELDS: Record<Step, string[]> = {
   what: [],
   where: ["state", "lga"],
   details: ["title", "bedrooms", "sizeValue", "description"],
-  stay: ["maxGuests", "minNights", "hotelName", "houseRules"],
+  stay: ["maxGuests", "minNights", "hotelName", "houseRules", "checkInTime", "checkOutTime"],
   amenities: ["features"],
   price: ["price", "agencyFee", "legalFee", "cleaningFee"],
   photos: [],
   review: [
-    "state", "lga", "title", "bedrooms", "sizeValue", "description", "maxGuests", "minNights", "hotelName", "houseRules",
+    "state", "lga", "title", "bedrooms", "sizeValue", "description", "maxGuests", "minNights", "hotelName", "houseRules", "checkInTime", "checkOutTime",
     "features", "price", "agencyFee", "legalFee", "cleaningFee",
   ],
 };

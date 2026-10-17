@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { draftToRow } from "@shared/lister.js";
 import { fullPlace, keyFacts, priceParts, typeLabel } from "@shared/property.js";
-import { STEPS, STEP_TITLES, type Step } from "@/lib/wizardSteps";
+import { STEP_TITLES, stepsFor, type Step } from "@/lib/wizardSteps";
 import { colors, fonts, radius } from "@/theme";
 import Tap from "@/components/kit/Tap";
 
@@ -21,6 +21,10 @@ export default function Review({ values, photoCount, videoCount, errors, goTo }:
     { step: "what", lines: [`${typeLabel(row.property_type)} · ${row.listing_type === "sale" ? "For sale" : "For rent"}`] },
     { step: "where", lines: [fullPlace(row) || "No location yet", row.address].filter(Boolean) as string[] },
     { step: "details", lines: [row.title || "No title yet", (keyFacts(row) as string[]).join(" · ")].filter(Boolean) },
+    ...(row.category === "stays"
+      ? [{ step: "stay" as Step, lines: [`Up to ${row.max_guests || "?"} guests · ${row.min_nights || 1}-night minimum`, row.hotel_name].filter(Boolean) as string[] }]
+      : []),
+    { step: "amenities", lines: [row.features.length ? (row.features as string[]).slice(0, 6).join(", ") + (row.features.length > 6 ? ` +${row.features.length - 6} more` : "") : "None ticked"] },
     { step: "price", lines: [Number(row.price) > 0 ? `${amount}${suffix}` : "No price yet"] },
     { step: "photos", lines: [`${photoCount} photo${photoCount === 1 ? "" : "s"}${videoCount ? `, ${videoCount} video${videoCount === 1 ? "" : "s"}` : ""}`] },
   ];
@@ -42,7 +46,7 @@ export default function Review({ values, photoCount, videoCount, errors, goTo }:
         <View key={s.step} style={styles.card}>
           <View style={styles.head}>
             <Text style={styles.title}>{STEP_TITLES[s.step]}</Text>
-            <Tap accessibilityRole="button" accessibilityLabel={`Change ${STEP_TITLES[s.step]}`} onPress={() => goTo(STEPS.indexOf(s.step))}>
+            <Tap accessibilityRole="button" accessibilityLabel={`Change ${STEP_TITLES[s.step]}`} onPress={() => goTo(stepsFor(values.category).indexOf(s.step))}>
               <Text style={styles.change}>Change</Text>
             </Tap>
           </View>
