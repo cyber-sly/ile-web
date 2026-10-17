@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { ChatRow } from "@/lib/chatMessages";
 import { colors, fonts } from "@/theme";
 import Tap from "@/components/kit/Tap";
@@ -6,8 +6,22 @@ import Tap from "@/components/kit/Tap";
 const clock = (iso: string) => new Date(iso).toLocaleTimeString("en-NG", { hour: "numeric", minute: "2-digit" });
 
 // One chat message. Yours sit on the right in palm green.
-export default function MessageBubble({ row, mine, seen, onRetry }: { row: ChatRow; mine: boolean; seen: boolean; onRetry: () => void }) {
+// onEdit is passed only while the message can still be edited (canEdit).
+export default function MessageBubble({
+  row,
+  mine,
+  seen,
+  onRetry,
+  onEdit,
+}: {
+  row: ChatRow;
+  mine: boolean;
+  seen: boolean;
+  onRetry: () => void;
+  onEdit?: () => void;
+}) {
   let status = clock(row.created_at);
+  if (row.edited_at) status += " · edited";
   if (row.pending === "waiting" || row.pending === "sending") status = "Waiting for connection";
   if (seen) status += " · Seen";
 
@@ -26,7 +40,21 @@ export default function MessageBubble({ row, mine, seen, onRetry }: { row: ChatR
         </Tap>
       ) : (
         <>
-          {bubble}
+          {onEdit ? (
+            <Pressable
+              accessibilityHint="Long-press to edit"
+              onLongPress={() =>
+                Alert.alert("Your message", undefined, [
+                  { text: "Edit", onPress: onEdit },
+                  { text: "Cancel", style: "cancel" },
+                ])
+              }
+            >
+              {bubble}
+            </Pressable>
+          ) : (
+            bubble
+          )}
           <Text style={styles.status}>{status}</Text>
         </>
       )}
