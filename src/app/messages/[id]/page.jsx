@@ -9,6 +9,8 @@ import { useUser } from "@/lib/useUser";
 import { refreshUnread } from "@/lib/messaging";
 import { fetchPeople } from "@/lib/profile";
 import { dayLabel } from "@shared/messaging.js";
+import { presenceLabel } from "@shared/presence.js";
+import { useChatPresence } from "@/lib/usePresence";
 import Avatar from "@/components/Avatar";
 import { priceParts } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
@@ -24,6 +26,8 @@ export default function ConversationPage() {
   const [otherName, setOtherName] = useState("");
   const [otherUserId, setOtherUserId] = useState(null);
   const [otherAvatar, setOtherAvatar] = useState(null);
+  const presence = useChatPresence(otherUserId ? [id] : []);
+  const seen = presenceLabel(presence[id]);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -156,7 +160,15 @@ export default function ConversationPage() {
           ) : (
             <p className="truncate font-semibold text-ink">{otherName}</p>
           )}
-          <p className="text-xs text-ink-muted">{isTenant ? "Lister" : "Home-seeker"}</p>
+          <p className="truncate text-xs text-ink-muted">
+            {isTenant ? "Lister" : "Home-seeker"}
+            {seen && (
+              <>
+                {" · "}
+                <span className={seen.online ? "font-semibold text-palm" : undefined}>{seen.text}</span>
+              </>
+            )}
+          </p>
         </div>
         {l && (
           <Link href={`/listings/${l.id}`} className="flex min-w-0 max-w-[45%] items-center gap-2 rounded-[var(--radius-control)] border border-line p-1.5 pr-3 hover:border-line-strong">

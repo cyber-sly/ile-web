@@ -18,6 +18,8 @@ import MessageBubble from "@/components/MessageBubble";
 import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
 import Tap from "@/components/kit/Tap";
+import PresenceLine from "@/components/PresenceLine";
+import { useChatPresence } from "@/lib/presence";
 
 type Thread = {
   convo: { id: string; tenant_id: string | null; landlord_id: string | null; listings: { id: string; title: string; image_url: string | null } | null } | null;
@@ -46,6 +48,7 @@ export default function ChatScreen() {
 
   const chatKey = ["chat", id, userId];
   const chat = useQuery({ queryKey: chatKey, queryFn: () => loadChat(id, userId), enabled: Boolean(userId) });
+  const presence = useChatPresence(chat.data?.other ? [id] : []);
 
   // Live updates for this conversation.
   useEffect(() => {
@@ -127,6 +130,7 @@ export default function ChatScreen() {
         >
           {t?.convo ? (t.other ? t.other.name || (t.convo.tenant_id === userId ? "The lister" : "Home-seeker") : "Deleted user") : ""}
         </Text>
+        {t?.other ? <PresenceLine lastSeenAt={presence[id]} /> : null}
         {t?.convo && (
           <Tap
             disabled={!t.convo.listings}

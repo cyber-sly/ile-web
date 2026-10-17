@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@/lib/useUser";
 import { loadThreads as loadThreadsWith, shortTime } from "@shared/messaging.js";
 import Avatar from "@/components/Avatar";
+import { presenceLabel } from "@shared/presence.js";
+import { useChatPresence } from "@/lib/usePresence";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
@@ -22,6 +24,7 @@ export default function InboxPage() {
   const user = useUser();
   const [threads, setThreads] = useState(null);
   const [error, setError] = useState("");
+  const presence = useChatPresence((threads || []).map((t) => t.id));
 
   useEffect(() => {
     if (!user) return;
@@ -80,6 +83,9 @@ export default function InboxPage() {
                 <Link href={`/messages/${t.id}`} className="flex items-center gap-3 px-4 py-4 transition-colors hover:bg-ink/[0.03]">
                   <span className="relative shrink-0">
                     <Avatar src={t.otherAvatar} name={t.otherName} size="md" />
+                    {presenceLabel(presence[t.id])?.online && (
+                      <span aria-label="Online" className="absolute right-0 bottom-0 h-3 w-3 rounded-full bg-palm ring-2 ring-surface" />
+                    )}
                   </span>
                   <span className="hidden h-12 w-12 shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-line sm:block">
                     {t.listings?.image_url ? (

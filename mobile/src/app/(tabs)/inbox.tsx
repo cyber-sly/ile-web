@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import { presenceLabel } from "@shared/presence.js";
+import { useChatPresence } from "@/lib/presence";
 import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MessagesSquare, WifiOff } from "lucide-react-native";
@@ -38,6 +40,7 @@ export default function InboxTab() {
   const queryClient = useQueryClient();
   const userId = user?.id ?? "";
   const inbox = useQuery({ queryKey: ["inbox", userId], queryFn: () => fetchInbox(userId), enabled: Boolean(userId) });
+  const presence = useChatPresence((inbox.data || []).map((t) => String(t.id)));
 
   useEffect(() => {
     if (!userId) return;
@@ -97,7 +100,7 @@ export default function InboxTab() {
       <FlatList
         data={inbox.data || []}
         keyExtractor={(t) => String(t.id)}
-        renderItem={({ item }) => <ThreadRow thread={item} userId={userId} />}
+        renderItem={({ item }) => <ThreadRow thread={item} userId={userId} online={Boolean(presenceLabel(presence[String(item.id)])?.online)} />}
         ListHeaderComponent={
           <View>
             <View style={styles.titleWrap}>
@@ -116,7 +119,7 @@ export default function InboxTab() {
   );
 }
 
-function ThreadRow({ thread: t, userId }: { thread: Thread; userId: string }) {
+function ThreadRow({ thread: t, userId, online }: { thread: Thread; userId: string; online: boolean }) {
   const unread = t.unread > 0;
   return (
     <Pressable
@@ -125,13 +128,16 @@ function ThreadRow({ thread: t, userId }: { thread: Thread; userId: string }) {
       onPress={() => router.push({ pathname: "/chat/[id]", params: { id: String(t.id) } })}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      {t.otherAvatar ? (
-        <Image source={{ uri: t.otherAvatar }} style={styles.avatar} cachePolicy="disk" alt="" />
-      ) : (
-        <View style={[styles.avatar, styles.initial]}>
-          <Text style={styles.initialText}>{t.otherName.charAt(0).toUpperCase()}</Text>
-        </View>
-      )}
+      <View>
+        {t.otherAvatar ? (
+          <Image source={{ uri: t.otherAvatar }} style={styles.avatar} cachePolicy="disk" alt="" />
+        ) : (
+          <View style={[styles.avatar, styles.initial]}>
+            <Text style={styles.initialText}>{t.otherName.charAt(0).toUpperCase()}</Text>
+          </View>
+        )}
+        {online ? <View style={styles.dot} accessibilityLabel="Online" /> : null}
+      </View>
       <View style={styles.text}>
         <View style={styles.line}>
           <Text style={[styles.name, unread && styles.bold]} numberOfLines={1}>
@@ -164,6 +170,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.line },
   pressed: { backgroundColor: colors.surface },
   avatar: { width: 48, height: 48, borderRadius: 24 },
+  dot: { position: "absolute", right: 0, bottom: 0, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.palm, borderWidth: 2, borderColor: colors.cream },
   initial: { alignItems: "center", justifyContent: "center", backgroundColor: colors.palmSoft },
   initialText: { fontFamily: fonts.sansBold, fontSize: 18, color: colors.palm },
   text: { flex: 1, gap: 2 },
