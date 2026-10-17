@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cleanMessage, MAX_MESSAGE, threadFrom, shortTime, sendMessage, markRead } from "../messaging.js";
+import { cleanMessage, MAX_MESSAGE, threadFrom, shortTime, sendMessage, markRead, canEdit, editMessage, EDIT_WINDOW_MS } from "../messaging.js";
+import { friendlyError } from "../errors.js";
 
 test("cleanMessage trims, and rejects empty or over-long text", () => {
   assert.equal(cleanMessage("  hi "), "hi");
@@ -79,4 +80,39 @@ test("markRead only stamps messages that are still unread", async () => {
   const client = messagesClient();
   await markRead(client, ["m1"]);
   assert.ok(client.calls.some((c) => c[0] === "is" && c[1] === "read_at" && c[2] === null));
+});
+
+const T0 = new Date("2026-10-17T12:00:00Z");
+const sent = (secondsAgo, extra = {}) => ({ id: "m1", sender_id: "me", body: "hi", read_at: null, edited_at: null, created_at: new Date(T0.getTime() - secondsAgo * 1000).toISOString(), ...extra });
+
+test("canEdit allows my message inside 3 minutes", () => {
+  assert.equal(EDIT_WINDOW_MS, 180000);
+  assert.equal(canEdit(sent(179), "me", T0), true);
+  assert.equal(canEdit(sent(181), "me", T0), false);
+  assert.equal(canEdit(sent(10), "you", T0), false);
+});
+
+test("canEdit refuses pending and temp messages", () => {
+  assert.equal(canEdit(sent(10, { pending: "sending" }), "me", T0), false);
+  assert.equal(canEdit(sent(10, { id: "temp-1" }), "me", T0), false);
+});
+
+test("canEdit is false before the edit column exists", () => {
+  const { edited_at, ...old } = sent(10);
+  assert.equal(edited_at, null);
+  assert.equal(canEdit(old, "me", T0), false);
+});
+
+test("editMessage calls edit_message with trimmed text", async () => {
+  const calls = [];
+  const client = { rpc: async (name, args) => (calls.push([name, args]), { data: { id: "m1", body: "hi" }, error: null }) };
+  const row = await editMessage(client, "m1", "  hi ");
+  assert.deepEqual(calls[0], ["edit_message", { p_id: "m1", p_body: "hi" }]);
+  assert.equal(row.body, "hi");
+});
+
+test("editMessage passes the window error through friendly", async () => {
+  const msg = "You can only edit a message within 3 minutes of sending it.";
+  const client = { rpc: async () => ({ data: null, error: { code: "P0001", message: msg } }) };
+  await assert.rejects(editMessage(client, "m1", "new"), (e) => friendlyError(e) === msg);
 });
