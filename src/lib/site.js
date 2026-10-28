@@ -1,5 +1,5 @@
 // Public base URL, used for share previews, the sitemap and structured data.
-// Set NEXT_PUBLIC_SITE_URL once the custom domain is live (e.g. https://ile.ng);
+// Set NEXT_PUBLIC_SITE_URL once the custom domain is live (https://myile.app);
 // until then Vercel's own URL is used.
 function resolveSiteUrl() {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL;
