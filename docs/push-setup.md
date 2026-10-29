@@ -22,7 +22,7 @@ These let the database run daily reminders and call the notification sender.
 1. Go to https://console.firebase.google.com and sign in.
 2. Click **Create a project**. Name it **Ile**. You can turn Google Analytics off.
 3. On the project page, click the **Android** icon to add an app.
-4. **Android package name:** `ng.ile.app` (use your final app id if you've changed it).
+4. **Android package name:** `app.myile` (use your final app id if you've changed it).
    App nickname: Ile. Skip the SHA-1 field.
 5. Click **Register app**, then **Download google-services.json**.
 6. Put that file in the `ile-web\mobile` folder (next to `app.json`).

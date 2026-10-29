@@ -24,17 +24,17 @@ Apple requires "Sign in with Apple" on iPhone because the app offers Google sign
 The code is already in the app; it switches on once these steps are done:
 
 1. https://developer.apple.com/account → **Certificates, Identifiers & Profiles → Identifiers**.
-   Open (or let Expo create during the first iOS build) the App ID **ng.ile.app**
+   Open (or let Expo create during the first iOS build) the App ID **app.myile**
    and tick **Sign in with Apple**. Save.
 2. Supabase dashboard → **Authentication → Sign In / Providers → Apple** → switch it on.
-   In **Client IDs**, enter `ng.ile.app`. Save. (The "Secret Key" fields are only needed
+   In **Client IDs**, enter `app.myile`. Save. (The "Secret Key" fields are only needed
    for Apple sign-in on the website, which we aren't adding now.)
 3. Build the iPhone test app: in `ile-web\mobile`, run
    `npx eas-cli build --profile development --platform ios`.
 
 Test on an iPhone: Log in → **Continue with Apple**.
 
-If you change the app id from `ng.ile.app`, use the new id in both places above.
+If you change the app id from `app.myile`, use the new id in both places above.
 
 **Before the App Store submission:** Apple expects apps with Sign in with Apple to
 revoke the person's Apple sign-in when they delete their account. That needs Apple's

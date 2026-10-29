@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "ng.ile.app",
+      "bundleIdentifier": "app.myile",
       "supportsTablet": false,
       "usesAppleSignIn": true
     },
@@ -21,7 +21,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "ng.ile.app",
+      "package": "app.myile",
       "googleServicesFile": "./google-services.json"
     },
     "web": {
