@@ -59,8 +59,8 @@ export default function PhotoViewer({
           renderItem={renderItem}
         />
         <View style={[styles.bar, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
-          <Text style={styles.counter} accessibilityLiveRegion="polite">
-            {index + 1} / {photos.length}
+          <Text style={styles.counter} accessibilityLiveRegion="polite" numberOfLines={1}>
+            {photos.length === 1 ? title : `${index + 1} / ${photos.length}`}
           </Text>
           <Tap accessibilityRole="button" accessibilityLabel="Close photos" onPress={onClose} style={styles.close}>
             <X color={colors.white} size={22} />

@@ -11,7 +11,7 @@ import { fetchPeople } from "@/lib/profile";
 import { canEdit, dayLabel, editMessage } from "@shared/messaging.js";
 import { presenceLabel } from "@shared/presence.js";
 import { useChatPresence } from "@/lib/usePresence";
-import Avatar from "@/components/Avatar";
+import ProfilePhoto from "@/components/ProfilePhoto";
 import { priceParts } from "@/lib/property";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
 import Alert from "@/components/ui/Alert";
@@ -189,7 +189,7 @@ export default function ConversationPage() {
         <Link href="/messages" aria-label="Back to messages" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-ink/5 hover:text-ink">
           <ArrowLeft size={18} aria-hidden="true" />
         </Link>
-        <Avatar src={otherAvatar} name={otherName} size="sm" />
+        <ProfilePhoto src={otherAvatar} name={otherName} size="sm" />
         <div className="min-w-0 flex-1">
           {otherUserId ? (
             <Link href={`/u/${otherUserId}`} className="block truncate font-semibold text-ink hover:text-palm">

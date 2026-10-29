@@ -1,6 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
 import { Award, Building2, CalendarDays, Clock, Home as HomeIcon, Languages, MapPin, Star } from "lucide-react-native";
 import { fetchListerProfile } from "@shared/account.js";
@@ -12,6 +11,7 @@ import ReviewList from "@/components/ReviewList";
 import Screen from "@/components/Screen";
 import { Button, CardSkeleton, EmptyState, RowSkeleton } from "@/components/kit";
 import { useOnline } from "@/components/OfflineBanner";
+import ProfilePhoto from "@/components/ProfilePhoto";
 import { colors, fonts, radius } from "@/theme";
 
 const monthYear = (iso: string) => new Date(iso).toLocaleDateString("en-NG", { month: "long", year: "numeric" });
@@ -68,7 +68,7 @@ export default function ListerProfileScreen() {
       <Stack.Screen options={{ title: "" }} />
       <View style={styles.header}>
         {profile.avatar_url ? (
-          <Image source={{ uri: profile.avatar_url }} style={styles.avatar} cachePolicy="disk" alt="" />
+          <ProfilePhoto uri={profile.avatar_url} name={name} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.initial]}>
             <Text style={styles.initialText}>{name.charAt(0).toUpperCase()}</Text>

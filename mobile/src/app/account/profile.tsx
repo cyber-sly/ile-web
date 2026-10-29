@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import { Image } from "expo-image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, ImagePlus, MapPin, Trash2, UserRound, X } from "lucide-react-native";
 import { fetchMyProfile, formToProfileChanges, profileFieldsSupported, profileToForm, saveProfile, validateProfileForm } from "@shared/account.js";
@@ -21,6 +20,7 @@ import Button from "@/components/Button";
 import Screen from "@/components/Screen";
 import { colors, fonts, radius } from "@/theme";
 import Tap from "@/components/kit/Tap";
+import ProfilePhoto from "@/components/ProfilePhoto";
 
 type Form = Record<string, any>;
 type Option = { value: string; label: string };
@@ -116,7 +116,7 @@ function ProfileForm({ userId, profile, showLister }: { userId: string; profile:
       <ScrollView style={styles.page} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.photoRow}>
           {avatar ? (
-            <Image source={{ uri: avatar }} style={styles.avatar} cachePolicy="disk" alt="Your profile photo" />
+            <ProfilePhoto uri={avatar} name={v.full_name || "Your photo"} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.initial]}>
               <Text style={styles.initialText}>{(v.full_name || "?").charAt(0).toUpperCase()}</Text>

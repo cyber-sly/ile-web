@@ -5,7 +5,7 @@ import { cache } from "react";
 import { supabaseServer } from "@/lib/supabaseServer";
 import { listerLabel } from "@/lib/property";
 import { formatResponseTime, registrationLabel } from "@/lib/profileDisplay";
-import Avatar from "@/components/Avatar";
+import ProfilePhoto from "@/components/ProfilePhoto";
 import PropertyCard from "@/components/PropertyCard";
 import { Stars } from "@/components/Stars";
 import EmptyState from "@/components/ui/EmptyState";
@@ -65,7 +65,7 @@ export default async function ProfilePage({ params }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12">
       <header className="flex flex-col gap-5 rounded-[var(--radius-card)] border border-line bg-surface p-6 sm:flex-row sm:items-center sm:p-8">
-        <Avatar src={profile.avatar_url} name={name} size="lg" className="self-start" />
+        <ProfilePhoto src={profile.avatar_url} name={name} size="lg" className="self-start" />
         <div className="min-w-0 flex-1">
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink md:text-4xl">{name}</h1>
           {profile.business_name && <p className="mt-0.5 font-semibold text-ink">{profile.business_name}</p>}

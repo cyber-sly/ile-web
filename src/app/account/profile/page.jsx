@@ -14,7 +14,7 @@ import {
 import { LISTER_TYPES } from "@/lib/property";
 import { NIGERIA, STATES, stateLabel } from "@/lib/nigeria";
 import AccessWall, { PageSkeleton } from "@/components/AccessWall";
-import Avatar from "@/components/Avatar";
+import ProfilePhoto from "@/components/ProfilePhoto";
 import Field from "@/components/ui/Field";
 import Alert from "@/components/ui/Alert";
 import { button } from "@/components/ui/Button";
@@ -163,7 +163,7 @@ export default function EditProfilePage() {
       <form onSubmit={submit} className="mt-5 flex flex-col gap-5">
         <Section title="About you">
           <div className="flex items-center gap-4">
-            <Avatar src={avatar} name={v.full_name} size="lg" />
+            <ProfilePhoto src={avatar} name={v.full_name} size="lg" />
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className={button({ variant: "neutral", size: "sm" })}>
                 <Camera size={15} aria-hidden="true" /> {uploading ? "Uploading…" : avatar ? "Change photo" : "Add photo"}

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -34,6 +33,7 @@ import { useUnreadCount } from "@/lib/unread";
 import Screen from "@/components/Screen";
 import { Button, EmptyState } from "@/components/kit";
 import InviteCard from "@/components/InviteCard";
+import ProfilePhoto from "@/components/ProfilePhoto";
 import { useReferralSummary } from "@/lib/referrals";
 import { colors, fonts, radius } from "@/theme";
 
@@ -128,7 +128,7 @@ export default function AccountScreen() {
         <View style={styles.card}>
           <View style={styles.cardTop}>
             {p?.avatar_url ? (
-              <Image source={{ uri: p.avatar_url }} style={styles.avatar} cachePolicy="disk" alt="" />
+              <ProfilePhoto uri={p.avatar_url} name={String(name)} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.initial]}>
                 <Text style={styles.initialText}>{String(name).charAt(0).toUpperCase()}</Text>

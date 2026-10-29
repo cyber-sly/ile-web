@@ -52,8 +52,8 @@ function LightboxInner({ images, title, start, onClose: done }) {
       onClick={onClose}
     >
       <div className="flex items-center justify-between px-4 py-3 text-white sm:px-6">
-        <span className="text-sm font-medium text-white/80">
-          {index + 1} / {count}
+        <span className="truncate text-sm font-medium text-white/80">
+          {count === 1 ? title : `${index + 1} / ${count}`}
         </span>
         <button
           ref={closeRef}

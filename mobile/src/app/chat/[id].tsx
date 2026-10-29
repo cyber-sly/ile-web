@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, AppState, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useIsFocused, useLocalSearchParams } from "expo-router";
-import { Image } from "expo-image";
 import { onlineManager, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, ShieldCheck } from "lucide-react-native";
 import { canEdit, cleanMessage, editMessage, fetchThread, MAX_MESSAGE, markRead } from "@shared/messaging.js";
@@ -20,6 +19,7 @@ import Button from "@/components/Button";
 import { colors, fonts, radius } from "@/theme";
 import Tap from "@/components/kit/Tap";
 import PresenceLine from "@/components/PresenceLine";
+import ProfilePhoto from "@/components/ProfilePhoto";
 import { useChatPresence } from "@/lib/presence";
 
 type Thread = {
@@ -153,7 +153,7 @@ export default function ChatScreen() {
         <ArrowLeft color={colors.ink} size={22} />
       </Tap>
       {t?.other?.avatar ? (
-        <Image source={{ uri: t.other.avatar }} style={styles.avatar} cachePolicy="disk" alt="" />
+        <ProfilePhoto uri={t.other.avatar} name={t.other.name} style={styles.avatar} />
       ) : (
         <View style={[styles.avatar, styles.initial]}>
           <Text style={styles.initialText}>{(t?.other?.name || "?").charAt(0).toUpperCase()}</Text>

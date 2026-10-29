@@ -15,7 +15,7 @@ import { listerLabel } from "@/lib/property";
 import { CONTACT_EMAIL } from "@/lib/site";
 import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
-import Avatar from "@/components/Avatar";
+import ProfilePhoto from "@/components/ProfilePhoto";
 import NewPasswordForm from "@/components/NewPasswordForm";
 import DeleteAccount from "@/components/DeleteAccount";
 import SettingsRow, { SettingsGroup } from "@/components/SettingsRow";
@@ -168,7 +168,7 @@ export default function AccountPage() {
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/5" aria-hidden="true" />
         <div className="pointer-events-none absolute -bottom-20 right-20 h-40 w-40 rounded-full bg-gold/10" aria-hidden="true" />
         <div className="relative flex items-start gap-4">
-          <Avatar src={profile?.avatar_url} name={name} size="lg" className="ring-4 ring-white/15" />
+          <ProfilePhoto src={profile?.avatar_url} name={name} size="lg" className="ring-4 ring-white/15" />
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-serif text-2xl font-semibold sm:text-3xl">{name}</h1>
             {profile?.business_name && (
